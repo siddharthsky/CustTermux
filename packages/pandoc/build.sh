@@ -1,7 +1,7 @@
 TERMUX_PKG_HOMEPAGE=https://pandoc.org/
 TERMUX_PKG_DESCRIPTION="Universal markup converter"
 TERMUX_PKG_LICENSE="GPL-2.0"
-TERMUX_PKG_MAINTAINER="@termux"
+TERMUX_PKG_MAINTAINER="Aditya Alok <alok@termux.dev>"
 TERMUX_PKG_VERSION=3.1
 TERMUX_PKG_SRCURL="https://hackage.haskell.org/package/pandoc-$TERMUX_PKG_VERSION/pandoc-$TERMUX_PKG_VERSION.tar.gz"
 TERMUX_PKG_SHA256=f97956087c61b0f3fef618ea35da9f24bcd90aa409559bcda727631de7a696b7
