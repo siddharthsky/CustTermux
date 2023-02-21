@@ -18,7 +18,7 @@ termux_step_post_make_install() {
 
 termux_step_create_debscripts() {
 	cat <<-EOF >./postinst
-		#!${TERMUX_PREFIX}/bin/sh
-		pandoc --bash-completion > ${TERMUX_PREFIX}/share/bash-completion/completions/pandoc
+		#!$TERMUX_PREFIX/bin/sh
+		pandoc --bash-completion > $TERMUX_PREFIX/share/bash-completion/completions/pandoc
 	EOF
 }
