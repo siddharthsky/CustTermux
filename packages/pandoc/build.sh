@@ -11,7 +11,7 @@ TERMUX_PKG_BUILD_IN_SRC=true
 TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
 --ghc-option=-fexternal-interpreter
 --ghc-option=-pgmi=$TERMUX_PKG_CACHEDIR/bin/iserv-proxy
---ghc-options=-'opti159.223.171.199 -opti41407'"
+--ghc-options='-opti159.223.171.199 -opti41407'"
 
 termux_step_post_get_source(){
 	local tar_file="$TERMUX_PKG_CACHEDIR/iserv-proxy.tar.xz"
