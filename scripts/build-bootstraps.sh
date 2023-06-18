@@ -58,7 +58,7 @@ done
 
 # Build deb files for package and its dependencies deb from source for arch
 build_package() {
-	
+
 	local return_value
 
 	local package_arch="$1"
@@ -403,14 +403,12 @@ main() {
 
 		# Core utilities.
 		PACKAGES+=("bash")
-		PACKAGES+=("bzip2")
 		if ! ${BOOTSTRAP_ANDROID10_COMPATIBLE}; then
 			PACKAGES+=("command-not-found")
 		else
 			PACKAGES+=("proot")
 		fi
 		PACKAGES+=("coreutils")
-		PACKAGES+=("curl")
 		PACKAGES+=("dash")
 		PACKAGES+=("diffutils")
 		PACKAGES+=("findutils")
@@ -426,7 +424,6 @@ main() {
 		PACKAGES+=("termux-keyring")
 		PACKAGES+=("termux-tools")
 		PACKAGES+=("util-linux")
-		PACKAGES+=("xz-utils")
 
 		# Additional.
 		PACKAGES+=("ed")
