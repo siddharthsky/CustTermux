@@ -1,42 +1,37 @@
 TERMUX_PKG_HOMEPAGE=https://pandoc.org/
 TERMUX_PKG_DESCRIPTION="Universal markup converter"
 TERMUX_PKG_LICENSE="GPL-2.0"
-TERMUX_PKG_MAINTAINER="@termux"
-TERMUX_PKG_VERSION=2.19.2
-TERMUX_PKG_SKIP_SRC_EXTRACT=true
+TERMUX_PKG_MAINTAINER="Aditya Alok <alok@termux.dev>"
+TERMUX_PKG_VERSION=3.1
+TERMUX_PKG_SRCURL="https://hackage.haskell.org/package/pandoc-$TERMUX_PKG_VERSION/pandoc-$TERMUX_PKG_VERSION.tar.gz"
+TERMUX_PKG_SHA256=f97956087c61b0f3fef618ea35da9f24bcd90aa409559bcda727631de7a696b7
+TERMUX_PKG_DEPENDS="libffi"
+TERMUX_PKG_BUILD_DEPENDS="ghc-libs"
 TERMUX_PKG_BUILD_IN_SRC=true
-TERMUX_PKG_BLACKLISTED_ARCHES="arm, i686"
+TERMUX_PKG_EXTRA_CONFIGURE_ARGS="
+--ghc-option=-fexternal-interpreter
+--ghc-option=-pgmi=$TERMUX_PKG_CACHEDIR/bin/iserv-proxy
+--ghc-options='-opti159.223.171.199 -opti41407'"
 
-termux_step_make_install() {
-	local srcurl
-	local sha256
+termux_step_post_get_source(){
+	local tar_file="$TERMUX_PKG_CACHEDIR/iserv-proxy.tar.xz"
+	termux_download "https://github.com/MrAdityaAlok/ghc-cross-tools/releases/download/iserv-proxy-v9.2.5/iserv-proxy-9.2.5.tar.xz" \
+		"$tar_file" \
+		121a20990447e37fbd32ff37e2b809513e6b31824ae435038703e953a2fdadc5
+	mkdir -p "$TERMUX_PKG_CACHEDIR/bin"
+	tar xf "$tar_file" -C "$TERMUX_PKG_CACHEDIR/bin"
+}
 
-	case "$TERMUX_ARCH" in
-		aarch64)
-			srcurl="https://github.com/jgm/pandoc/releases/download/${TERMUX_PKG_VERSION}/pandoc-${TERMUX_PKG_VERSION}-linux-arm64.tar.gz"
-			sha256="43f364915b9da64905fc3f6009f5542f224e54fb24f71043ef5154540f1a3983"
-			;;
-		x86_64)
-			srcurl="https://github.com/jgm/pandoc/releases/download/${TERMUX_PKG_VERSION}/pandoc-${TERMUX_PKG_VERSION}-linux-amd64.tar.gz"
-			sha256="9d55c7afb6a244e8a615451ed9cb02e6a6f187ad4d169c6d5a123fa74adb4830"
-			;;
-		*)
-			termux_error_exit "Unsupported arch: $TERMUX_ARCH"
-			;;
-	esac
-
-	termux_download "$srcurl" "pandoc-${TERMUX_PKG_VERSION}.tar.gz" "$sha256"
-	tar xf "pandoc-${TERMUX_PKG_VERSION}.tar.gz"
-	cd "pandoc-${TERMUX_PKG_VERSION}"
-
-	install -Dm700 "./bin/pandoc" "$TERMUX_PREFIX/bin/pandoc"
-	install -Dm600 "./share/man/man1/pandoc.1.gz" "$TERMUX_PREFIX/share/man/man1/pandoc.1.gz"
+termux_step_post_make_install() {
+	# Will be compressed in massage step.
+	install -Dm600 ./man/pandoc.1 "$TERMUX_PREFIX"/share/man/man1/pandoc.1
+	# Create empty completions file so that it is removed on uninstalling the package.
 	install -Dm644 /dev/null "$TERMUX_PREFIX"/share/bash-completion/completions/pandoc
 }
 
 termux_step_create_debscripts() {
 	cat <<-EOF >./postinst
-		#!${TERMUX_PREFIX}/bin/sh
-		pandoc --bash-completion > ${TERMUX_PREFIX}/share/bash-completion/completions/pandoc
+		#!$TERMUX_PREFIX/bin/sh
+		pandoc --bash-completion > $TERMUX_PREFIX/share/bash-completion/completions/pandoc
 	EOF
 }
