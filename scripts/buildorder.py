@@ -186,6 +186,7 @@ class TermuxSubPackage:
         if "gpkg" in subpackage_file_path.split("/")[-3].split("-") and "glibc" not in self.name.split("-"):
             self.name = add_prefix_glibc_to_pkgname(self.name)
         self.parent = parent
+        self.virtual = virtual
         self.only_installing = parent.only_installing
         self.accept_dep_scr = parent.accept_dep_scr
         self.depend_on_parent = None
@@ -281,7 +282,7 @@ def generate_full_buildorder(pkgs_map):
     build_order = [pkgs_map[pkg] for pkg in pkgs_sort]
 
     # Get a list of cyclic dependencies for proper operation of package sorting.
-    cyclic_deps_list = get_list_cyclic_dependencies(pkgs_map, return_list=True)
+    cyclic_deps_list = get_list_cyclic_dependencies(pkgs_map, return_list=True, build_mode=True)
 
     # Start sorting packages by dependencies.
     while len(pkgs_sort) < len(pkgs_map):
@@ -300,7 +301,16 @@ def generate_full_buildorder(pkgs_map):
                 pkg = pkg.parent
                 is_subpackage = False
             subpkgs = [subpkg.name for subpkg in (pkg.parent.subpkgs if is_subpackage else pkg.subpkgs)]
-            for dep in pkg.deps:
+            deps = pkg.deps
+            for subpkg in subpkgs:
+                if not pkgs_map[subpkg].virtual:
+                    deps |= pkgs_map[subpkg].deps
+            if pkg.name in deps:
+                deps.remove(pkg.name)
+            for subpkg in subpkgs:
+                if subpkg in deps:
+                    deps.remove(subpkg)
+            for dep in deps:
                 # First, package dependencies are checked for circular dependencies.
                 # If a package does not have a cyclic dependency, then the condition
                 # is triggered that the dependency is not in the `subpkgs` list and
@@ -312,11 +322,15 @@ def generate_full_buildorder(pkgs_map):
                         break
                 else:
                     if dep not in subpkgs and dep not in pkgs_sort:
+                        if pkg.name == "zstd-glibc":
+                            print(pkg.name, dep, pkg.deps)
                         break
             else:
+                print(len(pkgs_sort), len(pkgs_map))
                 if not is_subpackage:
                     build_order.append(pkg)
                 pkgs_sort.append(pkg.name)
+                pkgs_sort += subpkgs
 
     return build_order
 
@@ -334,13 +348,13 @@ def generate_target_buildorder(target_path, pkgs_map, fast_build_mode):
         package.deps.difference_update([subpkg.name for subpkg in package.subpkgs])
     return package.recursive_dependencies(pkgs_map)
 
-def get_list_cyclic_dependencies(pkgs_map, index=None, checked=None, pkgname=None, return_list=False):
+def get_list_cyclic_dependencies(pkgs_map, index=None, cache=None, pkgname=None, return_list=False, build_mode=False):
     "Find and print (or return a list of) circular dependencies for all packages or for one specified package."
     # is_root - indicates that the function was run for the first time.
     # Here such functions are called "root function".
     is_root = index == None
     if is_root:
-        checked = []
+        cache = {}
         index = []
     result = []
 
@@ -352,16 +366,25 @@ def get_list_cyclic_dependencies(pkgs_map, index=None, checked=None, pkgname=Non
             range_pkgs = pkgs_map.keys()
     else:
         range_pkgs = pkgs_map[index[-1]].deps
+        if build_mode:
+            for subpkg in pkgs_map[index[-1]].subpkgs:
+                if not subpkg.virtual:
+                    range_pkgs |= subpkg.deps
+            if index[-1] in range_pkgs:
+                range_pkgs.remove(index[-1])
+            for subpkg in pkgs_map[index[-1]].subpkgs:
+                if subpkg.name in range_pkgs:
+                    range_pkgs.remove(subpkg.name)
+
     for pkg in range_pkgs:
-        if pkg in checked:
-            continue
+        if build_mode and isinstance(pkgs_map[pkg], TermuxSubPackage):
+            pkg = pkgs_map[pkg].parent.name
         index.append(pkg)
         if index.count(pkg) == 2:
             result.append(index.copy() if pkgname else index[index.index(pkg)::])
         else:
-            result += get_list_cyclic_dependencies(pkgs_map, index, checked, pkgname)
+            result += get_list_cyclic_dependencies(pkgs_map, index, cache, pkgname, build_mode=build_mode)
         del index[-1]
-        checked.append(pkg)
 
     # return result
     if is_root and not return_list:
@@ -400,10 +423,7 @@ def main():
     else:
         full_buildorder = False
 
-    if fast_build_mode and get_list_cirdep:
-        die('-i mode does not work for getting a list of circular dependencies')
-
-    if fast_build_mode and full_buildorder:
+    if fast_build_mode and full_buildorder and not get_list_cirdep:
         die('-i mode does not work when building all packages')
 
     if not full_buildorder:
@@ -422,9 +442,9 @@ def main():
 
     if get_list_cirdep:
         if full_buildorder:
-            get_list_cyclic_dependencies(pkgs_map)
+            get_list_cyclic_dependencies(pkgs_map, build_mode=not(fast_build_mode))
         else:
-            get_list_cyclic_dependencies(pkgs_map, pkgname=package.split("/")[-1])
+            get_list_cyclic_dependencies(pkgs_map, pkgname=package.split("/")[-1], build_mode=not(fast_build_mode))
         sys.exit(0)
 
     if full_buildorder:
