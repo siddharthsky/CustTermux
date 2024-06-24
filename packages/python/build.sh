@@ -7,7 +7,7 @@ TERMUX_PKG_MAINTAINER="@termux"
 # We get source file archive from Official Python.org's GitHub Account. Uses branch to keep the things latest.
 TERMUX_PKG_VERSION=3.12  # v3.12.4
 TERMUX_PKG_REVISION=2
-TERMUX_PKG_SRCURL=https://github.com/python/cpython/archive/${TERMUX_PKG_VERSION}/cpython-${TERMUX_PKG_VERSION}.tar.g
+TERMUX_PKG_SRCURL=https://github.com/python/cpython/archive/${TERMUX_PKG_VERSION}/cpython-${TERMUX_PKG_VERSION}.tar.gz
 TERMUX_PKG_SHA256=d833211ef08babdeecdba6447f371766f802b56731b34e0188949fb2fdeee968
 TERMUX_PKG_AUTO_UPDATE=false
 TERMUX_PKG_DEPENDS="gdbm, libandroid-posix-semaphore, libandroid-support, libbz2, libcrypt, libexpat, libffi, liblzma, libsqlite, ncurses, ncurses-ui-libs, openssl, readline, zlib"
