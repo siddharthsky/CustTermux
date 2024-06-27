@@ -1,0 +1,109 @@
+diff --git a/src/task-manager-linux.c b/src/task-manager-linux.c
+index e0b5d71..aa948fb 100644
+--- a/src/task-manager-linux.c
++++ b/src/task-manager-linux.c
+@@ -17,6 +17,12 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ #include <string.h>
++#ifdef __ANDROID__
++#include <stdlib.h>
++#include <math.h>
++#include <unistd.h>
++#define MAX_TOP_LINES 100
++#endif
+ 
+ #include <glib.h>
+ 
+@@ -24,6 +30,10 @@
+ 
+ static gushort _cpu_count = 0;
+ static gulong jiffies_total_delta = 0;
++#ifdef __ANDROID__
++static gboolean _cpu_count_attempted = FALSE;
++static gfloat _top_cpu_usage = .0f;
++#endif
+ 
+ gboolean
+ get_memory_usage (guint64 *memory_total, guint64 *memory_available, guint64 *memory_free, guint64 *memory_cache, guint64 *memory_buffers, guint64 *swap_total, guint64 *swap_free)
+@@ -71,9 +81,26 @@ get_memory_usage (guint64 *memory_total, guint64 *memory_available, guint64 *mem
+ 	return file ? TRUE : FALSE;
+ }
+ 
++#ifdef __ANDROID__
++void get_cpu_count () {
++	_cpu_count_attempted = TRUE;
++    _cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
++}
++#endif
++
+ gboolean
+ get_cpu_usage (gushort *cpu_count, gfloat *cpu_user, gfloat *cpu_system)
+ {
++#ifdef __ANDROID__
++	if (_cpu_count == 0 && !_cpu_count_attempted)
++		get_cpu_count();
++
++	*cpu_system = 0.0f;
++	*cpu_user = _top_cpu_usage;
++	*cpu_count = _cpu_count;
++
++	return TRUE;
++#else
+ 	FILE *file;
+ 	gchar *filename = "/proc/stat";
+ 	gchar buffer[1024];
+@@ -123,6 +150,7 @@ get_cpu_usage (gushort *cpu_count, gfloat *cpu_user, gfloat *cpu_system)
+ 	*cpu_count = _cpu_count;
+ 
+ 	return TRUE;
++#endif
+ }
+ 
+ static inline int get_pagesize (void)
+@@ -333,15 +361,45 @@ get_task_list (GArray *task_list)
+ 	GPid pid;
+ 	Task task;
+ 
++#ifdef __ANDROID__
++	_top_cpu_usage = .0f;
++#endif
+ 	if ((dir = g_dir_open ("/proc", 0, NULL)) == NULL)
+ 		return FALSE;
+ 
++#ifdef __ANDROID__
++    FILE* top_process;
++    int pids[MAX_TOP_LINES];
++    float cpu_usages[MAX_TOP_LINES];
++    int index = 0;
++    char line[100];
++
++	if (_cpu_count == 0 && !_cpu_count_attempted)
++		get_cpu_count();
++
++    if (_cpu_count && (top_process = popen("top -b -q -o PID,%CPU -s 2 -n 1", "r"))) {
++		while (fgets(line, sizeof(line), top_process) != NULL && index < MAX_TOP_LINES) {
++			if (sscanf(line, "%d %f", &pids[index], &cpu_usages[index]) == 2) {
++				cpu_usages[index] /= _cpu_count;
++				_top_cpu_usage += cpu_usages[index];
++				index++;
++			}
++		}
++    	pclose(top_process);
++    }
++#endif
+ 	while ((name = g_dir_read_name(dir)) != NULL)
+ 	{
+ 		if ((pid = (GPid)g_ascii_strtoull (name, NULL, 0)) > 0)
+ 		{
+ 			if (get_task_details (pid, &task))
+ 			{
++#ifdef __ANDROID__
++				for (int i = 0; i < index; i++) {
++					if (pid == pids[i])
++						task.cpu_user = cpu_usages[i];
++				}
++#endif
+ 				g_array_append_val (task_list, task);
+ 			}
+ 		}
