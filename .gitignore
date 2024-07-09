@@ -1,6 +1,7 @@
 # From https://gist.github.com/iainconnor/8605514
 # with the addition of the /captures below.
 /captures
+.github/
 
 # Built application files
 build/
