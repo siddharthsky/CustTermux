@@ -12,7 +12,7 @@
 
 ### 🚀 Usage
 
-1. Install an IPTV player (currently supported for autostart):
+1. Install an IPTV player [currently supported for autostart]:
    - OTT Navigator
    - Televiso
    - Sparkle TV
