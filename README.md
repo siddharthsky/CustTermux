@@ -9,7 +9,6 @@
 <h4 align="center">Fork of the Termux to run server automatically. </h4>
 
 
-
 ### Usage
 
 1. Install an IPTV player (currently supported for autostart):
