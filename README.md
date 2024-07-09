@@ -40,7 +40,7 @@
   
 2. If you are running server on Phone and using on TV.
    - In initial setup, Select "none" when asked to choose iptv player.
-   - Add this url in IPTV player[TV] http://{phone-ip-address}:5001/playlist.m3u 
+   - Add this url in IPTV player[TV] http://phone-ip-address:5001/playlist.m3u 
     
 
 
