@@ -42,4 +42,8 @@
    - Add this url in IPTV player[TV] http://phone-ip-address:5001/playlist.m3u 
     
 
+### Acknowledgements 🙌
+
+- [Termux](https://github.com/termux) 
+- [rabilrbl](https://github.com/rabilrbl)
 
