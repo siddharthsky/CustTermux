@@ -41,10 +41,10 @@
 
 ### ⚠️ Note
 
-1. Need to update Go binary / Need to change IPTV player / Termux force stopping / Having problems?
+- Need to update Go binary / Need to change IPTV player / Termux force stopping / Having problems?
    - Clear App Data and rerun.
 
-2. If you are running the server on your phone and using it on TV:
+- If you are running the server on your phone and using it on TV:
    - In the initial setup, select "none" when asked to choose an IPTV player.
    - Add this URL in the IPTV player on your TV: `http://phone-ip-address:5001/playlist.m3u`
 
