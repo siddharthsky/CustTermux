@@ -17,7 +17,7 @@
     2. Televiso
     3. Sparkle TV
 
-2. Install the CustTermux APK from the [release page](https://github.com/siddharthsky/CustTermux-JioTVGo/releases).
+2. Install the CustTermux APK from the [release page](https://github.com/siddharthsky/CustTermux-JioTVGo/releases). {eg. - FireTV=armeabi-v7a, If you don't know the architecture use "Universal".}
 
 3. Open CustTermux.
 
