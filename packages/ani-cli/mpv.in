@@ -1,3 +1,0 @@
-#!@TERMUX_PREFIX@/bin/sh
-
-am start --user 0 -a android.intent.action.VIEW -d "$1" -n is.xyz.mpv/.MPVActivity

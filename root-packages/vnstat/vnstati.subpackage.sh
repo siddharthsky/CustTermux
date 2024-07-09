@@ -1,3 +1,0 @@
-TERMUX_SUBPKG_DESCRIPTION="Image output for vnstat"
-TERMUX_SUBPKG_DEPENDS="libgd"
-TERMUX_SUBPKG_INCLUDE="bin/vnstati"

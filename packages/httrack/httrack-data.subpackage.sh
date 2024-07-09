@@ -1,5 +1,0 @@
-TERMUX_SUBPKG_DESCRIPTION="Platform-independent data for httrack"
-TERMUX_SUBPKG_PLATFORM_INDEPENDENT=true
-TERMUX_SUBPKG_INCLUDE="share/httrack/"
-TERMUX_SUBPKG_BREAKS="httrack (<< 3.49.3)"
-TERMUX_SUBPKG_REPLACES="httrack (<< 3.49.3)"

@@ -1,2 +1,0 @@
-TERMUX_SUBPKG_INCLUDE="bin/ share/man/man8/"
-TERMUX_SUBPKG_DESCRIPTION="Tools for TDB"

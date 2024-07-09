@@ -1,3 +1,0 @@
-#!@TERMUX_PREFIX@/bin/sh
-gdk-pixbuf-query-loaders --update-cache
-exit 0
