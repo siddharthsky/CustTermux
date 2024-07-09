@@ -1,11 +1,6 @@
-# License for package patches
+The `termux/termux-app` repository is released under [GPLv3 only](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
-The scripts and patches to build each package is licensed under the same
-license as the actual package (so the patches and scripts to build bash are
-licensed under the same license as bash, while the patches and scripts to build
-python are licensed under the same license as python).
+### Exceptions
 
-# License for the build infrastructure
-
-For build infrastructure outside the `packages/` folder the license is
-[Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+- [Terminal Emulator for Android](https://github.com/jackpal/Android-Terminal-Emulator) code is used which is released under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license. Check [`terminal-view`](terminal-view) and [`terminal-emulator`](terminal-emulator) libraries.
+- Check [`termux-shared/LICENSE.md`](termux-shared/LICENSE.md) for `termux-shared` library related exceptions.

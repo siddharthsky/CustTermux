@@ -1,35 +1,39 @@
+# From https://gist.github.com/iainconnor/8605514
+# with the addition of the /captures below.
+/captures
+
+# Built application files
+build/
+release/
+*.apk
+*.so
+.externalNativeBuild
+.cxx
+*.zip
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Gradle generated files
+.gradle/
+
+# Signing files
+.signing/
+
+# Intellij
+.idea/
+*.iml
+
 # Vim
-[._]*.s[a-w][a-z]
-[._]s[a-w][a-z]
-*.un~
-Session.vim
-.netrwhist
-*~
+*.swo
+*.swp
 
-# Vagrant
-scripts/.vagrant/
-
-# Logs
-scripts/*.log
-/*.log
-
-# GitHub Actions build artifacts
-debs*
-
-# Built *.deb files.
-/debs/
-/output/
-
-# Built bootstrap files
-/bootstrap-*.zip
-
-# Preinstalled build tools.
-/build-tools/
-
-# Predownloaded packages sources.
-/packages/*/cache
-/root-packages/*/cache
-/x11-packages/*/cache
-
-# Temp .git directories for packages built from local sources "file://"
-/*.git
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.swp
+ehthumbs.db
+Thumbs.db
