@@ -27,7 +27,7 @@
 
 4. It will automatically download the required files and ask you to select a default IPTV player.
 
-   [You can select "none" to just run the server. You can always use [SparkleTV2](https://github.com/siddharthsky/SparkleTV2-auto-service) to select any other IPTV player.]
+   [In IPTV selector, You can select "none" to just run the server and use [SparkleTV2](https://github.com/siddharthsky/SparkleTV2-auto-service) to select any other IPTV player.]
 
 5. In the end, it will redirect you to the login page. URL - [http://localhost:5001](http://localhost:5001)
 
@@ -41,7 +41,7 @@
 
 ### ⚠️ Note
 
-- Need to update Go binary / Need to change IPTV player / Termux force stopping / Having problems?
+- Need to update Go binary / Need to change IPTV player / Termux issues / Having problems?
    - Clear App Data and rerun.
 
 - If you are running the server on your phone and using it on TV:
