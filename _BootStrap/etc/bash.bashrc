@@ -50,10 +50,13 @@ esac
 
 
 
+
 # Check if jiotv_go exists
 if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
+	source ~/.bashrc #PATH update
+	
 	#------------------------------------------------
 	#IPTV CONFIG
 	retrieve_first_line() {
@@ -100,8 +103,11 @@ case "$OSTYPE" in
         ;;
 esac
 
+
 echo "Step 0: Updating Packages"
 pkg install termux-am -y
+pkg install jq -y
+pkg install termux-api -y
 
 
 echo "Step 1: Identified operating system as $OS"
@@ -170,18 +176,21 @@ case "$SHELL_NAME" in
 esac
 
 #-------------------------------
-selected=$(dialog --stdout --title "Select an Option" \
-    --menu "Choose one:" 0 0 0 \
-    OTTNavigator "OTT Navigator" \
-    Televizo "Televizo" \
-    SparkleTV "Sparkle TV" \
-    none "None of the Above")
+# Function to display menu and get selection
+select_option() {
+  output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,SparkleTV2,none")
+  echo "termux-dialog output: $output"  # Debugging line
 
-# Check if user made a selection
-if [ -n "$selected" ]; then
+  selected=$(echo "$output" | jq -r '.text')
+  if [ $? != 0 ]; then
+    echo "Canceled."
+    exit 1
+  fi
+  
+
+  if [ -n "$selected" ]; then
     echo "Selected: $selected"
 
-    # Handle specific cases for "frs" and "kae"
     case "$selected" in
         OTTNavigator)
             echo "studio.scillarium.ottnavigator/studio.scillarium.ottnavigator.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
@@ -192,27 +201,105 @@ if [ -n "$selected" ]; then
         SparkleTV)
             echo "se.hedekonsult.sparkle/se.hedekonsult.sparkle.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
             ;;
+        TiviMate)
+            echo "ar.tvplayer.tv/ar.tvplayer.tv.ui.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+            ;;
+        SparkleTV2)
+            echo "com.skylake.siddharthsky.sparkletv2/com.skylake.siddharthsky.sparkletv2.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+            ;;
         none)
-			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+            echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
             ;;
     esac
-else
+  else
     echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-fi
+  fi
+}
+
+# Main execution
+select_option
 #---------------------------------
 
 
-echo -e "-----------------------------------"
-echo "Redirecting to login page."
-echo -e "\e[1;32mURL:https://localhost:5001\e[0m"
-echo -e "-----------------------------------"
+source ~/.bashrc
 
-sleep 7
+
+#echo -e "-----------------------------------"
+#echo "Redirecting to login page."
+#echo -e "\e[1;32mURL:https://localhost:5001\e[0m"
+#echo -e "-----------------------------------"
+
+#sleep 7
 
 echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 
-termux-open-url http:localhost:5001
+#termux-open-url http:localhost:5001
+
+$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+
+#!/bin/bash
+#############################################
+# Global variable to store phone number
+PHONE_NUMBER=""
+
+# Function to send OTP
+send_otp() {
+  # Fetch number from input using termux-dialog
+  PHONE_NUMBER=$(termux-dialog text -t "Enter your Jio number to login" | jq -r '.text')
+  if [ $? != 0 ]; then
+    echo "Canceled."
+    exit 1
+  fi
+
+  if [ -z "$PHONE_NUMBER" ]; then
+    termux-dialog confirm -t "Error" -i "Number is required!"
+    exit 1
+  fi
+
+  # Define the URL
+  url="http://localhost:5001/login/sendOTP"
+
+  # Send OTP request
+  response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+}
+
+# Function to verify OTP
+verify_otp() {
+  # Fetch OTP from input using termux-dialog
+  otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
+  if [ $? != 0 ]; then
+    echo "Canceled."
+    exit 1
+  fi
+
+  if [ -z "$otp" ]; then
+    termux-dialog confirm -t "Error" -i "OTP is required!"
+    exit 1
+  fi
+
+  # Define the URL
+  url="http://localhost:5001/login/verifyOTP"
+
+  # Send OTP verification request
+  response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+}
+
+# Main execution
+send_otp
+verify_otp
+
+$HOME/.jiotv_go/bin/jiotv_go bg kill
+
+echo -e "\e[1;32mForce Stop CustTermux and Rerun.\e[0m"
+echo -e "--or--"
+echo -e "\e[1;33mRestart Device\e[0m"
+echo -e "----------------------------"
+echo -e "----------------------------"
+echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
+echo -e "----------------------------"
 
 $HOME/.jiotv_go/bin/jiotv_go run -P
+#############################################
+
 
 
