@@ -298,6 +298,29 @@ echo -e "----------------------------"
 echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
 echo -e "----------------------------"
 
+#------------------------------------------------
+#IPTV CONFIG
+retrieve_first_line() {
+	local option=""
+	# Check if iptv.cfg exists and has content
+	if [ -f "$HOME/.jiotv_go/bin/iptv.cfg" ]; then
+		option=$(head -n 1 "$HOME/.jiotv_go/bin/iptv.cfg")
+	else
+		echo "iptv.cfg file not found or empty."
+	fi
+	echo "$option"
+}
+
+retrieved_option=$(retrieve_first_line)
+
+if [ "$retrieved_option" = "NULL" ]; then
+	echo ""
+else
+	am start --user 0 -n $retrieved_option
+fi
+
+#------------------------------------------------
+	
 $HOME/.jiotv_go/bin/jiotv_go run -P
 #############################################
 
