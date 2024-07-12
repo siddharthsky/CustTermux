@@ -29,3 +29,5 @@ autoboot() {
 
 # Main execution
 autoboot
+
+am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
