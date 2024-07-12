@@ -101,7 +101,7 @@ gui_req() {
     # Function to check if com.termux.api package is available
 	#!/bin/bash
 
-	autoboot() {
+	autobootx() {
 		# Function to check if the package is available
 		PACKAGE_NAME="com.termux.api"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
@@ -117,7 +117,7 @@ gui_req() {
 
 	}
 
-	autoboot
+	autobootx
 
 }
 
