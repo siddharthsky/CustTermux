@@ -21,7 +21,7 @@ autoboot() {
 		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
 		chmod 755 "$HOME/Tapi.apk"
 		termux-open "$HOME/Tapi.apk"
-        sleep 7  # Wait for 5 seconds before checking again
+        sleep 5  # Wait for 5 seconds before checking again
     done
 
     echo "The package $PACKAGE_NAME is now available."
