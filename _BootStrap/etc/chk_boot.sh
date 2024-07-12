@@ -25,14 +25,14 @@ autoboot() {
     done
 
     echo "The package $PACKAGE_NAME is now available."
+    sleep 3
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
 # Main execution
 autoboot
 
-echo -e "The package \e[1;32mcom.termux.boot\e[0m is now available."
 
-sleep 3
 
 am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 
