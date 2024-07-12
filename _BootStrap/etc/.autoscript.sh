@@ -103,37 +103,18 @@ gui_req() {
 
 	autoboot() {
 		# Function to check if the package is available
-		check_package() {
-			PACKAGE_NAME="com.termux.api"
-			out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
-			
-			# Check if the output contains the package path
-			if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
-				echo "The package $PACKAGE_NAME is installed."
-				return 0
-			else
-				return 1
-			fi
-		}
+		PACKAGE_NAME="com.termux.api"
+		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
+		
+		# Check if the output contains the package path
+		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
+			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+		else
+			echo -e "Please install : \e[31m$PACKAGE_NAME\e[0m"
+			sleep 10
+			exit 1
+		fi
 
-		# Loop until the package is available
-		while ! check_package; do
-			echo "The package $PACKAGE_NAME is not installed. Checking again..."
-			curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
-			chmod 755 "$HOME/Tapi.apk"
-			echo "termux-open "$HOME/Tapi.apk"" > $HOME/install.sh
-			chmod 755 $HOME/install.sh
-			am startservice --user 0 -n com.termux/com.termux.app.RunCommandService \
-			-a com.termux.RUN_COMMAND \
-			--es com.termux.RUN_COMMAND_PATH '/data/data/com.termux/files/home/install.sh' \
-			--esa com.termux.RUN_COMMAND_ARGUMENTS '' \
-			--es com.termux.RUN_COMMAND_WORKDIR '/data/data/com.termux/files/home' \
-			--ez com.termux.RUN_COMMAND_BACKGROUND 'false' \
-			--es com.termux.RUN_COMMAND_SESSION_ACTION '0'
-			sleep 10  
-		done
-
-		echo -e "The package \e[32m$PACKAGE_NAME\e[0m is now available."
 	}
 
 	autoboot
@@ -398,37 +379,18 @@ autoboot() {
     # Function to check if com.termux.boot package is available
 	autochk() {
 		# Function to check if the package is available
-		check_package() {
-			PACKAGE_NAME="com.termux.boot"
-			out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
-			
-			# Check if the output contains the package path
-			if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
-				echo "The package $PACKAGE_NAME is installed."
-				return 0
-			else
-				return 1
-			fi
-		}
 
-		# Loop until the package is available
-		while ! check_package; do
-			echo "The package $PACKAGE_NAME is not installed. Checking again..."
-			curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
-			chmod 755 "$HOME/Tboot.apk"
-			echo "termux-open "$HOME/Tboot.apk"" > $HOME/install.sh
-			chmod 755 $HOME/install.sh
-			am startservice --user 0 -n com.termux/com.termux.app.RunCommandService \
-			-a com.termux.RUN_COMMAND \
-			--es com.termux.RUN_COMMAND_PATH '/data/data/com.termux/files/home/install.sh' \
-			--esa com.termux.RUN_COMMAND_ARGUMENTS '' \
-			--es com.termux.RUN_COMMAND_WORKDIR '/data/data/com.termux/files/home' \
-			--ez com.termux.RUN_COMMAND_BACKGROUND 'false' \
-			--es com.termux.RUN_COMMAND_SESSION_ACTION '0'
-			sleep 10  
-		done
-
-		echo -e "The package \e[32m$PACKAGE_NAME\e[0m is now available."
+		PACKAGE_NAME="com.termux.boot"
+		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
+		
+		# Check if the output contains the package path
+		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
+			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+		else
+			echo -e "Please install : \e[31m$PACKAGE_NAME\e[0m"
+			sleep 10
+			exit 1
+		fi
 	}
 
 	autochk	
