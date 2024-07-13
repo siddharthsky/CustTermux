@@ -184,7 +184,7 @@ select_mode() {
     fi
     
     MODE_ONE="DefaultMode: You open CustTermux to run the server. which then redirects to IPTV automatically. [for TV]"
-    MODE_TWO="ServerMode: Server on Phone, Watch on TV [for Phone]"
+    MODE_TWO="ServerMode: Server on Phone\, Watch on TV [for Phone]"
 	MODE_THREE="StandaloneAppMode: For using JioTV Go via webpage [for Phone]"
 
     
@@ -507,6 +507,7 @@ FINAL_INSTALL() {
 				autoboot
             ;;
                 *)
+			esac
 
 			select_iptv
 			send_otp
