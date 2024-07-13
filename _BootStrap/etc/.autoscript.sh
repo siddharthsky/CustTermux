@@ -438,7 +438,7 @@ fi
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
 if [ ! -f "$FILE_PATH" ]; then
-	mkdir -p "$FILE_PATH"
+	mkdir -p "$HOME/.jiotv_go/bin/"
     echo "FIRST_RUN" > "$FILE_PATH"
 	echo "-----------------------"
 	echo "INSTALLATION -- PART 1"
