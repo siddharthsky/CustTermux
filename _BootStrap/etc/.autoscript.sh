@@ -575,7 +575,6 @@ FINAL_INSTALL() {
 			verify_otp
 			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
-			Server_Runner
 			;;
 		"MODE_TWO")
 			echo "Setting Server Mode"
@@ -586,7 +585,6 @@ FINAL_INSTALL() {
 			verify_otp
 			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
-			Server_Runner
 			;;
 		"MODE_THREE")
 			echo "Setting Standalone Mode"
@@ -596,7 +594,6 @@ FINAL_INSTALL() {
 			verify_otp
 			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH."
-			Server_Runner
 			;;
 		*)
 			echo "mode.cfg file not found or empty."
@@ -651,6 +648,7 @@ else
 		Default_Installation
 		FINAL_INSTALL
 		echo "FINAL_RUN" > "$FILE_PATH"
+		Server_Runner
 		echo -e "----------------------------"
 		echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
 		echo -e "----------------------------"
