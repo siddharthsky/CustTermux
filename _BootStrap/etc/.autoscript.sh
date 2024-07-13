@@ -18,19 +18,22 @@ case "$SHELL_NAME" in
 esac
 
 
+
 wait_and_count() {
     local duration=$1
     local counter=0
+    local spinner="/-\|"
+    local bar_length=30
 
-    echo "Waiting for $duration seconds..."
+    echo "[$duration]Processing..."
     while [ $counter -lt $duration ]; do
-        echo -ne "Time elapsed: $counter seconds\r"
+        local progress=$((counter * bar_length / duration))
+        printf "\r[\033[0;32m%-*s\033[0m] %d%% %c" $bar_length $(printf '#%.0s' $(seq 1 $progress)) $((counter * 100 / duration)) ${spinner:counter%4:1}
         sleep 1
         ((counter++))
     done
-    echo -e "\nWait complete!"
+    printf "\r[\033[0;32m%-*s\033[0m] 100%% \n" $bar_length $(printf '#%.0s' $(seq 1 $bar_length))
 }
-
 
 
 
@@ -156,8 +159,6 @@ gui_req() {
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
-	am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
-	wait_and_count 10
 	echo "If stuck, Please clear app data and restart your device."
 
 }
@@ -165,7 +166,26 @@ gui_req() {
 
 
 check_termux_api() {
+
+	app_permission_check (){
+		touch "$HOME/.jiotv_go/bin/permission.cfg"
+		chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
+		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")	
+		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
+			""
+		else
+			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
+			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
+			echo "waiting for app install permissions"
+			wait_and_count 20
+			echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
+		fi
+
+	}
+	
+
 	check_package() {
+		app_permission_check
 		# Function to check if the package is available
 		PACKAGE_NAME="com.termux.api"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
@@ -181,6 +201,7 @@ check_termux_api() {
 		fi
 
 	}
+
 	# Loop until the package is available
     while ! check_package; do
         echo "The package $PACKAGE_NAME is not installed. Checking again..."
@@ -459,8 +480,25 @@ verify_otp() {
 
 
 autoboot() {
+	app_permission_check (){
+		touch "$HOME/.jiotv_go/bin/permission.cfg"
+		chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
+		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")	
+		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
+			""
+		else
+			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
+			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
+			echo "Waiting for app install permissions"
+			wait_and_count 15
+
+		fi
+
+	}
+
     # Function to check if com.termux.boot package is available
 	check_package() {
+		app_permission_check
 		# Function to check if the package is available
 
 		PACKAGE_NAME="com.termux.boot"
@@ -482,7 +520,7 @@ autoboot() {
 		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
 		chmod 755 "$HOME/Tboot.apk"
 		termux-open "$HOME/Tboot.apk"
-        wait_and_count 20
+        wait_and_count 15
     done
 
 	boot_file() {
@@ -499,7 +537,7 @@ autoboot() {
 		echo "$HOME/.jiotv_go/bin/jiotv_go bg run -P" >> ~/.termux/boot/start_jio.sh
 		
 		chmod 777 "$HOME/.termux/boot/start_jio.sh"
-		wait_and_count 20
+		wait_and_count 10
 	}
 	
 	boot_file
