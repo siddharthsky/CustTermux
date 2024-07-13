@@ -152,7 +152,7 @@ select_mode() {
 	MODE_THREE="StandaloneMode: The server starts and redirects to the JioTV Go webpage."
 
     
-    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO",$MODE_THREE)
+    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
 
     selected=$(echo "$output" | jq -r '.text')
     if [ $? != 0 ]; then
