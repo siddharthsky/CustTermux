@@ -36,12 +36,29 @@ wait_and_count() {
 }
 
 
+IP_ADD=""
+get_ip_address() {
+    local ip_address=$(termux-wifi-connectioninfo | grep -oP '(?<="ip": ")[^"]+')
+    IP_ADD="$ip_address"
+}
+get_ip_address
+
+
+echo "---------------------------"
 
 Server_Runner() {
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
-	echo "Login Page: http://localhost:5001"
+	echo -e "\e[96mFor Local Access:\e[0m"
+	echo -e "\e[96mLogin Page:\e[0m http://localhost:5001"
+	echo -e "\e[96mIPTV Playlist:\e[0m http://localhost:5001/playlist.m3u"
 	echo "---------------------------"
+	echo -e "\e[93mFor External Access:\e[0m"
+	echo -e "\e[93mLogin Page:\e[0m http://$IP_ADD:5001"
+	echo -e "\e[93mIPTV Playlist:\e[0m http://$IP_ADD:5001/playlist.m3u"
+	echo "---------------------------"
+
+	
 	source ~/.bashrc #PATH update
 
 	#------------------------------------------------
@@ -635,7 +652,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 sleep 2
-echo "verision: 4"
+echo "Script :version 5"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
