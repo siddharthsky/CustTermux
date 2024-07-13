@@ -103,7 +103,7 @@ Server_Runner() {
 		termux-wake-lock
 		sleep 1
 		echo "Starting IPTV player: $retrieved_iptv"
-		am start --user 0 -n $retrieved_iptv
+		oz = $(am start --user 0 -n $retrieved_iptv)
 		
 	fi
 	
@@ -430,39 +430,44 @@ PHONE_NUMBER=""
 
 # Function to send OTP
 send_otp() {
-  source ~/.bashrc
-  $HOME/.jiotv_go/bin/jiotv_go bg run	
-  # Fetch number from input using termux-dialog
-  PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
-  if [ $? != 0 ]; then
-    echo "Canceled."
-  fi
+	source ~/.bashrc
+	# Fetch number from input using termux-dialog
+	PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "Canceled."
+	fi
 
 
 
-  # Define the URL
-  url="http://localhost:5001/login/sendOTP"
+	url="http://localhost:5001/login/sendOTP"
 
-  # Send OTP request
-  response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
-  sleep 1
+	# Send OTP request
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+	sleep 1
 }
 
 # Function to verify OTP
 verify_otp() {
-  # Fetch OTP from input using termux-dialog
-  otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
-  if [ $? != 0 ]; then
-    echo "Canceled."
-  fi
+	# Fetch OTP from input using termux-dialog
+	otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "Canceled."
+	fi
 
 
-  # Define the URL
-  url="http://localhost:5001/login/verifyOTP"
+	url="http://localhost:5001/login/verifyOTP"
 
-  # Send OTP verification request
-  response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
-  $HOME/.jiotv_go/bin/jiotv_go bg kill
+	# Send OTP verification request
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+
+	json_string=$(echo "$response" | jq -c .)
+
+	if echo "$json_string" | grep -q "success"; then
+		echo -e "\e[32mLogged in Successfully."
+	else
+		echo -e "\e[31mLogin failed.\033[0m"
+	fi
+
 }
 
 # Main execution
@@ -566,8 +571,10 @@ FINAL_INSTALL() {
 			esac
 
 			select_iptv
+			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
+			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			Server_Runner
 			;;
@@ -575,16 +582,20 @@ FINAL_INSTALL() {
 			echo "Setting Server Mode"
 			#autoboot
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
+			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			Server_Runner
 			;;
 		"MODE_THREE")
 			echo "Setting Standalone Mode"
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
+			$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH."
 			Server_Runner
 			;;
