@@ -154,6 +154,7 @@ check_termux_api() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
 			echo "If stuck, Please clear app data and restart your device."
 			return 0
 		else
@@ -170,6 +171,7 @@ check_termux_api() {
         sleep 10  # Wait for 10 seconds before checking again
     done
 
+	Install_Alert=$(termux-dialog spinner -v "Termux:API Installed" -t "CustTermux")
 }
 
 
@@ -474,6 +476,8 @@ autoboot() {
 	
 	boot_file
 
+	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed" -t "CustTermux")
+	
 
 
 	sleep 3
