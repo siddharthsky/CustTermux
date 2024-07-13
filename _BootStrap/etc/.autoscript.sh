@@ -188,9 +188,9 @@ select_mode() {
         mkdir -p "$HOME/.jiotv_go/bin"
     fi
     
-	MODE_ONE="Default Mode: Launch CustTermux to run the server\, then auto-redirect to IPTV [for TV]."
-	MODE_TWO="Server Mode: Run the server on your phone and watch IPTV on your TV [for Phone]."
-	MODE_THREE="Standalone App Mode: Access JioTV Go via the webpage [for Phone]."
+	MODE_ONE="Default Mode: Launch CustTermux to run server & auto-redirect to IPTV player [for TV]."
+	MODE_TWO="Server Mode: Run server on your phone and watch on your TV [for Phone]."
+	MODE_THREE="Standalone App Mode: Access JioTV Go via webpage [for Phone]."
 
     
     output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
