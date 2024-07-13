@@ -19,6 +19,7 @@ esac
 
 
 
+
 Server_Runner() {
 	# Check if jiotv_go exists
 	$HOME/.jiotv_go/bin/jiotv_go -v
@@ -83,13 +84,10 @@ Server_Runner() {
 }
 
 
-# Check if jiotv_go exists
-if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
-	Server_Runner
-	sleep 30
-	exit 1
-	
-fi
+
+
+
+
 
 gui_req() {
 	echo "Step 0: Updating Packages"
@@ -121,7 +119,7 @@ gui_req() {
 
 }
 
-gui_req
+
 
 
 
@@ -169,7 +167,7 @@ select_mode() {
     fi
 }
 
-select_mode
+
 
 
 
@@ -419,6 +417,59 @@ autoboot() {
 
 	
 }
+
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+######################################################################################
+
+
+# Check if jiotv_go exists
+if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
+	Server_Runner
+	sleep 30
+	exit 1
+fi
+
+
+
+FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
+
+if [ ! -f "$FILE_PATH" ]; then
+	mkdir -p "$FILE_PATH"
+    echo "FIRST_RUN" > "$FILE_PATH"
+	echo "-----------------------"
+	echo "INSTALLATION -- PART 1"
+	echo "-----------------------"
+	gui_req
+	select_mode
+	echo "SECOND_RUN" > "$FILE_PATH"
+else
+    RUN_STATUS=$(cat "$FILE_PATH")
+
+    if [ "$RUN_STATUS" == "FIRST_RUN" ]; then
+       	echo "-----------------------"
+        echo "INSTALLATION -- PART 1"
+		echo "-----------------------"
+		gui_req
+		select_mode
+		echo "SECOND_RUN" > "$FILE_PATH"
+		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+	elif [ "$RUN_STATUS" == "SECOND_RUN" ]; then
+       	echo "-----------------------"
+        echo "INSTALLATION -- PART 2"
+		echo "-----------------------"
+		return 0
+    else 
+       echo "Something Went Wrong : Clear App Data"
+	   sleep 30
+	   exit 1
+    fi
+fi
+
+
 
 
 
