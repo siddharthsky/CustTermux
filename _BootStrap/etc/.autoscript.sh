@@ -25,7 +25,7 @@ wait_and_count() {
     local spinner="/-\|"
     local bar_length=30
 
-    echo "[$duration]Processing..."
+    echo "[$duration] Processing..."
     while [ $counter -lt $duration ]; do
         local progress=$((counter * bar_length / duration))
         printf "\r[\033[0;32m%-*s\033[0m] %d%% %c" $bar_length $(printf '#%.0s' $(seq 1 $progress)) $((counter * 100 / duration)) ${spinner:counter%4:1}
@@ -175,6 +175,7 @@ check_termux_api() {
 			""
 		else
 			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
+			termux-toast -g bottom 'Give premisson and press back to continue'
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
 			echo "waiting for app install permissions"
 			wait_and_count 20
