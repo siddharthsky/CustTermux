@@ -64,7 +64,8 @@ Server_Runner() {
 	else
 		termux-wake-lock
 		sleep 1
-		am start --user 0 -n $retrieved_iptv
+		open_tv = $(am start --user 0 -n $retrieved_iptv)
+		echo "Starting IPTV player: $open_tv"
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
@@ -595,9 +596,11 @@ else
 		Default_Installation
 		FINAL_INSTALL
 		echo "FINAL_RUN" > "$FILE_PATH"
-		return 0
+		echo -e "----------------------------"
+		echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
+		echo -e "----------------------------"
 	elif [ "$RUN_STATUS" == "FINAL_RUN" ]; then
-		return 0
+		echo ""
     else 
        echo "Something Went Wrong : Clear App Data"
 	   sleep 30
@@ -611,13 +614,6 @@ fi
 
 
 
-echo -e "\e[1;32mForce Stop CustTermux and Rerun.\e[0m"
-echo -e "--or--"
-echo -e "\e[1;33mRestart Device\e[0m"
-echo -e "----------------------------"
-echo -e "----------------------------"
-echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
-echo -e "----------------------------"
 
 #Final Runner
 if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
