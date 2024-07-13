@@ -48,18 +48,35 @@ Server_Runner() {
 			termux-dialog confirm -t "Login Required" -i "Login Error. Proceed with login?" 
 		}
 
-		if [ $response -eq 500 ]; then
+	case $response in
+		500)
 			if prompt_login | grep -q "yes"; then
-				bg_process = $($HOME/.jiotv_go/bin/jiotv_go bg run)
+				$HOME/.jiotv_go/bin/jiotv_go bg run
 				send_otp
 				verify_otp
-				bg_process = $($HOME/.jiotv_go/bin/jiotv_go bg kill)
+				$HOME/.jiotv_go/bin/jiotv_go bg kill
 			else
 				echo "User chose not to login."
 			fi
-		else
-		    echo "Login detected!"
-		fi
+			;;
+		200)
+			echo "Login detected!"
+			;;
+		302)
+			echo "Login detected!"
+			;;
+		*)
+			if prompt_login | grep -q "yes"; then
+				$HOME/.jiotv_go/bin/jiotv_go bg run
+				send_otp
+				verify_otp
+				$HOME/.jiotv_go/bin/jiotv_go bg kill
+			else
+				echo "User chose not to login."
+			fi
+			;;
+	esac
+
 		
 	}
 
