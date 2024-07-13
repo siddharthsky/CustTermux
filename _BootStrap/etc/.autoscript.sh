@@ -63,7 +63,7 @@ Server_Runner() {
 		echo ""
 	else
 		termux-wake-lock
-		sleep 2
+		sleep 1
 		am start --user 0 -n $retrieved_iptv
 	fi
 	
