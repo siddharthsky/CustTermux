@@ -37,51 +37,10 @@ wait_and_count() {
 Server_Runner() {
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
+	echo "Login Page: http://localhost:5001"
+	echo "---------------------------"
 	source ~/.bashrc #PATH update
 
-	#Log in checker
-	LoginChecker() {
-		URL="http://localhost:5001/live/143.m3u8"
-		response=$(curl -s -o /dev/null -w "%{http_code}" $URL)
-
-		prompt_login() {
-			termux-dialog confirm -t "Login Required" -i "Login Error. Proceed with login?" 
-		}
-
-	case $response in
-		500)
-			if prompt_login | grep -q "yes"; then
-				$HOME/.jiotv_go/bin/jiotv_go bg run
-				send_otp
-				verify_otp
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
-			else
-				echo "User chose not to login."
-			fi
-			;;
-		200)
-			echo "Login detected!"
-			;;
-		302)
-			echo "Login detected!"
-			;;
-		*)
-			if prompt_login | grep -q "yes"; then
-				$HOME/.jiotv_go/bin/jiotv_go bg run
-				send_otp
-				verify_otp
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
-			else
-				echo "User chose not to login."
-			fi
-			;;
-	esac
-
-		
-	}
-
-	LoginChecker
-	
 	#------------------------------------------------
 	#MODE CONFIG
 	retrieve_first_line_mode() {
