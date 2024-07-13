@@ -50,8 +50,10 @@ Server_Runner() {
 
 		if [ $response -eq 500 ]; then
 			if prompt_login | grep -q "yes"; then
+				$HOME/.jiotv_go/bin/jiotv_go bg run
 				send_otp
 				verify_otp
+				$HOME/.jiotv_go/bin/jiotv_go bg kill
 			else
 				echo "User chose not to login."
 			fi
