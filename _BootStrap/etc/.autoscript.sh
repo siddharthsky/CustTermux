@@ -61,8 +61,7 @@ Server_Runner() {
 		
 	}
 
-
-	
+	LoginChecker
 	
 	#------------------------------------------------
 	#MODE CONFIG
@@ -102,8 +101,7 @@ Server_Runner() {
 	else
 		termux-wake-lock
 		sleep 1
-		echo "Starting IPTV player: $retrieved_iptv"
-		oz = $(am start --user 0 -n $retrieved_iptv)
+		am start --user 0 -n $retrieved_iptv
 		
 	fi
 	
@@ -377,43 +375,44 @@ Default_Installation() {
 #-------------------------------
 # Function to display menu and get selection
 select_iptv() {
-  output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,SparkleTV2,none")
+	spr="SparkleTV2 - any app"	
+	output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
 
-  selected=$(echo "$output" | jq -r '.text')
-  if [ $? != 0 ]; then
-    echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-  fi
-  
+	selected=$(echo "$output" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+	fi
+	
 
-  if [ -n "$selected" ]; then
-    echo "Selected: $selected"
+	if [ -n "$selected" ]; then
+		echo "Selected: $selected"
 
-    case "$selected" in
-        OTTNavigator)
-            echo "studio.scillarium.ottnavigator/studio.scillarium.ottnavigator.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-        Televizo)
-            echo "com.ottplay.ottplay/com.ottplay.ottplay.StartActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-        SparkleTV)
-            echo "se.hedekonsult.sparkle/se.hedekonsult.sparkle.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-        TiviMate)
-            echo "ar.tvplayer.tv/ar.tvplayer.tv.ui.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-		Kodi)
-            echo "org.xbmc.kodi/org.xbmc.kodi.Splash" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-        SparkleTV2)
-            echo "com.skylake.siddharthsky.sparkletv2/com.skylake.siddharthsky.sparkletv2.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-        none)
-            echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-            ;;
-    esac
-  else
-    echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-  fi
+		case "$selected" in
+			OTTNavigator)
+				echo "studio.scillarium.ottnavigator/studio.scillarium.ottnavigator.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			Televizo)
+				echo "com.ottplay.ottplay/com.ottplay.ottplay.StartActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			SparkleTV)
+				echo "se.hedekonsult.sparkle/se.hedekonsult.sparkle.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			TiviMate)
+				echo "ar.tvplayer.tv/ar.tvplayer.tv.ui.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			Kodi)
+				echo "org.xbmc.kodi/org.xbmc.kodi.Splash" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			$spr)
+				echo "com.skylake.siddharthsky.sparkletv2/com.skylake.siddharthsky.sparkletv2.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+			none)
+				echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+				;;
+		esac
+	else
+		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+	fi
 }
 
 # Main execution
@@ -463,9 +462,9 @@ verify_otp() {
 	json_string=$(echo "$response" | jq -c .)
 
 	if echo "$json_string" | grep -q "success"; then
-		echo -e "\e[32mLogged in Successfully."
+		echo -e "\e[32mLogged in Successfully.\e[0m"
 	else
-		echo -e "\e[31mLogin failed.\033[0m"
+		echo -e "\e[31mLogin failed.\e[0m"
 	fi
 
 }
