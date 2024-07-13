@@ -501,6 +501,8 @@ FINAL_INSTALL() {
 		"MODE_ONE")
 			echo "Setting Default Mode"
 
+			select_autoboot_or_not
+			
 			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/autoboot_or_not.cfg")
 
 			case "$retrieved_boot_or_not" in
