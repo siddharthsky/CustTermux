@@ -543,7 +543,7 @@ autoboot() {
 	
 	boot_file
 
-	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed" -t "CustTermux")
+	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed Successfully" -t "CustTermux")
 	
 
 	
@@ -593,7 +593,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			$HOME/.jiotv_go/bin/jiotv_go bg kill
-			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
 			echo "Setting Server Mode"
@@ -603,7 +603,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			$HOME/.jiotv_go/bin/jiotv_go bg kill
-			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_THREE")
 			echo "Setting Standalone Mode"
