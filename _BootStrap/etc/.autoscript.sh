@@ -58,7 +58,7 @@ Server_Runner() {
 				echo "User chose not to login."
 			fi
 		else
-		    echo ""
+		    echo "Login detected!"
 		fi
 		
 	}
