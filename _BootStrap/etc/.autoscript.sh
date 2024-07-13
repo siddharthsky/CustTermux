@@ -18,7 +18,7 @@ case "$SHELL_NAME" in
 esac
 
 
- 
+
 
 Server_Runner() {
 	# Check if jiotv_go exists
@@ -440,7 +440,8 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	exit 1
 fi
 
-
+sleep 2
+echo "verision: 1"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
