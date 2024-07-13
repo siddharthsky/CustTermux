@@ -442,6 +442,7 @@ autoboot() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
 			return 0
 		else
 			return 1
@@ -472,6 +473,8 @@ autoboot() {
 	}
 	
 	boot_file
+
+
 
 	sleep 3
 	am start --user 0 -n com.termux.boot/com.termux.boot.BootActivity
