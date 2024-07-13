@@ -18,7 +18,7 @@ case "$SHELL_NAME" in
 esac
 
 
-
+ 
 
 Server_Runner() {
 	# Check if jiotv_go exists
