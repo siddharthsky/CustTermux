@@ -125,10 +125,9 @@ check_termux_api() {
 		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
 		chmod 755 "$HOME/Tapi.apk"
 		termux-open "$HOME/Tapi.apk"
-        sleep 10  # Wait for 5 seconds before checking again
+        sleep 10  # Wait for 10 seconds before checking again
     done
 
-	echo -e "The package \e[32m$PACKAGE_NAME\e[0m is now available."
 }
 
 
@@ -147,7 +146,7 @@ select_mode() {
         mkdir -p "$HOME/.jiotv_go/bin"
     fi
     
-    MODE_ONE="DefaultMode: You open CustTermux to run the server, which then redirects to IPTV automatically."
+    MODE_ONE="DefaultMode: You open CustTermux to run the server. which then redirects to IPTV automatically."
     MODE_TWO="AutoBootMode: Server starts automatically at boot using [Termux:Boot]. You just need to open IPTV to watch TV. - Experimental"
 	MODE_THREE="StandaloneMode: The server starts and redirects to the JioTV Go webpage."
 
