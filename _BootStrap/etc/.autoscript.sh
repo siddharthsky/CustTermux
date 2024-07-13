@@ -499,8 +499,7 @@ FINAL_INSTALL() {
 
 	case "$retrieved_mode" in
 		"MODE_ONE")
-			echo "Setting DefaultMode"
-			Default_Installation
+			echo "Setting Default Mode"
 
 			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/autoboot_or_not.cfg")
 
@@ -520,17 +519,15 @@ FINAL_INSTALL() {
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
-			#echo "Setting AutoBoot"
+			echo "Setting Server Mode"
 			#autoboot
-			Default_Installation
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 			send_otp
 			verify_otp
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_THREE")
-			echo "Setting Standalone mode"
-			Default_Installation
+			echo "Setting Standalone Mode"
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 			send_otp
 			verify_otp
@@ -586,6 +583,7 @@ else
 		echo "-----------------------"
 		check_termux_api
 		select_mode
+		Default_Installation
 		FINAL_INSTALL
 		echo "FINAL_RUN" > "$FILE_PATH"
 		return 0
