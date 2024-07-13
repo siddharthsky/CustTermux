@@ -149,7 +149,8 @@ select_mode() {
     
     MODE_ONE="DefaultMode: You open CustTermux to run the server, which then redirects to IPTV automatically."
     MODE_TWO="AutoBootMode: Server starts automatically at boot using [Termux:Boot]. You just need to open IPTV to watch TV. - Experimental"
-	MODE_THREE="StandaloneMode: Where server starts and redirect to JioTV Go webpage"
+	MODE_THREE="StandaloneMode: The server starts and redirects to the JioTV Go webpage."
+
     
     output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO",$MODE_THREE)
 
