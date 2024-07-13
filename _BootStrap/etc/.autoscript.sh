@@ -483,7 +483,7 @@ autoboot() {
 	app_permission_check (){
 		touch "$HOME/.jiotv_go/bin/permission.cfg"
 		chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
-		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")	
+		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")	
 		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
 			""
 		else
