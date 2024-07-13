@@ -21,7 +21,6 @@ esac
 
 
 Server_Runner() {
-	# Check if jiotv_go exists
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
 	source ~/.bashrc #PATH update
@@ -75,6 +74,11 @@ Server_Runner() {
 		echo "____MODE____AUTOBOOT____"
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
+	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
+		echo "____MODE____STANDALONE____"
+		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
+		$HOME/.jiotv_go/bin/jiotv_go run -P
+		termux-open-url http://localhost:5001/
 	else
 		echo "____MODE____UNKNOWN____"
 	fi
@@ -145,8 +149,9 @@ select_mode() {
     
     MODE_ONE="DefaultMode: Where you open CustTermux to run server and it redirects to IPTV"
     MODE_TWO="AutoBootMode: Where server starts automatically at boot using[Termux:Boot] and you just have open IPTV to watch TV.-Experimental"
+	MODE_THREE="StandaloneMode: Where server starts and redirect to JioTV Go Page"
     
-    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO")
+    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO",$MODE_THREE)
 
     selected=$(echo "$output" | jq -r '.text')
     if [ $? != 0 ]; then
@@ -163,6 +168,9 @@ select_mode() {
                 ;;
             "$MODE_TWO")
                 echo "MODE_TWO" > "$HOME/.jiotv_go/bin/mode.cfg"
+                ;;
+			"$MODE_THREE")
+                echo "MODE_THREE" > "$HOME/.jiotv_go/bin/mode.cfg"
                 ;;
             *)
                 echo "Unknown mode selected: $selected"
@@ -433,6 +441,53 @@ autoboot() {
 }
 
 
+FINAL_INSTALL() {
+	retrieve_first_line() {
+		local option=""
+		# Check if mode.cfg exists and has content
+		if [ -f "$HOME/.jiotv_go/bin/mode.cfg" ]; then
+			option=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")
+		else
+			echo "mode.cfg file not found or empty."
+		fi
+		echo "$option"
+	}
+
+	retrieved_mode=$(retrieve_first_line)
+
+	case "$retrieved_mode" in
+		"MODE_ONE")
+			echo "Setting DefaultMode"
+			Default_Installation
+			select_iptv
+			send_otp
+			verify_otp
+			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			;;
+		"MODE_TWO")
+			echo "Setting AutoBoot"
+			autoboot
+			Default_Installation
+			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+			send_otp
+			verify_otp
+			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			;;
+		"MODE_THREE")
+			echo "Setting Standalone mode"
+			Default_Installation
+			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
+			send_otp
+			verify_otp
+			echo "jiotv_go has been downloaded and added to PATH."
+			;;
+		*)
+			echo "mode.cfg file not found or empty."
+			;;
+	esac
+}
+
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -444,8 +499,6 @@ autoboot() {
 # Check if jiotv_go exists
 if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	Server_Runner
-	sleep 30
-	exit 1
 fi
 
 sleep 2
@@ -478,6 +531,10 @@ else
 		echo "-----------------------"
 		check_termux_api
 		select_mode
+		FINAL_INSTALL
+		echo "FINAL_RUN" > "$FILE_PATH"
+		return 0
+	elif [ "$RUN_STATUS" == "FINAL_RUN" ]; then
 		return 0
     else 
        echo "Something Went Wrong : Clear App Data"
@@ -488,58 +545,7 @@ fi
 
 
 
-
-
-
-
-
-
-
-
-
-retrieve_first_line() {
-	local option=""
-	# Check if mode.cfg exists and has content
-	if [ -f "$HOME/.jiotv_go/bin/mode.cfg" ]; then
-		option=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")
-	else
-		echo "mode.cfg file not found or empty."
-	fi
-	echo "$option"
-}
-
-retrieved_mode=$(retrieve_first_line)
-
-case "$retrieved_mode" in
-	"MODE_ONE")
-		echo "Setting DefaultMode"
-		Default_Installation
-		select_iptv
-		send_otp
-		verify_otp
-		echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
-		;;
-	"MODE_TWO")
-		echo "Setting AutoBoot"
-		autoboot
-		Default_Installation
-		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-		send_otp
-		verify_otp
-		echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
-		;;
-	*)
-		echo "mode.cfg file not found or empty."
-		;;
-esac
-
 #------------------------------------------------
-
-
-
-
-
-
 
 
 
@@ -554,8 +560,6 @@ echo -e "----------------------------"
 #Final Runner
 if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	Server_Runner
-	sleep 30
-	exit 0
 fi
 
 #############################################
