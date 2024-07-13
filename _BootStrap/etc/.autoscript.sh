@@ -503,7 +503,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 sleep 2
-echo "verision: 1"
+echo "verision: 2"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
