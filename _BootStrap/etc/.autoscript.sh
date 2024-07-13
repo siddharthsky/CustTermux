@@ -90,16 +90,17 @@ Server_Runner() {
 
 
 gui_req() {
-	echo "Step 0: Updating Packages"
 	pkg install termux-am -y
 	pkg install jq -y
 	pkg install termux-api -y
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	echo "If stuck here please clear app data"
-    # Function to check if com.termux.api package is available
-	#!/bin/bash
+}
 
-	autobootx() {
+
+
+check_termux_api() {
+	check_package() {
 		# Function to check if the package is available
 		PACKAGE_NAME="com.termux.api"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
@@ -107,16 +108,22 @@ gui_req() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+			return 0
 		else
-			echo -e "Please install : \e[31m$PACKAGE_NAME\e[0m"
-			sleep 10
-			exit 1
+			return 1
 		fi
 
 	}
+	# Loop until the package is available
+    while ! check_package; do
+        echo "The package $PACKAGE_NAME is not installed. Checking again..."
+		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
+		chmod 755 "$HOME/Tapi.apk"
+		termux-open "$HOME/Tapi.apk"
+        sleep 10  # Wait for 5 seconds before checking again
+    done
 
-	autobootx
-
+	echo -e "The package \e[32m$PACKAGE_NAME\e[0m is now available."
 }
 
 
@@ -455,13 +462,14 @@ else
         echo "INSTALLATION -- PART 1"
 		echo "-----------------------"
 		gui_req
-		select_mode
 		echo "SECOND_RUN" > "$FILE_PATH"
 		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 	elif [ "$RUN_STATUS" == "SECOND_RUN" ]; then
        	echo "-----------------------"
         echo "INSTALLATION -- PART 2"
 		echo "-----------------------"
+		check_termux_api
+		select_mode
 		return 0
     else 
        echo "Something Went Wrong : Clear App Data"
@@ -469,6 +477,11 @@ else
 	   exit 1
     fi
 fi
+
+
+
+
+
 
 
 
