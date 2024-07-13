@@ -451,7 +451,6 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
 	gui_req
-	select_mode
 	echo "SECOND_RUN" > "$FILE_PATH"
 	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 else
