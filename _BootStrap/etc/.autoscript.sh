@@ -18,6 +18,20 @@ case "$SHELL_NAME" in
 esac
 
 
+wait_and_count() {
+    local duration=$1
+    local counter=0
+
+    echo "Waiting for $duration seconds..."
+    while [ $counter -lt $duration ]; do
+        echo -ne "Time elapsed: $counter seconds\r"
+        sleep 1
+        ((counter++))
+    done
+    echo -e "\nWait complete!"
+}
+
+
 
 
 Server_Runner() {
@@ -169,10 +183,9 @@ check_termux_api() {
 		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
 		chmod 755 "$HOME/Tapi.apk"
 		termux-open "$HOME/Tapi.apk"
-        sleep 10  # Wait for 10 seconds before checking again
+        wait_and_count 30
     done
 
-	Install_Alert=$(termux-dialog spinner -v "Termux:API Installed" -t "CustTermux")
 }
 
 
@@ -458,13 +471,15 @@ autoboot() {
 		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
 		chmod 755 "$HOME/Tboot.apk"
 		termux-open "$HOME/Tboot.apk"
-        sleep 10  # Wait for 10 seconds before checking again
+        wait_and_count 20
     done
 
 	boot_file() {
 		mkdir -p "$HOME/.termux/boot/"
 		rm -f "$HOME/.termux/boot/start_jio.sh"
 		touch "$HOME/.termux/boot/start_jio.sh"
+
+		echo "Creating Boot files"
 
 		echo "#!/data/data/com.termux/files/usr/bin/sh" > ~/.termux/boot/start_jio.sh
 		echo "termux-wake-lock" >> ~/.termux/boot/start_jio.sh
@@ -473,6 +488,7 @@ autoboot() {
 		echo "$HOME/.jiotv_go/bin/jiotv_go bg run -P" >> ~/.termux/boot/start_jio.sh
 		
 		chmod 777 "$HOME/.termux/boot/start_jio.sh"
+		wait_and_count 20
 	}
 	
 	boot_file
@@ -480,8 +496,7 @@ autoboot() {
 	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed" -t "CustTermux")
 	
 
-
-	sleep 3
+	
 	am start --user 0 -n com.termux.boot/com.termux.boot.BootActivity
 	sleep 3
 	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
@@ -564,7 +579,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 sleep 2
-echo "verision: 3"
+echo "verision: 4"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
