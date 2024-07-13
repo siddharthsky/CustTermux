@@ -38,6 +38,30 @@ Server_Runner() {
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
 	source ~/.bashrc #PATH update
+
+	#Log in checker
+	LoginChecker() {
+		URL="http://localhost:5001/live/143.m3u8"
+		response=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+
+		prompt_login() {
+			termux-dialog confirm -t "Login Required" -i "Login Error. Proceed with login?" 
+		}
+
+		if [ $response -eq 500 ]; then
+			if prompt_login | grep -q "yes"; then
+				send_otp
+				verify_otp
+			else
+				echo "User chose not to login."
+			fi
+		else
+		    echo ""
+		fi
+		
+	}
+
+
 	
 	
 	#------------------------------------------------
@@ -95,6 +119,7 @@ Server_Runner() {
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
+		termux-wake-lock
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
 		#termux-open-url http://localhost:5001/
@@ -408,7 +433,7 @@ send_otp() {
   source ~/.bashrc
   $HOME/.jiotv_go/bin/jiotv_go bg run	
   # Fetch number from input using termux-dialog
-  PHONE_NUMBER=$(termux-dialog text -t "Enter your Jio number to login" | jq -r '.text')
+  PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
   if [ $? != 0 ]; then
     echo "Canceled."
   fi
@@ -420,6 +445,7 @@ send_otp() {
 
   # Send OTP request
   response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+  sleep 1
 }
 
 # Function to verify OTP
