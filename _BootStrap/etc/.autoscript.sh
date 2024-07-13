@@ -185,13 +185,13 @@ gui_req() {
 check_termux_api() {
 
 	app_permission_check (){
+		mkdir -p "$HOME/.jiotv_go/bin/"
 		touch "$HOME/.jiotv_go/bin/permission.cfg"
-		chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
+		#chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
 		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")	
 		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
 			""
 		else
-			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
 			termux-toast -g bottom 'Give premisson and press back to continue'
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
 			echo "waiting for app install permissions"
@@ -499,17 +499,18 @@ verify_otp() {
 
 autoboot() {
 	app_permission_check (){
+		mkdir -p "$HOME/.jiotv_go/bin/"
 		touch "$HOME/.jiotv_go/bin/permission.cfg"
-		chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
+		#chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
 		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")	
 		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
 			""
 		else
-			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
+			termux-toast -g bottom 'Give premisson and press back to continue'
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
 			echo "Waiting for app install permissions"
 			wait_and_count 15
-
+			echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
 		fi
 
 	}
@@ -518,7 +519,6 @@ autoboot() {
 	check_package() {
 		app_permission_check
 		# Function to check if the package is available
-
 		PACKAGE_NAME="com.termux.boot"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
 		
