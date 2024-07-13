@@ -41,12 +41,12 @@ get_ip_address() {
     local ip_address=$(termux-wifi-connectioninfo | grep -oP '(?<="ip": ")[^"]+')
     IP_ADD="$ip_address"
 }
-get_ip_address
 
 
-echo "---------------------------"
+
 
 Server_Runner() {
+	get_ip_address
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
 	echo -e "\e[96mFor Local Access:\e[0m"
