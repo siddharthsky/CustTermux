@@ -78,8 +78,9 @@ Server_Runner() {
 	else
 		termux-wake-lock
 		sleep 1
-		open_tv = $(am start --user 0 -n $retrieved_iptv)
-		echo "Starting IPTV player: $open_tv"
+		echo "Starting IPTV player: $retrieved_iptv"
+		am start --user 0 -n $retrieved_iptv
+		
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
@@ -542,6 +543,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			Server_Runner
 			;;
 		"MODE_TWO")
 			echo "Setting Server Mode"
@@ -550,6 +552,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
+			Server_Runner
 			;;
 		"MODE_THREE")
 			echo "Setting Standalone Mode"
@@ -557,6 +560,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			echo "jiotv_go has been downloaded and added to PATH."
+			Server_Runner
 			;;
 		*)
 			echo "mode.cfg file not found or empty."
@@ -626,16 +630,6 @@ fi
 
 
 #------------------------------------------------
-
-
-
-
-#Final Runner
-if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
-	Server_Runner
-fi
-
-#############################################
 
 
 
