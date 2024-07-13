@@ -554,7 +554,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 sleep 2
-echo "verision: 2"
+echo "verision: 3"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
