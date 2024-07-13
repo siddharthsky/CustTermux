@@ -90,9 +90,10 @@ Server_Runner() {
 
 
 gui_req() {
-	pkg install termux-am -y
-	pkg install jq -y
-	pkg install termux-api -y
+	pkg install termux-am jq termux-api -y
+	rm -f $HOME/.termux/termux.properties
+	touch $HOME/.termux/termux.properties
+	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	echo "If stuck here please clear app data"
 }
@@ -382,7 +383,7 @@ verify_otp() {
 
 autoboot() {
     # Function to check if com.termux.boot package is available
-	autochk() {
+	check_package() {
 		# Function to check if the package is available
 
 		PACKAGE_NAME="com.termux.boot"
@@ -391,21 +392,26 @@ autoboot() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+			return 0
 		else
-			echo -e "Please install : \e[31m$PACKAGE_NAME\e[0m"
-			sleep 10
-			exit 1
+			return 1
 		fi
 	}
 
-	autochk	
-	
+	# Loop until the package is available
+    while ! check_package; do
+        echo "The package $PACKAGE_NAME is not installed. Checking again..."
+		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
+		chmod 755 "$HOME/Tboot.apk"
+		termux-open "$HOME/Tboot.apk"
+        sleep 10  # Wait for 10 seconds before checking again
+    done
 
 	boot_file() {
 		mkdir -p "$HOME/.termux/boot/"
 		rm -f "$HOME/.termux/boot/start_jio.sh"
 		touch "$HOME/.termux/boot/start_jio.sh"
-		
+
 		echo "#!/data/data/com.termux/files/usr/bin/sh" > ~/.termux/boot/start_jio.sh
 		echo "termux-wake-lock" >> ~/.termux/boot/start_jio.sh
 		echo "termux-toast -g bottom 'Starting JioTV Go Server'" >> ~/.termux/boot/start_jio.sh
@@ -417,6 +423,7 @@ autoboot() {
 	
 	boot_file
 
+	sleep 3
 	am start --user 0 -n com.termux.boot/com.termux.boot.BootActivity
 	sleep 3
 	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
@@ -424,6 +431,7 @@ autoboot() {
 
 	
 }
+
 
 ######################################################################################
 ######################################################################################
@@ -440,7 +448,8 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	exit 1
 fi
 
-
+sleep 2
+echo "verision: 1"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
