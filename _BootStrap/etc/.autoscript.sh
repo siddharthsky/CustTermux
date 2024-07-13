@@ -97,6 +97,8 @@ Server_Runner() {
 select_autoboot_or_not() {
     MODE_ONE="NO"
     MODE_TWO="YES - This will install TERMUX:BOOT [Experimental]"
+
+	touch $HOME/.jiotv_go/bin/autoboot_or_not.cfg 
     
     output=$(termux-dialog radio -t "Do you want to autostart Server at boot?" -v "$MODE_ONE, $MODE_TWO")
 
@@ -183,9 +185,9 @@ select_mode() {
         mkdir -p "$HOME/.jiotv_go/bin"
     fi
     
-    MODE_ONE="DefaultMode: You open CustTermux to run the server. which then redirects to IPTV automatically. [for TV]"
-    MODE_TWO="ServerMode: Server on Phone\, Watch on TV [for Phone]"
-	MODE_THREE="StandaloneAppMode: For using JioTV Go via webpage [for Phone]"
+	MODE_ONE="Default Mode: Launch CustTermux to run the server\, then auto-redirect to IPTV [for TV]."
+	MODE_TWO="Server Mode: Run the server on your phone and watch IPTV on your TV [for Phone]."
+	MODE_THREE="Standalone App Mode: Access JioTV Go via the webpage [for Phone]."
 
     
     output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
