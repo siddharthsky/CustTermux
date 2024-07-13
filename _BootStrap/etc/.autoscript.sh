@@ -62,16 +62,19 @@ Server_Runner() {
 	if [ "$retrieved_iptv" = "NULL" ]; then
 		echo ""
 	else
+		termux-wake-lock
+		sleep 2
 		am start --user 0 -n $retrieved_iptv
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
 		echo "____MODE____DEFAULT____"
-		termux-wake-lock
+		#termux-wake-lock
 		echo "jiotv_go found, \$HOME/.jiotv_go/bin/jiotv_go run -P"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____AUTOBOOT____"
+		termux-wake-lock
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
@@ -90,6 +93,39 @@ Server_Runner() {
 
 
 
+
+select_autoboot_or_not() {
+    MODE_ONE="NO"
+    MODE_TWO="YES - This will install TERMUX:BOOT [Experimental]"
+    
+    output=$(termux-dialog radio -t "Do you want to autostart Server at boot?" -v "$MODE_ONE, $MODE_TWO")
+
+    selected=$(echo "$output" | jq -r '.text')
+    if [ $? != 0 ]; then
+        echo "Canceled."
+        exit 1
+    fi
+
+    if [ -n "$selected" ]; then
+        echo "Selected: $selected"
+
+        case "$selected" in
+            "$MODE_ONE")
+                echo "NO" > "$HOME/.jiotv_go/bin/autoboot_or_not.cfg"
+                ;;
+            "$MODE_TWO")
+                echo "YES" > "$HOME/.jiotv_go/bin/autoboot_or_not.cfg"
+                ;;
+            *)
+                echo "Unknown mode selected: $selected"
+                exit 1
+                ;;
+        esac
+    else
+        echo "No mode selected, setting default mode (MODE_ONE)."
+        echo "NO" > "$HOME/.jiotv_go/bin/autoboot_or_not.cfg"
+    fi
+}
 
 
 
@@ -147,9 +183,9 @@ select_mode() {
         mkdir -p "$HOME/.jiotv_go/bin"
     fi
     
-    MODE_ONE="DefaultMode: You open CustTermux to run the server. which then redirects to IPTV automatically."
-    MODE_TWO="AutoBootMode: Server starts automatically at boot using [Termux:Boot]. You just need to open IPTV to watch TV. - Experimental"
-	MODE_THREE="StandaloneMode: The server starts and redirects to the JioTV Go webpage."
+    MODE_ONE="DefaultMode: You open CustTermux to run the server. which then redirects to IPTV automatically. [for TV]"
+    MODE_TWO="ServerMode: Server on Phone, Watch on TV [for Phone]"
+	MODE_THREE="StandaloneAppMode: For using JioTV Go via webpage [for Phone]"
 
     
     output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
@@ -460,14 +496,26 @@ FINAL_INSTALL() {
 		"MODE_ONE")
 			echo "Setting DefaultMode"
 			Default_Installation
+
+			retrieved_boot_or_not=$(head -n 1 "$HOME/.jiotv_go/bin/autoboot_or_not.cfg")
+
+			case "$retrieved_boot_or_not" in
+                "NO")
+			;;
+			    "YES")
+				echo "Setting AutoBoot"
+				autoboot
+            ;;
+                *)
+
 			select_iptv
 			send_otp
 			verify_otp
 			echo "jiotv_go has been downloaded and added to PATH. Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
-			echo "Setting AutoBoot"
-			autoboot
+			#echo "Setting AutoBoot"
+			#autoboot
 			Default_Installation
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 			send_otp
