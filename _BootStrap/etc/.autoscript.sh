@@ -139,7 +139,8 @@ gui_req() {
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
-	echo "If stuck here please clear app data"
+	echo "If stuck, Please clear app data and restart your device."
+
 }
 
 
@@ -153,7 +154,7 @@ check_termux_api() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
-			echo "If stuck here please clear app data"
+			echo "If stuck, Please clear app data and restart your device."
 			return 0
 		else
 			return 1
