@@ -77,8 +77,8 @@ Server_Runner() {
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
-		$HOME/.jiotv_go/bin/jiotv_go run -P
 		termux-open-url http://localhost:5001/
+		$HOME/.jiotv_go/bin/jiotv_go run -P
 	else
 		echo "____MODE____UNKNOWN____"
 	fi
