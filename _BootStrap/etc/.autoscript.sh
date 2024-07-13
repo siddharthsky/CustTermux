@@ -192,7 +192,6 @@ check_termux_api() {
 		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
 			""
 		else
-			termux-toast -g bottom 'Give premisson and press back to continue'
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
 			echo "waiting for app install permissions"
 			wait_and_count 20
@@ -506,7 +505,6 @@ autoboot() {
 		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
 			""
 		else
-			termux-toast -g bottom 'Give premisson and press back to continue'
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
 			echo "Waiting for app install permissions"
 			wait_and_count 15
