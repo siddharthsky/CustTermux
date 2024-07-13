@@ -156,6 +156,8 @@ gui_req() {
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+	am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
+	wait_and_count 10
 	echo "If stuck, Please clear app data and restart your device."
 
 }
@@ -185,7 +187,7 @@ check_termux_api() {
 		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
 		chmod 755 "$HOME/Tapi.apk"
 		termux-open "$HOME/Tapi.apk"
-        wait_and_count 30
+        wait_and_count 20
     done
 
 }
@@ -488,7 +490,7 @@ autoboot() {
 		rm -f "$HOME/.termux/boot/start_jio.sh"
 		touch "$HOME/.termux/boot/start_jio.sh"
 
-		echo "Creating Boot files"
+		echo "Creating Boot files: Please wait..."
 
 		echo "#!/data/data/com.termux/files/usr/bin/sh" > ~/.termux/boot/start_jio.sh
 		echo "termux-wake-lock" >> ~/.termux/boot/start_jio.sh
