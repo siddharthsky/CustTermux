@@ -138,7 +138,7 @@ gui_req() {
 	touch $HOME/.termux/termux.properties
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
-	am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
 	echo "If stuck here please clear app data"
 }
 
