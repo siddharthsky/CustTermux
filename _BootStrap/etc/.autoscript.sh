@@ -73,7 +73,7 @@ Server_Runner() {
 		echo "jiotv_go found, \$HOME/.jiotv_go/bin/jiotv_go run -P"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
-		echo "____MODE____AUTOBOOT____"
+		echo "____MODE____SERVERMODE____"
 		termux-wake-lock
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
