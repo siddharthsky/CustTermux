@@ -515,7 +515,7 @@ autoboot() {
 
     # Function to check if com.termux.boot package is available
 	check_package() {
-		app_permission_check
+		#app_permission_check
 		# Function to check if the package is available
 		PACKAGE_NAME="com.termux.boot"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
