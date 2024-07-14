@@ -60,6 +60,48 @@ Server_Runner() {
 
 	
 	source ~/.bashrc #PATH update
+	#=-----------------------------------------------
+
+		#Log in checker
+	LoginChecker() {
+		URL="http://localhost:5001/live/144.m3u8"
+		status_code=$(curl -X GET -o /dev/null -s -w "%{http_code}\n" "$URL")
+		echo "Status Code: $status_code"
+
+		prompt_login() {
+			termux-dialog confirm -t "Login Required" -i "Login Error. Proceed with login?" 
+		}
+
+	case $status_code in
+		500)
+			if prompt_login | grep -q "yes"; then
+				$HOME/.jiotv_go/bin/jiotv_go bg run
+				send_otp
+				verify_otp
+				$HOME/.jiotv_go/bin/jiotv_go bg kill
+			else
+				echo "User chose not to login."
+			fi
+			;;
+		302)
+			echo "Login detected!"
+			;;
+		*)
+			if prompt_login | grep -q "yes"; then
+				$HOME/.jiotv_go/bin/jiotv_go bg run
+				send_otp
+				verify_otp
+				$HOME/.jiotv_go/bin/jiotv_go bg kill
+			else
+				echo "User chose not to login."
+			fi
+			;;
+	esac
+
+
+	}
+
+	LoginChecker
 
 	#------------------------------------------------
 	#MODE CONFIG
