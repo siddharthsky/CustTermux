@@ -47,7 +47,7 @@ LoginChecker() {
 	sleep 0.3
 	URL="http://localhost:5001/live/144.m3u8"
 	status_code=$(curl -X GET -o /dev/null -s -w "%{http_code}\n" "$URL")
-	echo "Status Code: $status_code"
+	echo "Checking Login:[$status_code]"
 
 	prompt_login() {
 		termux-dialog confirm -t "Login Required" -i "Login Error. Proceed with login?" 
@@ -58,28 +58,28 @@ LoginChecker() {
 			if prompt_login | grep -q "yes"; then
 				send_otp
 				verify_otp
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
+				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo "User chose not to login."
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
+				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 		302)
 			echo "Login detected!"
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		000)
 			echo "[$status_code] Server Error!"
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		*)
 			if prompt_login | grep -q "yes"; then	
 				send_otp
 				verify_otp
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
+				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo "User chose not to login."
-				$HOME/.jiotv_go/bin/jiotv_go bg kill
+				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 	esac
@@ -138,34 +138,30 @@ Server_Runner() {
 	
 	retrieved_iptv=$(retrieve_first_line_iptv)
 	
-	if [ "$retrieved_iptv" = "NULL" ]; then
-		echo ""
-	else
+	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
 		sleep 1
-		am start --user 0 -n $retrieved_iptv
-		
+		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
+		LoginChecker
+		echo "Running JioTV GO"
+		am start --user 0 -n "$retrieved_iptv"
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
 		echo "____MODE____DEFAULT____"
 		#termux-wake-lock
-
-		$HOME/.jiotv_go/bin/jiotv_go bg run #For Login Checker
-		LoginChecker
-		echo "Running JioTV GO"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
 		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run #For Login Checker
+		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
 		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run #For Login Checker
+		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
