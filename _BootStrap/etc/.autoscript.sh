@@ -60,16 +60,16 @@ LoginChecker() {
 				verify_otp
 				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
-				echo "User chose not to login."
+				echo -e "\e[31mUser chose not to login\e[0m"
 				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 		302)
-			echo "Login detected!"
+			echo -e "\e[32mLogin detected!\e[0m"
 			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		000)
-			echo "[$status_code] Server Error!"
+			echo -e "\e[31m[$status_code]Server Error!\e[0m"
 			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		*)
@@ -78,7 +78,7 @@ LoginChecker() {
 				verify_otp
 				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
-				echo "User chose not to login."
+				echo -e "\e[31mUser chose not to login\e[0m"
 				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
