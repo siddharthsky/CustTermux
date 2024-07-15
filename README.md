@@ -11,7 +11,7 @@
 
 ### 🚀 Usage
 
-0. Uninstall all Termux apps before proceeding: termux:boot, termux:tasker, etc.
+0. Uninstall all Termux apps before proceeding: termux, termux:boot, termux:tasker, etc.
 
 1. Install CustTermux
 
