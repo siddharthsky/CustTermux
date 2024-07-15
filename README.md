@@ -19,17 +19,17 @@
 
 4. Open CustTermux and follow onscreen instructions:
 
-3. <img src="_assets\screenshots\mode.png" alt="Mode selection" width="700">
+3. <img src="_assets\screenshots\mode.png" alt="Mode selection" width="500">
 
-4. <img src="_assets\screenshots\IPTV.png" alt="IPTV selection" width="700">
+4. <img src="_assets\screenshots\IPTV.png" alt="IPTV selection" width="500">
 
-5. <img src="_assets\screenshots\autostart.png" alt="autostart selection" width="700">
+5. <img src="_assets\screenshots\autostart.png" alt="autostart selection" width="500">
 
-6. <img src="_assets\screenshots\login.png" alt="login" width="700">
+6. <img src="_assets\screenshots\login.png" alt="login" width="500">
 
-7. <img src="_assets\screenshots\otp.png" alt="otp" width="700">
+7. <img src="_assets\screenshots\otp.png" alt="otp" width="500">
 
-8. <img src="_assets\screenshots\mainpage.png" alt="mainpage" width="700">
+8. <img src="_assets\screenshots\mainpage.png" alt="mainpage" width="500">
 
 
 ### 🔄️ Currently supported IPTV Players for autostart:
