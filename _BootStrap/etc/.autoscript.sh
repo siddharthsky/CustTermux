@@ -62,6 +62,11 @@ retrieve_first_line() {
     echo "$option"
 }
 
+Init_Server_Check() {
+	pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
+}
+
 
 LoginChecker() {
 	sleep 0.3
@@ -163,7 +168,7 @@ Server_Runner() {
 	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
 		sleep 1
-		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
+		Init_Server_Check
 		LoginChecker
 		echo "Running JioTV GO"
 		am start --user 0 -n "$retrieved_iptv"
@@ -176,14 +181,14 @@ Server_Runner() {
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
 		termux-wake-lock
-		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
+		Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
 		termux-wake-lock
-		starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
+		Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
@@ -571,7 +576,7 @@ FINAL_INSTALL() {
 			esac
 
 			select_iptv
-			$HOME/.jiotv_go/bin/jiotv_go bg run	
+			Init_Server_Check
 			send_otp
 			verify_otp
 			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
@@ -582,7 +587,7 @@ FINAL_INSTALL() {
 			echo "Setting Server Mode"
 			#autoboot
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-			$HOME/.jiotv_go/bin/jiotv_go bg run	
+			Init_Server_Check	
 			send_otp
 			verify_otp
 			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
@@ -592,7 +597,7 @@ FINAL_INSTALL() {
 		"MODE_THREE")
 			echo "Setting Standalone Mode"
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
-			$HOME/.jiotv_go/bin/jiotv_go bg run	
+			Init_Server_Check
 			send_otp
 			verify_otp
 			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
