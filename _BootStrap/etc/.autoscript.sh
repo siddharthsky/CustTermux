@@ -17,20 +17,28 @@ case "$SHELL_NAME" in
         ;;
 esac
 
-
+################################################################################################
+#Utility functions
+################################################################################################
 
 wait_and_count() {
-    local duration=$1
+    local start_time=$(date +%s)
     local counter=0
     local spinner="/-\|"
-    local bar_length=30
+    local bar_length=40 
 
-    echo "[$duration] Processing..."
-    while [ $counter -lt $duration ]; do
-        local progress=$((counter * bar_length / duration))
-        printf "\r[\033[0;32m%-*s\033[0m] %d%% %c" $bar_length $(printf '#%.0s' $(seq 1 $progress)) $((counter * 100 / duration)) ${spinner:counter%4:1}
-        sleep 1
-        ((counter++))
+    echo "[${1}] Processing..."
+    while true; do
+        local current_time=$(date +%s)
+        local elapsed_time=$((current_time - start_time))
+        if [ $elapsed_time -gt $1 ]; then
+            break
+        fi
+
+        local progress=$((elapsed_time * bar_length / $1))
+        printf "\r[\033[0;32m%-*s\033[0m] %d%% %c" $bar_length $(printf '#%.0s' $(seq 1 $progress)) $((elapsed_time * 100 / $1)) ${spinner:counter%4:1}
+        sleep 0.1
+        counter=$((counter + 1))
     done
     printf "\r[\033[0;32m%-*s\033[0m] 100%% \n" $bar_length $(printf '#%.0s' $(seq 1 $bar_length))
 }
@@ -42,7 +50,19 @@ get_ip_address() {
     IP_ADD="$ip_address"
 }
 
-#Log in checker
+
+retrieve_first_line() {
+    local file_path=$1
+    local option=""
+    if [ -f "$file_path" ]; then
+        option=$(head -n 1 "$file_path")
+    else
+        echo "$file_path file not found or empty."
+    fi
+    echo "$option"
+}
+
+
 LoginChecker() {
 	sleep 0.3
 	URL="http://localhost:5001/live/144.m3u8"
@@ -58,34 +78,67 @@ LoginChecker() {
 			if prompt_login | grep -q "yes"; then
 				send_otp
 				verify_otp
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo -e "\e[31mUser chose not to login\e[0m"
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 		302)
 			echo -e "\e[32mLogin detected!\e[0m"
-			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		000)
 			echo -e "\e[31m[$status_code]Server Error!\e[0m"
-			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		*)
 			if prompt_login | grep -q "yes"; then	
 				send_otp
 				verify_otp
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo -e "\e[31mUser chose not to login\e[0m"
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 	esac
+	pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+}
+
+PHONE_NUMBER=""
+send_otp() {
+	source ~/.bashrc
+	PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "Canceled."
+	fi
+
+	url="http://localhost:5001/login/sendOTP"
+
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+	sleep 1
+}
+
+verify_otp() {
+
+	otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "Canceled."
+	fi
+
+	url="http://localhost:5001/login/verifyOTP"
+
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+
+	json_string=$(echo "$response" | jq -c .)
+
+	if echo "$json_string" | grep -q "success"; then
+		echo -e "\e[32mLogged in Successfully.\e[0m"
+	else
+		echo -e "\e[31mLogin failed.\e[0m"
+	fi
+
 }
 
 
+################################################################################################
+#Runner configuration functions
+################################################################################################
 
 Server_Runner() {
 	get_ip_address
@@ -102,41 +155,10 @@ Server_Runner() {
 
 	
 	source ~/.bashrc #PATH update
-	#=-----------------------------------------------
 
-	
-	#------------------------------------------------
-	#MODE CONFIG
-	retrieve_first_line_mode() {
-		local option=""
-		# Check if mode.cfg exists and has content
-		if [ -f "$HOME/.jiotv_go/bin/mode.cfg" ]; then
-			option=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")
-		else
-			echo "mode.cfg file not found or empty."
-		fi
-		echo "$option"
-	}
+	retrieved_mode=$(retrieve_first_line "$HOME/.jiotv_go/bin/mode.cfg")
+	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
 
-	retrieved_mode=$(retrieve_first_line_mode)
-
-	
-	#------------------------------------------------
-	
-	#------------------------------------------------
-	#IPTV CONFIG
-	retrieve_first_line_iptv() {
-		local option=""
-		# Check if iptv.cfg exists and has content
-		if [ -f "$HOME/.jiotv_go/bin/iptv.cfg" ]; then
-			option=$(head -n 1 "$HOME/.jiotv_go/bin/iptv.cfg")
-		else
-			echo "iptv.cfg file not found or empty."
-		fi
-		echo "$option"
-	}
-	
-	retrieved_iptv=$(retrieve_first_line_iptv)
 	
 	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
@@ -170,11 +192,67 @@ Server_Runner() {
 	else
 		echo "____MODE____UNKNOWN____"
 	fi
-
-	
-	#------------------------------------------------
 }
 
+
+################################################################################################
+#Setup config functions for installation
+################################################################################################
+
+#Checking required 
+gui_req() {
+	pkg install termux-am jq termux-api -y
+	rm -f $HOME/.termux/termux.properties
+	touch $HOME/.termux/termux.properties
+	chmod 755 $HOME/.termux/termux.properties
+	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
+	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+	echo "If stuck, Please clear app data and restart your device."
+}
+
+check_termux_api() {
+	app_permission_check (){
+		mkdir -p "$HOME/.jiotv_go/bin/"
+		touch "$HOME/.jiotv_go/bin/permission.cfg"
+		#chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
+		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")	
+		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
+			""
+		else
+			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
+			echo "waiting for app install permissions"
+			wait_and_count 20
+			echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
+		fi
+	}
+
+	check_package() {
+		#app_permission_check
+		# Function to check if the package is available
+		PACKAGE_NAME="com.termux.api"
+		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
+		
+		# Check if the output contains the package path
+		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
+			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
+			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+			echo "If stuck, Please clear app data and restart your device."
+			return 0
+		else
+			return 1
+		fi
+
+	}
+
+    while ! check_package; do
+        echo "The package $PACKAGE_NAME is not installed. Checking again..."
+		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
+		chmod 755 "$HOME/Tapi.apk"
+		termux-open "$HOME/Tapi.apk"
+        wait_and_count 20
+    done
+
+}
 
 
 
@@ -213,24 +291,7 @@ select_autoboot_or_not() {
     fi
 }
 
-
-
-
-gui_req() {
-	pkg install termux-am jq termux-api -y
-	rm -f $HOME/.termux/termux.properties
-	touch $HOME/.termux/termux.properties
-	chmod 755 $HOME/.termux/termux.properties
-	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
-	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
-	echo "If stuck, Please clear app data and restart your device."
-
-}
-
-
-
-check_termux_api() {
-
+autoboot() {
 	app_permission_check (){
 		mkdir -p "$HOME/.jiotv_go/bin/"
 		touch "$HOME/.jiotv_go/bin/permission.cfg"
@@ -240,107 +301,69 @@ check_termux_api() {
 			""
 		else
 			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
-			echo "waiting for app install permissions"
-			wait_and_count 20
+			echo "Waiting for app install permissions"
+			wait_and_count 15
 			echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
 		fi
 
 	}
-	
 
+    # Function to check if com.termux.boot package is available
 	check_package() {
 		#app_permission_check
 		# Function to check if the package is available
-		PACKAGE_NAME="com.termux.api"
+		PACKAGE_NAME="com.termux.boot"
 		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
 		
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
-			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
-			echo "If stuck, Please clear app data and restart your device."
+			set_active=$(am start --user 0 -n com.termux/com.termux.app.TermuxActivity)
 			return 0
 		else
 			return 1
 		fi
-
 	}
 
 	# Loop until the package is available
     while ! check_package; do
         echo "The package $PACKAGE_NAME is not installed. Checking again..."
-		curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
-		chmod 755 "$HOME/Tapi.apk"
-		termux-open "$HOME/Tapi.apk"
+		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
+		chmod 755 "$HOME/Tboot.apk"
+		termux-open "$HOME/Tboot.apk"
         wait_and_count 20
     done
 
+	boot_file() {
+		mkdir -p "$HOME/.termux/boot/"
+		rm -f "$HOME/.termux/boot/start_jio.sh"
+		touch "$HOME/.termux/boot/start_jio.sh"
+
+		echo "Creating Boot files: Please wait..."
+
+		echo "#!/data/data/com.termux/files/usr/bin/sh" > ~/.termux/boot/start_jio.sh
+		echo "termux-wake-lock" >> ~/.termux/boot/start_jio.sh
+		echo "termux-toast -g bottom 'Starting JioTV Go Server'" >> ~/.termux/boot/start_jio.sh
+		echo "/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go run -public" >> ~/.termux/boot/start_jio.sh
+		echo "$HOME/.jiotv_go/bin/jiotv_go bg run -P" >> ~/.termux/boot/start_jio.sh
+		
+		chmod 777 "$HOME/.termux/boot/start_jio.sh"
+		wait_and_count 10
+	}
+	
+	boot_file
+
+	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed Successfully" -t "CustTermux")
+	
+	am start --user 0 -n com.termux.boot/com.termux.boot.BootActivity
+	sleep 3
+	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+		
 }
 
 
-
-
-
-
-#------------------------------------------------
-# Function to display menu and get selection for MODEs
-select_mode() {
-    # Create necessary directories
-    if [[ ! -d "$HOME/.jiotv_go" ]]; then
-        mkdir -p "$HOME/.jiotv_go"
-    fi
-    if [[ ! -d "$HOME/.jiotv_go/bin" ]]; then
-        mkdir -p "$HOME/.jiotv_go/bin"
-    fi
-    
-	MODE_ONE="Default Mode: Launch CustTermux to run server & auto-redirect to IPTV player [for TV]."
-	MODE_TWO="Server Mode: Run server on your phone and watch on your TV [for Phone]."
-	MODE_THREE="Standalone App Mode: Access JioTV Go via webpage [for Phone]."
-
-    
-    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
-
-    selected=$(echo "$output" | jq -r '.text')
-    if [ $? != 0 ]; then
-        echo "Canceled."
-        exit 1
-    fi
-
-    if [ -n "$selected" ]; then
-        echo "Selected: $selected"
-
-        case "$selected" in
-            "$MODE_ONE")
-                echo "MODE_ONE" > "$HOME/.jiotv_go/bin/mode.cfg"
-                ;;
-            "$MODE_TWO")
-                echo "MODE_TWO" > "$HOME/.jiotv_go/bin/mode.cfg"
-                ;;
-			"$MODE_THREE")
-                echo "MODE_THREE" > "$HOME/.jiotv_go/bin/mode.cfg"
-                ;;
-            *)
-                echo "Unknown mode selected: $selected"
-                exit 1
-                ;;
-        esac
-    else
-        echo "No mode selected, setting default mode (MODE_ONE)."
-        echo "MODE_ONE" > "$HOME/.jiotv_go/bin/mode.cfg"
-    fi
-}
-
-
-
-
-
-
-#------------------------------------------------
-#Default Installation
+#Default Installation - Taken from rabilrbl autoinstall script.
 Default_Installation() {
-	# Check if jiotv_go exists
-	
-	
 	OS=""
 	case "$OSTYPE" in
 		"linux-android"*)
@@ -397,7 +420,6 @@ Default_Installation() {
 		OS="linux"
 	fi
 
-	
 	# Set binary URL
 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
 
@@ -430,15 +452,59 @@ Default_Installation() {
 			;;
 	esac
 }
-#------------------------------------------------
 
 
+################################################################################################
+#GUI Functions
+################################################################################################
 
 
+select_mode() {
+    # Create necessary directories
+    if [[ ! -d "$HOME/.jiotv_go" ]]; then
+        mkdir -p "$HOME/.jiotv_go"
+    fi
+    if [[ ! -d "$HOME/.jiotv_go/bin" ]]; then
+        mkdir -p "$HOME/.jiotv_go/bin"
+    fi
+    
+	MODE_ONE="Default Mode: Launch CustTermux to run server & auto-redirect to IPTV player [for TV]."
+	MODE_TWO="Server Mode: Run server on your phone and watch on your TV [for Phone]."
+	MODE_THREE="Standalone App Mode: Access JioTV Go via webpage [for Phone]."
 
+    
+    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
 
-#-------------------------------
-# Function to display menu and get selection
+    selected=$(echo "$output" | jq -r '.text')
+    if [ $? != 0 ]; then
+        echo "Canceled."
+        exit 1
+    fi
+
+    if [ -n "$selected" ]; then
+        echo "Selected: $selected"
+
+        case "$selected" in
+            "$MODE_ONE")
+                echo "MODE_ONE" > "$HOME/.jiotv_go/bin/mode.cfg"
+                ;;
+            "$MODE_TWO")
+                echo "MODE_TWO" > "$HOME/.jiotv_go/bin/mode.cfg"
+                ;;
+			"$MODE_THREE")
+                echo "MODE_THREE" > "$HOME/.jiotv_go/bin/mode.cfg"
+                ;;
+            *)
+                echo "Unknown mode selected: $selected"
+                exit 1
+                ;;
+        esac
+    else
+        echo "No mode selected, setting default mode (MODE_ONE)."
+        echo "MODE_ONE" > "$HOME/.jiotv_go/bin/mode.cfg"
+    fi
+}
+
 select_iptv() {
 	spr="SparkleTV2 - any app"	
 	output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
@@ -480,157 +546,11 @@ select_iptv() {
 	fi
 }
 
-# Main execution
-
-#---------------------------------
-
-
-
-
-#!/bin/bash
-#############################################
-# Global variable to store phone number
-PHONE_NUMBER=""
-
-# Function to send OTP
-send_otp() {
-	source ~/.bashrc
-	# Fetch number from input using termux-dialog
-	PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
-	if [ $? != 0 ]; then
-		echo "Canceled."
-	fi
-
-
-
-	url="http://localhost:5001/login/sendOTP"
-
-	# Send OTP request
-	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
-	sleep 1
-}
-
-# Function to verify OTP
-verify_otp() {
-	# Fetch OTP from input using termux-dialog
-	otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
-	if [ $? != 0 ]; then
-		echo "Canceled."
-	fi
-
-
-	url="http://localhost:5001/login/verifyOTP"
-
-	# Send OTP verification request
-	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
-
-	json_string=$(echo "$response" | jq -c .)
-
-	if echo "$json_string" | grep -q "success"; then
-		echo -e "\e[32mLogged in Successfully.\e[0m"
-	else
-		echo -e "\e[31mLogin failed.\e[0m"
-	fi
-
-}
-
-# Main execution
-
-
-
-
-#------------------------------------------------
-#MODE CONFIG
-
-
-autoboot() {
-	app_permission_check (){
-		mkdir -p "$HOME/.jiotv_go/bin/"
-		touch "$HOME/.jiotv_go/bin/permission.cfg"
-		#chmod 755 "$HOME/.jiotv_go/bin/permission.cfg"
-		quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")	
-		if [ "$quick_var" = "OVERLAY=TRUE" ]; then
-			""
-		else
-			am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
-			echo "Waiting for app install permissions"
-			wait_and_count 15
-			echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
-		fi
-
-	}
-
-    # Function to check if com.termux.boot package is available
-	check_package() {
-		#app_permission_check
-		# Function to check if the package is available
-		PACKAGE_NAME="com.termux.boot"
-		out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
-		
-		# Check if the output contains the package path
-		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
-			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
-			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
-			return 0
-		else
-			return 1
-		fi
-	}
-
-	# Loop until the package is available
-    while ! check_package; do
-        echo "The package $PACKAGE_NAME is not installed. Checking again..."
-		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
-		chmod 755 "$HOME/Tboot.apk"
-		termux-open "$HOME/Tboot.apk"
-        wait_and_count 15
-    done
-
-	boot_file() {
-		mkdir -p "$HOME/.termux/boot/"
-		rm -f "$HOME/.termux/boot/start_jio.sh"
-		touch "$HOME/.termux/boot/start_jio.sh"
-
-		echo "Creating Boot files: Please wait..."
-
-		echo "#!/data/data/com.termux/files/usr/bin/sh" > ~/.termux/boot/start_jio.sh
-		echo "termux-wake-lock" >> ~/.termux/boot/start_jio.sh
-		echo "termux-toast -g bottom 'Starting JioTV Go Server'" >> ~/.termux/boot/start_jio.sh
-		echo "/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go run -public" >> ~/.termux/boot/start_jio.sh
-		echo "$HOME/.jiotv_go/bin/jiotv_go bg run -P" >> ~/.termux/boot/start_jio.sh
-		
-		chmod 777 "$HOME/.termux/boot/start_jio.sh"
-		wait_and_count 10
-	}
-	
-	boot_file
-
-	Install_Alert=$(termux-dialog spinner -v "Termux:Boot Installed Successfully" -t "CustTermux")
-	
-
-	
-	am start --user 0 -n com.termux.boot/com.termux.boot.BootActivity
-	sleep 3
-	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
-	
-
-	
-}
 
 
 FINAL_INSTALL() {
-	retrieve_first_line() {
-		local option=""
-		# Check if mode.cfg exists and has content
-		if [ -f "$HOME/.jiotv_go/bin/mode.cfg" ]; then
-			option=$(head -n 1 "$HOME/.jiotv_go/bin/mode.cfg")
-		else
-			echo "mode.cfg file not found or empty."
-		fi
-		echo "$option"
-	}
 
-	retrieved_mode=$(retrieve_first_line)
+	retrieved_mode=$(retrieve_first_line "$HOME/.jiotv_go/bin/mode.cfg")
 
 	case "$retrieved_mode" in
 		"MODE_ONE")
@@ -654,7 +574,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
@@ -664,7 +585,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_THREE")
@@ -673,7 +595,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH."
 			;;
 		*)
@@ -696,7 +619,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 	Server_Runner
 fi
 
-sleep 2
+#sleep 2
 echo "Script :version 5"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
@@ -742,9 +665,10 @@ else
     fi
 fi
 
+################################################################################################
+#END
+################################################################################################
 
-
-#------------------------------------------------
 
 
 
