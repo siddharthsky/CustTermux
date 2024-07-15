@@ -78,31 +78,26 @@ LoginChecker() {
 			if prompt_login | grep -q "yes"; then
 				send_otp
 				verify_otp
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo -e "\e[31mUser chose not to login\e[0m"
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 		302)
 			echo -e "\e[32mLogin detected!\e[0m"
-			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		000)
 			echo -e "\e[31m[$status_code]Server Error!\e[0m"
-			killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			;;
 		*)
 			if prompt_login | grep -q "yes"; then	
 				send_otp
 				verify_otp
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			else
 				echo -e "\e[31mUser chose not to login\e[0m"
-				killer=$($HOME/.jiotv_go/bin/jiotv_go bg kill)
 			fi
 			;;
 	esac
+	pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
 }
 
 PHONE_NUMBER=""
@@ -323,7 +318,7 @@ autoboot() {
 		# Check if the output contains the package path
 		if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
 			echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
-			am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+			set_active=$(am start --user 0 -n com.termux/com.termux.app.TermuxActivity)
 			return 0
 		else
 			return 1
@@ -336,7 +331,7 @@ autoboot() {
 		curl -L -o "$HOME/Tboot.apk" "https://github.com/termux/termux-boot/releases/download/v0.8.1/termux-boot-app_v0.8.1+github.debug.apk"
 		chmod 755 "$HOME/Tboot.apk"
 		termux-open "$HOME/Tboot.apk"
-        wait_and_count 15
+        wait_and_count 20
     done
 
 	boot_file() {
@@ -579,7 +574,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
@@ -589,7 +585,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_THREE")
@@ -598,7 +595,8 @@ FINAL_INSTALL() {
 			$HOME/.jiotv_go/bin/jiotv_go bg run	
 			send_otp
 			verify_otp
-			$HOME/.jiotv_go/bin/jiotv_go bg kill
+			pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "jiotv_go has been downloaded and added to PATH."
 			;;
 		*)
