@@ -63,7 +63,7 @@ retrieve_first_line() {
 }
 
 Init_Server_Check() {
-	pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 }
 
@@ -102,7 +102,7 @@ LoginChecker() {
 			fi
 			;;
 	esac
-	pkill -f '$HOME/.jiotv_go/bin/jiotv_go'
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 }
 
 PHONE_NUMBER=""
@@ -177,6 +177,12 @@ Server_Runner() {
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
 		echo "____MODE____DEFAULT____"
 		#termux-wake-lock
+                if [ "$retrieved_iptv" = "NULL" ]; then
+		   termux-wake-lock
+		   Init_Server_Check
+		   LoginChecker
+		   echo "Running JioTV GO"
+	        fi
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
