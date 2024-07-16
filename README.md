@@ -13,7 +13,7 @@
 
 0. Uninstall all Termux apps before proceeding: termux, termux:boot, termux:tasker, etc.
 
-1. Install CustTermux
+1. Install [CustTermux](https://github.com/siddharthsky/CustTermux-JioTVGo/releases/tag/0.119x)
 
 2. Optional : Termux:API and Termux:Boot required but CustTermux can download & install automatically.
 
