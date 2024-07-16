@@ -116,7 +116,8 @@ send_otp() {
 	url="http://localhost:5001/login/sendOTP"
 
 	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
-	sleep 1
+	echo "Please wait: Sending OTP"
+        wait_and_count 5
 }
 
 verify_otp() {
