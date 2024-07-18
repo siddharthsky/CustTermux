@@ -134,7 +134,7 @@ iptv() {
 	}
 	
 	prompt_gui() {
-		termux-dialog spinner -v "Logged in Successfully." -t "Login Status"
+		termux-dialog spinner -v "IPTV changed!" -t "IPTV Status"
 	}
 	
 	select_iptv
