@@ -287,17 +287,15 @@ update() {
 }
 
 runcode() {
-	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
-
-	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
-
-	sleep 0.5
-
-	if [ "$retrieved_iptv" != "NULL" ]; then
-		termux-wake-lock
-		OPEN_IPTV = $(am start --user 0 -n "$retrieved_iptv")	
-		exit 0
+	code=$(termux-dialog text -t "Enter command" | jq -r '.text')
+	 if [ $? != 0 ]; then
+		echo "Canceled."
 	fi
+
+ 	$code
+	
+
+	
 }
 
 
