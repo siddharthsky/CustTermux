@@ -168,7 +168,7 @@ iptvrunner() {
 	sleep 0.5
 
 	if [ "$retrieved_iptv" != "NULL" ]; then
-		termux-wake-lock
+		
 		am start --user 0 -n "$retrieved_iptv"
 		exit 0
 	fi
