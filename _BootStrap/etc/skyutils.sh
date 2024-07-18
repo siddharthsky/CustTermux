@@ -23,6 +23,7 @@ wait_and_count() {
 }
 
 login() {
+    echo "Login - OTP"
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
 	
@@ -81,6 +82,7 @@ login() {
 
 iptv() {
 	select_iptv() {
+        echo "Select IPTV"
 		spr="SparkleTV2 - any app"	
 		output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
 		
