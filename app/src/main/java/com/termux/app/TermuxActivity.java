@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.autofill.AutofillManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -195,6 +197,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private static final String LOG_TAG = "TermuxActivity";
 
+    private Handler handler;
+
+    private Runnable runnable;
+
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
@@ -215,7 +223,102 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_termux);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        Button button1 = findViewById(R.id.button1);
+        Button button2 = findViewById(R.id.button2);
+        Button button3 = findViewById(R.id.button3);
+        Button button4 = findViewById(R.id.button4);
+        Button button5 = findViewById(R.id.button5);
+        Button button6 = findViewById(R.id.button6);
+        Button button7 = findViewById(R.id.button7);
+
+        //button1.requestFocus();
+
+        View.OnFocusChangeListener tooltipFocusListener = new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    //for (int i = 0; i < 3; i++) {
+                        v.performLongClick();
+                    //}
+                }
+            }
+        };
+
+        button1.setOnFocusChangeListener(tooltipFocusListener);
+        button2.setOnFocusChangeListener(tooltipFocusListener);
+        button3.setOnFocusChangeListener(tooltipFocusListener);
+        button4.setOnFocusChangeListener(tooltipFocusListener);
+        button5.setOnFocusChangeListener(tooltipFocusListener);
+        button6.setOnFocusChangeListener(tooltipFocusListener);
+        button7.setOnFocusChangeListener(tooltipFocusListener);
+
+
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button1 click
+                sky_rerun();
+            }
+        });
+
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button2 click
+                sky_login();
+            }
+        });
+
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button3 click
+                sky_iptv();
+            }
+        });
+
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button4 click
+                sky_update();
+            }
+        });
+
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button5 click
+                sky_reinstall();
+            }
+        });
+
+        button6.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button5 click
+                sky_runcode();
+            }
+        });
+
+        button7.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button5 click -
+
+                sky_exit();
+            }
+        });
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Load termux shared preferences
         // This will also fail if TermuxConstants.TERMUX_PACKAGE_NAME does not equal applicationId
         mPreferences = TermuxAppSharedPreferences.build(this, true);
@@ -279,6 +382,178 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    public void wait_() {
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                //EMPTY
+            }
+        };
+        handler.postDelayed(runnable, 100);
+    }
+
+
+    private void XpkillIntent() {
+        // Pkill Termux service
+        Intent pkillIntent = new Intent();
+        pkillIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        pkillIntent.setAction("com.termux.RUN_COMMAND");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/pkill");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-f","/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go"});
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(pkillIntent);
+        wait_();
+    }
+
+    private void XStopTermux() {
+        // Stop the Termux service
+        Intent termuxServiceStopIntent = new Intent();
+        termuxServiceStopIntent.setClassName("com.termux", "com.termux.app.TermuxService");
+        termuxServiceStopIntent.setAction("com.termux.service_stop");
+        startService(termuxServiceStopIntent);
+        wait_();
+    }
+
+    private void XStartTermux() {
+        // Start the Termux service
+        Intent termuxServiceStartIntent = new Intent();
+        termuxServiceStartIntent.setClassName("com.termux", "com.termux.app.TermuxService");
+        termuxServiceStartIntent.setAction("com.termux.service_execute");
+        startService(termuxServiceStartIntent);
+        wait_();
+    }
+
+    private void XStartTermuxAct() {
+        // Start the Termux ACT service
+        Intent IPTVIntent = new Intent();
+        IPTVIntent.setClassName("com.Termux", "com.termux.app.TermuxActivity");
+        startActivity(IPTVIntent);
+        wait_();
+    }
+
+    private void XStartIPTV() {
+        // Start the Start IPTV service
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"iptvrunner"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+
+    private void XStartEMPTY() {
+        // Start the EMPTY
+        Intent intentCz = new Intent();
+        intentCz.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentCz.setAction("com.termux.RUN_COMMAND");
+        intentCz.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentCz.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"iptvrunner2"});
+        intentCz.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentCz.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentCz.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentCz);
+    }
+
+
+    public void wait_X() {
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                //EMPTY
+            }
+        };
+        handler.postDelayed(runnable, 500);
+    }
+    private void sky_rerun() {
+        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+        XpkillIntent();
+        XStopTermux();
+        //XStartTermux();
+        //XStartTermuxAct();
+
+        wait_X();
+        //XStartEMPTY();
+        XStartIPTV();
+
+    }
+    private void sky_login() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"login"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+    private void sky_iptv() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"iptv"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+    private void sky_update() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"update"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+
+    private void sky_reinstall() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"reinstall"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+
+    private void sky_runcode() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"runcode"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+
+    private void sky_exit() {
+        XStopTermux();
+    }
+    //////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
     @Override
     public void onStart() {

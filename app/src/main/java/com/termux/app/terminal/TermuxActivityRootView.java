@@ -210,7 +210,7 @@ public class TermuxActivityRootView extends LinearLayout implements ViewTreeObse
             if (setMargin) {
                 if (root_view_logging_enabled)
                     Logger.logVerbose(LOG_TAG, "Setting bottom margin to 0");
-                params.setMargins(0, 0, 0, 0);
+                params.setMargins(0, 0, 0, 100);
                 setLayoutParams(params);
             } else {
                 if (root_view_logging_enabled)
