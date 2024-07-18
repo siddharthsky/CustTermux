@@ -288,11 +288,15 @@ update() {
 
 runcode() {
 	code=$(termux-dialog text -t "Enter command" | jq -r '.text')
-	 if [ $? != 0 ]; then
+	if [ $? != 0 ]; then
 		echo "Canceled."
 	fi
 
+ 	echo "Running..."
+ 	
  	$code
+
+   	sleep 2
 	
 
 	
