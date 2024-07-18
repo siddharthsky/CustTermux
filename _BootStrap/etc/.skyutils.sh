@@ -267,6 +267,8 @@ update() {
 
 		# Download the binary
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+
+  		chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 	
 	}
 		
