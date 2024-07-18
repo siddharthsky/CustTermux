@@ -219,6 +219,7 @@ gui_req() {
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 	#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+ 	wait_and_count 20
 	echo "If stuck, Please clear app data and restart your device."
 }
 
@@ -523,6 +524,7 @@ select_iptv() {
 
 	selected=$(echo "$output" | jq -r '.text')
 	if [ $? != 0 ]; then
+ 		rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 	fi
 	
@@ -532,28 +534,36 @@ select_iptv() {
 
 		case "$selected" in
 			OTTNavigator)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "studio.scillarium.ottnavigator/studio.scillarium.ottnavigator.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			Televizo)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "com.ottplay.ottplay/com.ottplay.ottplay.StartActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			SparkleTV)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "se.hedekonsult.sparkle/se.hedekonsult.sparkle.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			TiviMate)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "ar.tvplayer.tv/ar.tvplayer.tv.ui.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			Kodi)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "org.xbmc.kodi/org.xbmc.kodi.Splash" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			$spr)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "com.skylake.siddharthsky.sparkletv2/com.skylake.siddharthsky.sparkletv2.MainActivity" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 			none)
+   				rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 				echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 				;;
 		esac
 	else
+ 		rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 	fi
 }

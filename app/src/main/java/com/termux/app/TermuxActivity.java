@@ -26,6 +26,7 @@ import android.view.autofill.AutofillManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -311,6 +312,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 sky_exit();
             }
         });
+
+        ImageView imageView = findViewById(R.id.imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
+                startActivity(browserIntent);
+            }
+        });
+
 
 
 

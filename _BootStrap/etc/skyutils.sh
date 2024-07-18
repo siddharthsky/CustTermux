@@ -93,6 +93,10 @@ login() {
 
 }
 
+theshowrunner() {
+	bash $PREFIX/etc/bash.bashrc
+}
+
 iptv() {
 	select_iptv() {
 		spr="SparkleTV2 - any app"	
@@ -164,8 +168,8 @@ iptvrunner() {
 	sleep 0.5
 
 	if [ "$retrieved_iptv" != "NULL" ]; then
-		termux-wake-lock
-		OPEN_IPTV = $(am start --user 0 -n "$retrieved_iptv")	
+		
+		am start --user 0 -n "$retrieved_iptv"
 		exit 0
 	fi
 
@@ -184,8 +188,12 @@ reinstall() {
 	reinstaller() {
 		echo "Removing Server Files..."
 		rm -rf "$HOME/.jiotv_go/bin/"
-		rm  "$HOME/.autostart.sh"
+		rm  "$HOME/.autoscript.sh"
 		rm  "$HOME/.skyutils.sh"
+
+  		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+
+    		
 
 
 	}
@@ -267,6 +275,8 @@ update() {
 
 		# Download the binary
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+
+  		chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 	
 	}
 		
@@ -278,17 +288,32 @@ update() {
 		echo -e "\e[31mUser chose not to update.\e[0m"
 		exit 0
 	fi	
-	
-	
+}
 
+runcode() {
+	code=$(termux-dialog text -t "Enter command" | jq -r '.text')
+	if [ $? != 0 ]; then
+		echo "Canceled."
+	fi
+
+ 	echo "Running..."
+ 	
+ 	$code
+
+   	sleep 2
+	
 
 	
 }
 
 
 
+
+
 if [ "$1" == "login" ]; then
     login
+elif [ "$1" == "theshowrunner" ]; then
+    theshowrunner
 elif [ "$1" == "iptv" ]; then
     iptv
 elif [ "$1" == "iptvrunner" ]; then
@@ -297,7 +322,11 @@ elif [ "$1" == "reinstall" ]; then
     reinstall
 elif [ "$1" == "update" ]; then
     update
+elif [ "$1" == "runcode" ]; then
+    runcode
 else
     echo "Usage Error"
-    exit 1
+    echo "Command: .skyutils.sh $1"
+    sleep 3
+    exit 0
 fi
