@@ -93,6 +93,10 @@ login() {
 
 }
 
+theshowrunner() {
+	bash $PREFIX/etc/bash.bashrc
+}
+
 iptv() {
 	select_iptv() {
 		spr="SparkleTV2 - any app"	
@@ -165,7 +169,7 @@ iptvrunner() {
 
 	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
-		OPEN_IPTV = $(am start --user 0 -n "$retrieved_iptv")	
+		am start --user 0 -n "$retrieved_iptv"
 		exit 0
 	fi
 
@@ -308,6 +312,8 @@ runcode() {
 
 if [ "$1" == "login" ]; then
     login
+elif [ "$1" == "theshowrunner" ]; then
+    theshowrunner
 elif [ "$1" == "iptv" ]; then
     iptv
 elif [ "$1" == "iptvrunner" ]; then
@@ -321,5 +327,6 @@ elif [ "$1" == "runcode" ]; then
 else
     echo "Usage Error"
     echo "Command: .skyutils.sh $1"
+    sleep 3
     exit 0
 fi
