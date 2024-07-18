@@ -23,7 +23,6 @@ wait_and_count() {
 }
 
 login() {
-    echo "Login - OTP"
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
 	
@@ -82,7 +81,6 @@ login() {
 
 iptv() {
 	select_iptv() {
-        echo "Select IPTV"
 		spr="SparkleTV2 - any app"	
 		output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
 		
@@ -134,7 +132,7 @@ iptv() {
 	}
 	
 	prompt_gui() {
-		termux-dialog spinner -v "IPTV changed!" -t "IPTV Status"
+		termux-dialog spinner -v "Logged in Successfully." -t "Login Status"
 	}
 	
 	select_iptv
@@ -204,12 +202,8 @@ update() {
 		# Set binary URL
 		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
 
-        echo "Downloading Binary..."
-        
 		# Download the binary
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
-
-        chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 	
 	}
 		
