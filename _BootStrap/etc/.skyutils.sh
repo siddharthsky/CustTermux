@@ -284,12 +284,23 @@ update() {
 		echo -e "\e[31mUser chose not to update.\e[0m"
 		exit 0
 	fi	
-	
-	
-
-
-	
 }
+
+runcode() {
+	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
+
+	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+
+	sleep 0.5
+
+	if [ "$retrieved_iptv" != "NULL" ]; then
+		termux-wake-lock
+		OPEN_IPTV = $(am start --user 0 -n "$retrieved_iptv")	
+		exit 0
+	fi
+}
+
+
 
 
 
@@ -303,6 +314,8 @@ elif [ "$1" == "reinstall" ]; then
     reinstall
 elif [ "$1" == "update" ]; then
     update
+elif [ "$1" == "runcode" ]; then
+    runcode
 else
     echo "Usage Error"
     echo "Command: .skyutils.sh $1"
