@@ -184,7 +184,7 @@ reinstall() {
 	reinstaller() {
 		echo "Removing Server Files..."
 		rm -rf "$HOME/.jiotv_go/bin/"
-		rm  "$HOME/.autostart.sh"
+		rm  "$HOME/.autoscript.sh"
 		rm  "$HOME/.skyutils.sh"
 
 
