@@ -299,5 +299,5 @@ elif [ "$1" == "update" ]; then
     update
 else
     echo "Usage Error"
-    exit 1
+    exit 0
 fi
