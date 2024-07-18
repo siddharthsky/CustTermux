@@ -299,6 +299,6 @@ elif [ "$1" == "update" ]; then
     update
 else
     echo "Usage Error"
-    echo ".skyutils.sh" "$1"
+    echo "Command: .skyutils.sh $1"
     exit 0
 fi
