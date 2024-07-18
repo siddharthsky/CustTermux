@@ -22,6 +22,20 @@ wait_and_count() {
     printf "\r[\033[0;32m%-*s\033[0m] 100%% \n" $bar_length $(printf '#%.0s' $(seq 1 $bar_length))
 }
 
+
+retrieve_first_line() {
+    local file_path=$1
+    local option=""
+    if [ -f "$file_path" ]; then
+        option=$(head -n 1 "$file_path")
+    else
+        echo "$file_path file not found or empty."
+    fi
+    echo "$option"
+}
+
+
+
 login() {
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
@@ -132,13 +146,60 @@ iptv() {
 	}
 	
 	prompt_gui() {
-		termux-dialog spinner -v "Logged in Successfully." -t "Login Status"
+		termux-dialog spinner -v "IPTV Changed" -t "IPTV Status"
 	}
 	
 	select_iptv
 	
 	prompt_gui
 		
+	
+}
+
+iptvrunner() {
+	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
+
+	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+
+	sleep 0.5
+
+	if [ "$retrieved_iptv" != "NULL" ]; then
+		termux-wake-lock
+		OPEN_IPTV = $(am start --user 0 -n "$retrieved_iptv")	
+		exit 0
+	fi
+
+}
+
+reinstall() {
+
+	prompt_gui() {
+		termux-dialog confirm -t "Re-Install Server" -i "Do you want to reinstall JioTV GO server?"
+	}
+
+	prompt_gui2() {
+		termux-dialog spinner -v "ReInstall:Done" -t "Re-Install Status"
+	}
+
+	reinstaller() {
+		echo "Removing Server Files..."
+		rm -rf "$HOME/.jiotv_go/bin/"
+		rm  "$HOME/.autostart.sh"
+		rm  "$HOME/.skyutils.sh"
+
+
+	}
+		
+	if prompt_gui | grep -q "yes"; then
+		#Update
+		reinstaller
+		prompt_gui2
+	else
+		echo -e "\e[31mUser chose not to reinstall.\e[0m"
+		exit 0
+	fi	
+
+
 	
 }
 
@@ -202,6 +263,8 @@ update() {
 		# Set binary URL
 		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
 
+		echo "Updating binaries..."
+
 		# Download the binary
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
 	
@@ -228,6 +291,10 @@ if [ "$1" == "login" ]; then
     login
 elif [ "$1" == "iptv" ]; then
     iptv
+elif [ "$1" == "iptvrunner" ]; then
+    iptvrunner
+elif [ "$1" == "reinstall" ]; then
+    reinstall
 elif [ "$1" == "update" ]; then
     update
 else
