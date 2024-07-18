@@ -187,6 +187,10 @@ reinstall() {
 		rm  "$HOME/.autoscript.sh"
 		rm  "$HOME/.skyutils.sh"
 
+  		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+
+    		
+
 
 	}
 		
