@@ -176,6 +176,9 @@ iptvrunner() {
 }
 
 reinstall() {
+	echo "-----------------------"
+	echo "Reinstall Utility"
+	echo "-----------------------"
 
 	prompt_gui() {
 		termux-dialog confirm -t "Re-Install Server" -i "Do you want to reinstall JioTV GO server?"
@@ -212,6 +215,9 @@ reinstall() {
 }
 
 update() {
+	echo "-----------------------"
+	echo "Update Utility"
+	echo "-----------------------"
 
 	prompt_gui() {
 		termux-dialog confirm -t "Update" -i "Do you want to update JioTV GO server?"
@@ -316,27 +322,31 @@ sendotp() {
 	
 	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
 	echo "$response"
- 	echo "Please wait"
-        wait_and_count 5
+ 	#echo "Please wait"
+        #wait_and_count 5
 }
 
 
 
 verifyotp() {
+	echo "-----------------------"
+	echo "Login Utility"
+	echo "-----------------------"
 	PHONE_NUMBER=$1
  	otp=$2
+  	echo "Processing Login..."
+  	wait_and_count 5
 
     	if [ -z "$otp" ]; then
 		echo "OTP is required."
 		exit 1
     	fi
-
-	echo "otp > $otp"
-	echo "PH > $PHONE_NUMBER"
 	
 	url="http://localhost:5001/login/verifyOTP"
 	
 	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+
+ 	echo "Verifying Login..."
 	
 	json_string=$(echo "$response" | jq -c .)
 	sleep 3
