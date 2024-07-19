@@ -105,6 +105,16 @@ LoginChecker() {
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 }
 
+send_otp() {
+	am start -a com.termux.ACTION_RECEIVE_LOGIN -n com.termux/.LoginReceiverActivity  
+}
+
+verify_otp() {
+	
+}
+
+
+
 PHONE_NUMBER=""
 send_otp_old() {
 	source ~/.bashrc
