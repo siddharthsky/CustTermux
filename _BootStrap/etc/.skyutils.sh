@@ -301,10 +301,57 @@ runcode() {
  	$code
 
    	sleep 2
-	
-
-	
 }
+
+
+sendotp() {
+	PHONE_NUMBER=$1
+
+	if [ -z "$PHONE_NUMBER" ]; then
+		echo "Phone number is required."
+		exit 1
+	fi
+	
+	url="http://localhost:5001/login/sendOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+	echo "$response"
+ 	echo "Please wait"
+        wait_and_count 5
+}
+
+
+
+verifyotp() {
+	PHONE_NUMBER=$1
+ 	otp=$2
+
+    	if [ -z "$otp" ]; then
+		echo "OTP is required."
+		exit 1
+    	fi
+
+	echo "otp > $otp"
+	echo "PH > $PHONE_NUMBER"
+	
+	url="http://localhost:5001/login/verifyOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+	
+	json_string=$(echo "$response" | jq -c .)
+	sleep 3
+
+	if echo "$json_string" | grep -q "success"; then
+		echo -e "\e[32mLogged in Successfully.\e[0m"
+		sleep 3
+	else
+		echo -e "\e[31mLogin failed.\e[0m"
+		sleep 3
+	fi
+	
+	sleep 1
+	exit 0
+	}
 
 
 
@@ -312,6 +359,10 @@ runcode() {
 
 if [ "$1" == "login" ]; then
     login
+elif [ "$1" == "sendotp" ]; then
+    sendotp "$2"
+elif [ "$1" == "verifyotp" ]; then
+    verifyotp "$2" "$3"
 elif [ "$1" == "theshowrunner" ]; then
     theshowrunner
 elif [ "$1" == "iptv" ]; then
