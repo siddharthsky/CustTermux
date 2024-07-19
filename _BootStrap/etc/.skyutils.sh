@@ -312,7 +312,8 @@ runcode() {
 
 sendotp() {
 	PHONE_NUMBER=$1
-
+ 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
+	sleep 2
 	if [ -z "$PHONE_NUMBER" ]; then
 		echo "Phone number is required."
 		exit 1
@@ -324,6 +325,7 @@ sendotp() {
 	echo "$response"
  	#echo "Please wait"
         #wait_and_count 5
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 }
 
 
@@ -331,6 +333,7 @@ sendotp() {
 verifyotp() {
 	PHONE_NUMBER=$1
  	otp=$2
+  	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
   	echo "Processing OTP..."
   	wait_and_count 5
 
@@ -346,7 +349,7 @@ verifyotp() {
  	echo "Verifying OTP..."
 	
 	json_string=$(echo "$response" | jq -c .)
-	sleep 3
+	sleep 2
 
 	if echo "$json_string" | grep -q "success"; then
 		echo -e "\e[32mLogged in Successfully.\e[0m"
@@ -358,6 +361,7 @@ verifyotp() {
 	
 	sleep 1
 	exit 0
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	}
 
 
