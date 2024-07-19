@@ -329,12 +329,9 @@ sendotp() {
 
 
 verifyotp() {
-	echo "-----------------------"
-	echo "Login Utility"
-	echo "-----------------------"
 	PHONE_NUMBER=$1
  	otp=$2
-  	echo "Processing Login..."
+  	echo "Processing OTP..."
   	wait_and_count 5
 
     	if [ -z "$otp" ]; then
@@ -346,7 +343,7 @@ verifyotp() {
 	
 	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
 
- 	echo "Verifying Login..."
+ 	echo "Verifying OTP..."
 	
 	json_string=$(echo "$response" | jq -c .)
 	sleep 3
