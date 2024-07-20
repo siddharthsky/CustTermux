@@ -130,6 +130,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SkyActionActivity"
+            android:theme="@style/AppTheme.Transparent">
+            <intent-filter>
+                <action android:name="com.temux.SKY_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
 
 
         <activity-alias

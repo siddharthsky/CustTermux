@@ -72,6 +72,7 @@ public class LoginReceiverActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
+                login_finish_file();
                 finish();
             }
         });
@@ -109,7 +110,9 @@ public class LoginReceiverActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                login_finish_file();
                 dialog.dismiss();
+
             }
         });
 
@@ -123,7 +126,7 @@ public class LoginReceiverActivity extends AppCompatActivity {
     private void handleSendOTP(String phoneNumber) {
         // Your code to handle the phone number
         //Log.d("HandlePhoneNumber", "Phone Number in handleSendOTP: " + phoneNumber);
-        // Start the Start IPTV service
+
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
         intentC.setAction("com.termux.RUN_COMMAND");
@@ -134,12 +137,13 @@ public class LoginReceiverActivity extends AppCompatActivity {
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentC);
 
-        wait_special();
+        wait_tx(1000);
 
         sky_otp();
     }
 
-    public void wait_special() {
+
+    public void wait_tx(int timex) {
         handler = new Handler();
         runnable = new Runnable() {
             @Override
@@ -147,7 +151,7 @@ public class LoginReceiverActivity extends AppCompatActivity {
                 //EMPTY
             }
         };
-        handler.postDelayed(runnable, 1000);
+        handler.postDelayed(runnable, timex);
     }
 
     private void handleVerifyOTP(String otp) {
@@ -162,5 +166,20 @@ public class LoginReceiverActivity extends AppCompatActivity {
         intentO.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentO.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentO);
+        wait_tx(1000);
+        login_finish_file();
+    }
+
+    private void login_finish_file() {
+        wait_tx(1000);
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/pkill");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"touch","$HOME/.jiotv_go/bin/login_check.dummy"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
     }
 }

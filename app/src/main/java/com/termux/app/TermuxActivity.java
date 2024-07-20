@@ -248,7 +248,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button6 = findViewById(R.id.button6);
         Button button7 = findViewById(R.id.button7);
 
-        //button1.requestFocus();
+        button1.requestFocus();
 
         View.OnFocusChangeListener tooltipFocusListener = new View.OnFocusChangeListener() {
             @Override
@@ -330,7 +330,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update", "Reinstall", "Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -479,7 +479,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
 
         // Set the message and the title
-        builder.setMessage("Do you want to proceed?")
+        builder.setMessage("Do you want to proceed?\n[Note: To exit press back button, reopen]")
             .setTitle("Confirmation");
 
         // Add the buttons
@@ -532,6 +532,20 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
     private void XpkillIntent() {
+        // Pkill Termux service
+        Intent pkillIntent = new Intent();
+        pkillIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        pkillIntent.setAction("com.termux.RUN_COMMAND");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/pkill");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-f","/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go"});
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        pkillIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(pkillIntent);
+        wait_();
+    }
+
+    private void XpkillIntentbg() {
         // Pkill Termux service
         Intent pkillIntent = new Intent();
         pkillIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -597,6 +611,20 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         startService(intentCz);
     }
 
+    public void launchTermux() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage("com.termux");
+        if (intent != null) {
+            //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // This flag is required if you're launching from outside an activity
+            //startActivity(intent);
+            Intent IPTVIntent = new Intent();
+            IPTVIntent.setClassName("com.termux", "com.termux.app.TermuxActivity");
+            startActivity(IPTVIntent);
+        } else {
+            // Termux app is not installed
+            Toast.makeText(this, "Termux app is not installed.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     public void wait_X() {
         handler = new Handler();
@@ -606,18 +634,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 //EMPTY
             }
         };
-        handler.postDelayed(runnable, 500);
+        handler.postDelayed(runnable, 2000);
     }
     private void sky_rerun() {
         Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
         XpkillIntent();
-        XStopTermux();
-        //XStartTermux();
+        XpkillIntentbg();
+        //XStopTermux();
+
         //XStartTermuxAct();
 
         wait_X();
+
         //XStartEMPTY();
-        XStartIPTV();
+        //XStartIPTV();
+        XStartTermux();
+        //launchTermux();
 
     }
 //    private void sky_login() {
@@ -717,7 +749,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
         intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"sendotp",phoneNumber});
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentC);
 
@@ -790,9 +822,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void sky_exit() {
-        loginchecker();
-        //XStopTermux();
+        //loginchecker();
+        XStopTermux();
     }
+
+
+
 
     private void sky_terminal() {
         TerminalView terminalView = findViewById(R.id.terminal_view);

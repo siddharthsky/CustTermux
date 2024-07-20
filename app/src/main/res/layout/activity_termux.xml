@@ -42,6 +42,8 @@
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:backgroundTint="@color/button_background_selector"
                 android:contentDescription="Settings"
                 android:text="✨ ReRun"
@@ -69,34 +71,34 @@
                 android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
                 android:contentDescription="Magic"
-                android:text="🛠️   IPTV"
+                android:text="🛠️    IPTV"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:tooltipText="Change IPTV" />
 
-<!--            <Button-->
-<!--                android:id="@+id/button4"-->
-<!--                android:layout_width="100dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginEnd="8dp"-->
-<!--                android:backgroundTint="@color/button_background_selector"-->
-<!--                android:contentDescription="Tool"-->
-<!--                android:text="⬇️️ Update"-->
-<!--                android:textColor="@android:color/white"-->
-<!--                android:textSize="14sp"-->
-<!--                android:tooltipText="Update JioTV GO" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/button4"-->
+            <!--                android:layout_width="100dp"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginEnd="8dp"-->
+            <!--                android:backgroundTint="@color/button_background_selector"-->
+            <!--                android:contentDescription="Tool"-->
+            <!--                android:text="⬇️️ Update"-->
+            <!--                android:textColor="@android:color/white"-->
+            <!--                android:textSize="14sp"-->
+            <!--                android:tooltipText="Update JioTV GO" />-->
 
-<!--            <Button-->
-<!--                android:id="@+id/button5"-->
-<!--                android:layout_width="100dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginEnd="8dp"-->
-<!--                android:backgroundTint="@color/button_background_selector"-->
-<!--                android:contentDescription="Stop"-->
-<!--                android:text="🧹 Re Install"-->
-<!--                android:textColor="@android:color/white"-->
-<!--                android:textSize="14sp"-->
-<!--                android:tooltipText="Reinstall Server" />-->
+            <!--            <Button-->
+            <!--                android:id="@+id/button5"-->
+            <!--                android:layout_width="100dp"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:layout_marginEnd="8dp"-->
+            <!--                android:backgroundTint="@color/button_background_selector"-->
+            <!--                android:contentDescription="Stop"-->
+            <!--                android:text="🧹 Re Install"-->
+            <!--                android:textColor="@android:color/white"-->
+            <!--                android:textSize="14sp"-->
+            <!--                android:tooltipText="Reinstall Server" />-->
 
             <Button
                 android:id="@+id/button6"
@@ -108,7 +110,7 @@
                 android:text="📜 Extra"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="Run Custom Code" />
+                android:tooltipText="Extra options" />
 
             <Button
                 android:id="@+id/button7"
