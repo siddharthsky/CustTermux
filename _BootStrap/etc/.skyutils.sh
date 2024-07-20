@@ -312,6 +312,7 @@ runcode() {
 
 sendotp() {
 	PHONE_NUMBER=$1
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
  	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
 	sleep 2
 	if [ -z "$PHONE_NUMBER" ]; then
@@ -333,6 +334,7 @@ sendotp() {
 verifyotp() {
 	PHONE_NUMBER=$1
  	otp=$2
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
   	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
   	echo "Processing OTP..."
   	wait_and_count 5
@@ -362,7 +364,7 @@ verifyotp() {
 	sleep 1
 	exit 0
  	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-	}
+}
 
 
 
