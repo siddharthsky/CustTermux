@@ -624,11 +624,12 @@ FINAL_INSTALL() {
 
 			select_iptv
 			Init_Server_Check
+			
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
+                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			send_otp
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-			#$HOME/.jiotv_go/bin/jiotv_go bg kill
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
@@ -636,10 +637,10 @@ FINAL_INSTALL() {
 			#autoboot
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 			Init_Server_Check	
+                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			send_otp
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
