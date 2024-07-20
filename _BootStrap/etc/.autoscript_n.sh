@@ -110,7 +110,7 @@ send_otp() {
 }
 
 verify_otp() {
-	
+	echo ""
 }
 
 
