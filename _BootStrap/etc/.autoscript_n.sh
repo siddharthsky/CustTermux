@@ -69,6 +69,9 @@ Init_Server_Check() {
 
 LoginChecker() {
 	echo "new loginchecker"
+ 	am start -a com.termux.SKY_ACTION -e mode "start_server" -n com.termux/.SkyActionActivity 
+  	am start -a com.termux.SKY_ACTION -e mode "loginstatus" -n com.termux/.SkyActionActivity 
+   	am start -a com.termux.SKY_ACTION -e mode "exit_server" -n com.termux/.SkyActionActivity 
 }
 
 
@@ -183,7 +186,7 @@ Server_Runner() {
 	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
 		sleep 1
-		Init_Server_Check
+		#Init_Server_Check
 		LoginChecker
 		echo "Running JioTV GO"
 		am start --user 0 -n "$retrieved_iptv"
@@ -194,7 +197,7 @@ Server_Runner() {
 		#termux-wake-lock
                 if [ "$retrieved_iptv" = "NULL" ]; then
 		   termux-wake-lock
-		   Init_Server_Check
+		   #Init_Server_Check
 		   LoginChecker
 		   echo "Running JioTV GO"
 	        fi
@@ -202,14 +205,14 @@ Server_Runner() {
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
 		termux-wake-lock
-		Init_Server_Check
+		#Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
 		termux-wake-lock
-		Init_Server_Check
+		#Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
