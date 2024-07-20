@@ -19,8 +19,9 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@mipmap/ic_banner2"
-            android:contentDescription="Open Webpage" />
+            android:contentDescription="Open Webpage"
+            android:layout_marginBottom="-5dp"
+            app:srcCompat="@mipmap/ic_banner2" />
 
     </LinearLayout>
 
@@ -45,74 +46,81 @@
                 android:contentDescription="Settings"
                 android:text="✨ ReRun"
                 android:textColor="@android:color/white"
+                android:textSize="14sp"
                 android:tooltipText="ReRun Server+IPTV" />
 
             <Button
                 android:id="@+id/button2"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:text="🔐 LogIn"
+                android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
-                android:textColor="@android:color/white"
                 android:contentDescription="Refresh"
-                android:tooltipText="LogIn via OTP"
-                android:layout_marginEnd="8dp" />
+                android:text="🔐 LogIn"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="LogIn via OTP" />
 
 
             <Button
                 android:id="@+id/button3"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:text="📺 IPTV Config"
+                android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
-                android:textColor="@android:color/white"
                 android:contentDescription="Magic"
-                android:tooltipText="Change IPTV"
-                android:layout_marginEnd="8dp" />
-
-            <Button
-                android:id="@+id/button4"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:text="⬇️️ Update"
-                android:backgroundTint="@color/button_background_selector"
+                android:text="🛠️   IPTV"
                 android:textColor="@android:color/white"
-                android:contentDescription="Tool"
-                android:tooltipText="Update JioTV GO"
-                android:layout_marginEnd="8dp" />
+                android:textSize="14sp"
+                android:tooltipText="Change IPTV" />
 
-            <Button
-                android:id="@+id/button5"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:text="🧹 Re Install"
-                android:backgroundTint="@color/button_background_selector"
-                android:textColor="@android:color/white"
-                android:contentDescription="Stop"
-                android:tooltipText="Reinstall Server"
-                android:layout_marginEnd="8dp" />
+<!--            <Button-->
+<!--                android:id="@+id/button4"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginEnd="8dp"-->
+<!--                android:backgroundTint="@color/button_background_selector"-->
+<!--                android:contentDescription="Tool"-->
+<!--                android:text="⬇️️ Update"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:textSize="14sp"-->
+<!--                android:tooltipText="Update JioTV GO" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/button5"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginEnd="8dp"-->
+<!--                android:backgroundTint="@color/button_background_selector"-->
+<!--                android:contentDescription="Stop"-->
+<!--                android:text="🧹 Re Install"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:textSize="14sp"-->
+<!--                android:tooltipText="Reinstall Server" />-->
 
             <Button
                 android:id="@+id/button6"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:text="🖥️ Run Code"
+                android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
-                android:textColor="@android:color/white"
                 android:contentDescription="Stop"
-                android:tooltipText="Run Custom Code"
-                android:layout_marginEnd="8dp" />
+                android:text="📜 Extra"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Run Custom Code" />
 
             <Button
                 android:id="@+id/button7"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
-                android:text="🚫 EXIT TERMUX"
+                android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
-                android:textColor="@android:color/white"
                 android:contentDescription="Stop"
-                android:tooltipText="Exit CustTermux"
-                android:layout_marginEnd="8dp" />
+                android:text="🚫    EXIT"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Exit CustTermux" />
 
         </LinearLayout>
     </HorizontalScrollView>

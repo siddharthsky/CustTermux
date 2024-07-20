@@ -1,19 +1,26 @@
 package com.termux.app;
 
+import static com.termux.shared.view.ViewUtils.getActivity;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -70,6 +77,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
 
 /**
@@ -202,6 +212,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private Runnable runnable;
 
+    private String phoneNumber;
+
+    private String otp;
+
 
 
     @Override
@@ -229,8 +243,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button1 = findViewById(R.id.button1);
         Button button2 = findViewById(R.id.button2);
         Button button3 = findViewById(R.id.button3);
-        Button button4 = findViewById(R.id.button4);
-        Button button5 = findViewById(R.id.button5);
+//        Button button4 = findViewById(R.id.button4);
+//        Button button5 = findViewById(R.id.button5);
         Button button6 = findViewById(R.id.button6);
         Button button7 = findViewById(R.id.button7);
 
@@ -250,8 +264,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button1.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
         button3.setOnFocusChangeListener(tooltipFocusListener);
-        button4.setOnFocusChangeListener(tooltipFocusListener);
-        button5.setOnFocusChangeListener(tooltipFocusListener);
+//        button4.setOnFocusChangeListener(tooltipFocusListener);
+//        button5.setOnFocusChangeListener(tooltipFocusListener);
         button6.setOnFocusChangeListener(tooltipFocusListener);
         button7.setOnFocusChangeListener(tooltipFocusListener);
 
@@ -280,29 +294,93 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
-        button4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle button4 click
-                sky_update();
-            }
-        });
+//        button4.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Handle button4 click
+//                sky_update();
+//            }
+//        });
 
-        button5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle button5 click
-                sky_reinstall();
-            }
-        });
+//        button5.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Handle button5 click
+//                sky_reinstall();
+//            }
+//        });
+
+//        button6.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                 Handle button5 click
+//                sky_net();
+//                sky_runcode();
+//            }
+//        });
+
 
         button6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle button5 click
-                sky_runcode();
+                // Create an AlertDialog Builder with the custom style
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext(), R.style.CustomAlertDialogTheme);
+
+                // Set the dialog title
+                builder.setTitle("Choose an option");
+
+                // Add a radio button list
+                String[] options = {"Update", "Reinstall", "Switch to Terminal"};
+                final int[] selectedOption = {-1}; // Store the selected option
+
+                builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Store the selected option
+                        selectedOption[0] = which;
+                    }
+                });
+
+                // Add OK and Cancel buttons
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // User clicked OK button
+                        // Handle the selected option
+                        switch (selectedOption[0]) {
+                            case 0:
+                                // Option 1 selected
+                                sky_update();
+                                break;
+                            case 1:
+                                // Option 2 selected
+                                sky_reinstall();
+                                break;
+                            case 2:
+                                // Option 3 selected
+                                lake_alert_confirmation(v.getContext());
+                                break;
+                            default:
+                                // No option selected or invalid
+                                break;
+                        }
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // User cancelled the dialog
+                        dialog.dismiss();
+                    }
+                });
+
+                // Create and show the AlertDialog
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
+
 
         button7.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -312,6 +390,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 sky_exit();
             }
         });
+
+
 
         ImageView imageView = findViewById(R.id.imageView);
         imageView.setOnClickListener(new View.OnClickListener() {
@@ -394,6 +474,36 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
 
+    private void lake_alert_confirmation(Context context) {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+
+        // Set the message and the title
+        builder.setMessage("Do you want to proceed?")
+            .setTitle("Confirmation");
+
+        // Add the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                sky_terminal();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+    }
 
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -407,6 +517,17 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         };
         handler.postDelayed(runnable, 100);
+    }
+
+    public void wait_special() {
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                //EMPTY
+            }
+        };
+        handler.postDelayed(runnable, 1000);
     }
 
 
@@ -499,17 +620,128 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         XStartIPTV();
 
     }
+//    private void sky_login() {
+//        Intent intentC = new Intent();
+//        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+//        intentC.setAction("com.termux.RUN_COMMAND");
+//        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+//        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"login"});
+//        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+//        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+//        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+//        startService(intentC);
+//    }
+
+
     private void sky_login() {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter Phone Number To Login");
+
+        // Set up the input field
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_PHONE);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Retrieve the phone number from the input field
+                phoneNumber = input.getText().toString();
+
+                // Log the phone number
+                //Log.d("SkyLogin", "Phone Number: " + phoneNumber);
+
+                // Call the nested function and pass the phone number
+                handleSendOTP(phoneNumber);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void sky_otp() {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter OTP");
+
+        // Set up the input field
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(6)}); // OTP is 6 digits
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Retrieve the OTP from the input field
+                otp = input.getText().toString();
+
+                // Log the OTP
+                //Log.d("SkyOTP", "OTP: " + otp);
+
+                // Call the nested function and pass the OTP
+                handleVerifyOTP(otp);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    // Nested function to handle the phone number
+    private void handleSendOTP(String phoneNumber) {
+        // Your code to handle the phone number
+        //Log.d("HandlePhoneNumber", "Phone Number in handleSendOTP: " + phoneNumber);
+        // Start the Start IPTV service
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
         intentC.setAction("com.termux.RUN_COMMAND");
         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"login"});
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"sendotp",phoneNumber});
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentC);
+
+        wait_special();
+
+        sky_otp();
     }
+
+    private void handleVerifyOTP(String otp) {
+        // Your code to handle the OTP
+        //Log.d("HandleOTP", "OTP in handleVerifyOTP: " + otp);
+        Intent intentO = new Intent();
+        intentO.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentO.setAction("com.termux.RUN_COMMAND");
+        intentO.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentO.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"verifyotp",phoneNumber,otp});
+        intentO.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentO.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentO.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentO);
+    }
+
+
+
     private void sky_iptv() {
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -558,8 +790,72 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void sky_exit() {
-        XStopTermux();
+        loginchecker();
+        //XStopTermux();
     }
+
+    private void sky_terminal() {
+        TerminalView terminalView = findViewById(R.id.terminal_view);
+
+        // Change focusable properties
+        terminalView.setFocusableInTouchMode(true);
+        terminalView.setFocusable(true);
+    }
+
+    public void loginchecker() {
+        // URL to check
+        String url = "http://localhost:5001/live/144.m3u8";
+
+        // Execute AsyncTask to check status code
+        new CheckStatusTask().execute(url);
+    }
+
+    private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
+
+        @Override
+        protected Integer doInBackground(String... urls) {
+            String urlString = urls[0];
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
+                return connection.getResponseCode();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer responseCode) {
+            if (responseCode != null) {
+                // Handle the response code
+                switch (responseCode) {
+                    case HttpURLConnection.HTTP_OK:
+                        System.out.println("The webpage is accessible.");
+                        break;
+                    case HttpURLConnection.HTTP_NOT_FOUND:
+                        System.out.println("The webpage was not found.");
+                        break;
+                    default:
+                        System.out.println("Response code: " + responseCode);
+                        break;
+                }
+            } else {
+                System.out.println("Error occurred while checking status code.");
+            }
+        }
+    }
+
+
+
+
     //////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -775,6 +1071,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Set termux terminal view
         mTerminalView = findViewById(R.id.terminal_view);
+
+
+
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
 
         if (mTermuxTerminalViewClient != null)

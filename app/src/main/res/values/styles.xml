@@ -14,4 +14,25 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
+
+    <style name="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:buttonBarPositiveButtonStyle">@style/CustomAlertDialogButton</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/CustomAlertDialogButton</item>
+    </style>
+
+    <style name="CustomAlertDialogButton" parent="android:Widget.Material.Button.Borderless.Colored">
+        <item name="android:textColor">#FF0000</item> <!-- Change to your desired color -->
+    </style>
+
+    <style name="AppTheme.Transparent2" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="AppTheme.Transparent" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowBackground">@color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+
 </resources>

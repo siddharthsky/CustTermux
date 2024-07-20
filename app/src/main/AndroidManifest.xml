@@ -50,7 +50,8 @@
         android:roundIcon="@mipmap/ic_launcher2_round"
         android:supportsRtl="false"
         android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar"
-        tools:targetApi="m">
+        tools:targetApi="m"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".app.TermuxActivity"
@@ -119,6 +120,17 @@
             android:taskAffinity="${TERMUX_PACKAGE_NAME}.filereceiver"
             tools:targetApi="n">
         </activity>
+
+        <activity
+            android:name=".LoginReceiverActivity"
+            android:theme="@style/AppTheme.Transparent">
+            <intent-filter>
+                <action android:name="com.temux.ACTION_RECEIVE_LOGIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+
 
         <activity-alias
             android:name=".app.api.file.FileShareReceiverActivity"

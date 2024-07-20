@@ -4,4 +4,5 @@
     <color name="golden">#FFD700</color>
     <color name="tooltip_background_color">#40000000</color>
     <color name="focused_color">#FFD700</color>
+    <color name="transparent">#00000000</color>
 </resources>
