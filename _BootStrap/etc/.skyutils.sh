@@ -176,6 +176,9 @@ iptvrunner() {
 }
 
 reinstall() {
+	echo "-----------------------"
+	echo "Reinstall Utility"
+	echo "-----------------------"
 
 	prompt_gui() {
 		termux-dialog confirm -t "Re-Install Server" -i "Do you want to reinstall JioTV GO server?"
@@ -212,6 +215,9 @@ reinstall() {
 }
 
 update() {
+	echo "-----------------------"
+	echo "Update Utility"
+	echo "-----------------------"
 
 	prompt_gui() {
 		termux-dialog confirm -t "Update" -i "Do you want to update JioTV GO server?"
@@ -301,17 +307,128 @@ runcode() {
  	$code
 
    	sleep 2
-	
-
-	
 }
 
+
+sendotp() {
+	PHONE_NUMBER=$1
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
+	sleep 2
+	if [ -z "$PHONE_NUMBER" ]; then
+		echo "Phone number is required."
+		exit 1
+	fi
+	
+	url="http://localhost:5001/login/sendOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+	echo "$response"
+ 	#echo "Please wait"
+        #wait_and_count 5
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+}
+
+
+
+verifyotp() {
+	PHONE_NUMBER=$1
+ 	otp=$2
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+  	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run)
+  	echo "Processing OTP..."
+  	wait_and_count 5
+
+    	if [ -z "$otp" ]; then
+		echo "OTP is required."
+		exit 1
+    	fi
+	
+	url="http://localhost:5001/login/verifyOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+
+ 	echo "Verifying OTP..."
+	
+	json_string=$(echo "$response" | jq -c .)
+	sleep 2
+
+	if echo "$json_string" | grep -q "success"; then
+		echo -e "\e[32mLogged in Successfully.\e[0m"
+		sleep 3
+	else
+		echo -e "\e[31mLogin failed.\e[0m"
+		sleep 3
+	fi
+	
+	sleep 1
+	exit 0
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+}
+
+sendotpx() {
+	PHONE_NUMBER=$1
+	sleep 2
+	if [ -z "$PHONE_NUMBER" ]; then
+		echo "Phone number is required."
+		exit 1
+	fi
+	
+	url="http://localhost:5001/login/sendOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\"}")
+	echo "$response"
+ 	#echo "Please wait"
+        #wait_and_count 5
+}
+
+
+
+verifyotpx() {
+	PHONE_NUMBER=$1
+ 	otp=$2
+  	echo "Processing OTP..."
+  	wait_and_count 5
+
+    	if [ -z "$otp" ]; then
+		echo "OTP is required."
+		exit 1
+    	fi
+	
+	url="http://localhost:5001/login/verifyOTP"
+	
+	response=$(curl -s -X POST $url -H "Content-Type: application/json" -d "{\"number\": \"+91$PHONE_NUMBER\", \"otp\": \"$otp\"}")
+
+ 	echo "Verifying OTP..."
+	
+	json_string=$(echo "$response" | jq -c .)
+	sleep 2
+
+	if echo "$json_string" | grep -q "success"; then
+		echo -e "\e[32mLogged in Successfully.\e[0m"
+		sleep 3
+	else
+		echo -e "\e[31mLogin failed.\e[0m"
+		sleep 3
+	fi
+	
+	sleep 1
+	exit 0
+}
 
 
 
 
 if [ "$1" == "login" ]; then
     login
+elif [ "$1" == "sendotp" ]; then
+    sendotp "$2"
+elif [ "$1" == "verifyotp" ]; then
+    verifyotp "$2" "$3"
+elif [ "$1" == "sendotpx" ]; then
+    sendotp "$2"
+elif [ "$1" == "verifyotpx" ]; then
+    verifyotp "$2" "$3"
 elif [ "$1" == "theshowrunner" ]; then
     theshowrunner
 elif [ "$1" == "iptv" ]; then
