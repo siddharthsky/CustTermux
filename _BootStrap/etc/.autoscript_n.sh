@@ -644,7 +644,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 #sleep 2
-echo "Script :version 6.3"
+echo "Script :version 6.4"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
