@@ -67,28 +67,8 @@ Init_Server_Check() {
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 }
 
+
 LoginChecker() {
-	echo "new loginchecker"
- 	#am start -a com.termux.SKY_ACTION -e mode "start_server" -n com.termux/.SkyActionActivity 
-  	am start -a com.termux.SKY_ACTION -e mode "loginstatus" -n com.termux/.SkyActionActivity
-   	check_login_file() {
-    		file_path="$HOME/.jiotv_go/bin/login_check.dummy"
-		if [ -f "$file_path" ]; then
-			return 0
-		else
-			return 1
-		fi
-	}
-
-	while ! check_login_file; do
-		echo "Login file not found. Checking again..."
-		wait_and_count 20
-	done
-   	
-}
-
-
-LoginCheckerx() {
 	sleep 0.3
 	URL="http://localhost:5001/live/144.m3u8"
 	status_code=$(curl -X GET -o /dev/null -s -w "%{http_code}\n" "$URL")
@@ -125,18 +105,8 @@ LoginCheckerx() {
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 }
 
-send_otp() {
-	am start -a com.termux.ACTION_RECEIVE_LOGIN -n com.termux/.LoginReceiverActivity  
-}
-
-verify_otp() {
-	echo ""
-}
-
-
-
 PHONE_NUMBER=""
-send_otp_old() {
+send_otp() {
 	source ~/.bashrc
 	PHONE_NUMBER=$(termux-dialog text -t "Enter your jio number [10 digit] to login" | jq -r '.text')
 	if [ $? != 0 ]; then
@@ -150,7 +120,7 @@ send_otp_old() {
         wait_and_count 5
 }
 
-verify_otp_old() {
+verify_otp() {
 
 	otp=$(termux-dialog text -t "Enter your OTP" | jq -r '.text')
 	if [ $? != 0 ]; then
@@ -199,7 +169,7 @@ Server_Runner() {
 	if [ "$retrieved_iptv" != "NULL" ]; then
 		termux-wake-lock
 		sleep 1
-		#Init_Server_Check
+		Init_Server_Check
 		LoginChecker
 		echo "Running JioTV GO"
 		am start --user 0 -n "$retrieved_iptv"
@@ -210,7 +180,7 @@ Server_Runner() {
 		#termux-wake-lock
                 if [ "$retrieved_iptv" = "NULL" ]; then
 		   termux-wake-lock
-		   #Init_Server_Check
+		   Init_Server_Check
 		   LoginChecker
 		   echo "Running JioTV GO"
 	        fi
@@ -218,14 +188,14 @@ Server_Runner() {
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
 		termux-wake-lock
-		#Init_Server_Check
+		Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "____MODE____STANDALONE____"
 		termux-wake-lock
-		#Init_Server_Check
+		Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
@@ -624,12 +594,11 @@ FINAL_INSTALL() {
 
 			select_iptv
 			Init_Server_Check
-			
-			#$HOME/.jiotv_go/bin/jiotv_go bg kill
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			send_otp
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+			#$HOME/.jiotv_go/bin/jiotv_go bg kill
+                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
@@ -637,10 +606,10 @@ FINAL_INSTALL() {
 			#autoboot
 			echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
 			Init_Server_Check	
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			send_otp
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+                        $HOME/.jiotv_go/bin/jiotv_go epg gen
 			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
