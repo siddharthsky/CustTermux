@@ -64,7 +64,7 @@ retrieve_first_line() {
 
 Init_Server_Check() {
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-	starter=$($HOME/.jiotv_go/bin/jiotv_go run) #For Login Checker
+	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 }
 
 
@@ -644,7 +644,7 @@ if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
 fi
 
 #sleep 2
-echo "Script :version 6.3"
+echo "Script :version 6.4"
 
 FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
 
@@ -692,7 +692,6 @@ fi
 ################################################################################################
 #END
 ################################################################################################
-
 
 
 
