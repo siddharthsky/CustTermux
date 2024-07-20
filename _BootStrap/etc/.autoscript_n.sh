@@ -67,8 +67,12 @@ Init_Server_Check() {
 	starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) #For Login Checker
 }
 
-
 LoginChecker() {
+	echo "new loginchecker"
+}
+
+
+LoginCheckerx() {
 	sleep 0.3
 	URL="http://localhost:5001/live/144.m3u8"
 	status_code=$(curl -X GET -o /dev/null -s -w "%{http_code}\n" "$URL")
