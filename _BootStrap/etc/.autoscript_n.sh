@@ -80,7 +80,7 @@ LoginChecker() {
 		fi
 	}
 
-	while ! check_package; do
+	while ! check_login_file; do
 		echo "The package $PACKAGE_NAME is not installed. Checking again..."
 		wait_and_count 20
 	done
