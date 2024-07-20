@@ -84,8 +84,4 @@ autoscript() {
 
 autoscript_skyutils
 
-autoscript
-
-
-
 
