@@ -70,8 +70,21 @@ Init_Server_Check() {
 LoginChecker() {
 	echo "new loginchecker"
  	am start -a com.termux.SKY_ACTION -e mode "start_server" -n com.termux/.SkyActionActivity 
-  	am start -a com.termux.SKY_ACTION -e mode "loginstatus" -n com.termux/.SkyActionActivity 
-   	am start -a com.termux.SKY_ACTION -e mode "exit_server" -n com.termux/.SkyActionActivity 
+  	am start -a com.termux.SKY_ACTION -e mode "loginstatus" -n com.termux/.SkyActionActivity
+   	check_login_file() {
+    		file_path="$HOME/.jiotv_go/bin/login_check.dummy"
+		if [ -f "$file_path" ]; then
+			return 0
+		else
+			return 1
+		fi
+	}
+
+	while ! check_package; do
+		echo "The package $PACKAGE_NAME is not installed. Checking again..."
+		wait_and_count 20
+	done
+   	
 }
 
 
