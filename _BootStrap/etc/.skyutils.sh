@@ -297,10 +297,12 @@ update() {
 }
 
 runcode() {
-	code=$(termux-dialog text -t "Enter command" | jq -r '.text')
-	if [ $? != 0 ]; then
-		echo "Canceled."
-	fi
+
+	code = $1
+	#code=$(termux-dialog text -t "Enter command" | jq -r '.text')
+	#if [ $? != 0 ]; then
+		#echo "Canceled."
+	#fi
 
  	echo "Running..."
  	
@@ -440,7 +442,7 @@ elif [ "$1" == "reinstall" ]; then
 elif [ "$1" == "update" ]; then
     update
 elif [ "$1" == "runcode" ]; then
-    runcode
+    runcode "$2"
 else
     echo "Usage Error"
     echo "Command: .skyutils.sh $1"
