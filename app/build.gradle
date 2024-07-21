@@ -33,6 +33,8 @@ android {
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
 
+
+
         implementation project(":terminal-view")
         implementation project(":termux-shared")
     }
@@ -41,8 +43,8 @@ android {
         applicationId "com.termux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 120
-        versionName "0.120.0"
+        versionCode 121
+        versionName "0.121.0"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
@@ -141,6 +143,7 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.leanback:leanback:1.0.0'
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"

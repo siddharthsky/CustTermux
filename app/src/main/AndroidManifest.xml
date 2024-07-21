@@ -123,7 +123,8 @@
 
         <activity
             android:name=".LoginReceiverActivity"
-            android:theme="@style/AppTheme.Transparent">
+            android:theme="@style/AppTheme.Transparent"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.temux.ACTION_RECEIVE_LOGIN" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -132,12 +133,40 @@
 
         <activity
             android:name=".SkyActionActivity"
-            android:theme="@style/AppTheme.Transparent">
+            android:theme="@style/AppTheme.Transparent"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.temux.SKY_ACTION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".app.sky.SkyTVz"
+            android:theme="@style/AppTheme.Transparent"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.temux.SKYTVUI" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".VideoPlayerActivity"
+            android:exported="true"/>
+<!--        android:screenOrientation="landscape"-->
+<!--        android:theme="@style/AppThemex"/>-->
+
+        <activity android:name=".WebPlayerActivity"
+            android:theme="@style/AppThemex"
+            android:exported="true">
+<!--        android:screenOrientation="landscape"-->
+            <intent-filter>
+                <action android:name="com.temux.URLPLAYER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
 
 
 

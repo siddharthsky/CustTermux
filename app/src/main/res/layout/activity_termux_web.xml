@@ -165,17 +165,20 @@
 
 
 
-            <com.termux.view.TerminalView
-                android:id="@+id/terminal_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:defaultFocusHighlightEnabled="false"
-                android:focusableInTouchMode="false"
-                android:scrollbarThumbVertical="@drawable/terminal_scroll_shape"
-                android:scrollbars="vertical"
-                android:importantForAutofill="no"
-                android:autofillHints="password"
-                tools:ignore="UnusedAttribute" />
+<!--            <com.termux.view.TerminalView-->
+<!--                android:id="@+id/terminal_view"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:defaultFocusHighlightEnabled="false"-->
+<!--                android:focusableInTouchMode="false"-->
+<!--                android:scrollbarThumbVertical="@drawable/terminal_scroll_shape"-->
+<!--                android:scrollbars="vertical"-->
+<!--                android:importantForAutofill="no"-->
+<!--                android:autofillHints="password"-->
+<!--                tools:ignore="UnusedAttribute" />-->
+
+
+
 
 
 
