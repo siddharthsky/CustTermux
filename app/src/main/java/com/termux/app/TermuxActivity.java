@@ -30,15 +30,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.autofill.AutofillManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.webkit.WebView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.termux.R;
+import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
@@ -216,6 +220,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private String otp;
 
+    private WebView webView;
+
+    private ImageView imageView;
+
+    private boolean isWebViewVisible = false;
+
 
 
     @Override
@@ -241,6 +251,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         Button button1 = findViewById(R.id.button1);
+        Button button1_5 = findViewById(R.id.button1_5);
         Button button2 = findViewById(R.id.button2);
         Button button3 = findViewById(R.id.button3);
 //        Button button4 = findViewById(R.id.button4);
@@ -275,6 +286,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onClick(View v) {
                 // Handle button1 click
                 sky_rerun();
+            }
+        });
+
+        button1_5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //sky_tv();
+//                Intent intent = new Intent(TermuxActivity.this, com.termux.VideoPlayerActivity.class);
+//                startActivity(intent);
+
+                Intent intent = new Intent(TermuxActivity.this, com.termux.WebPlayerActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -330,7 +353,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Reinstall","Run Code","Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -358,6 +381,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                                 break;
                             case 2:
                                 // Option 3 selected
+                                coderun_alert_confirmation(v.getContext());
+                                break;
+                            case 3:
+                                // Option 4 selected
                                 lake_alert_confirmation(v.getContext());
                                 break;
                             default:
@@ -393,12 +420,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
-        ImageView imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageView);
+        webView = findViewById(R.id.webview_tv);
+
+        webView.setVisibility(View.GONE); // Initially hide the WebView
         imageView.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetJavaScriptEnabled")
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
-                startActivity(browserIntent);
+                if (isWebViewVisible) {
+                    webView.setVisibility(View.GONE);
+                } else {
+                    webView.setVisibility(View.VISIBLE);
+                    webView.setWebChromeClient(new WebChromeClient());
+
+                    WebSettings webSettings = webView.getSettings();
+                    webSettings.setJavaScriptEnabled(true);
+                    webView.loadUrl("http://localhost:5001");
+                }
+                isWebViewVisible = !isWebViewVisible;
+
+//                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
+//                startActivity(browserIntent);
             }
         });
 
@@ -474,6 +517,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
 
+
+
     private void lake_alert_confirmation(Context context) {
         // Create an AlertDialog Builder
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
@@ -504,6 +549,51 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Show the AlertDialog
         dialog.show();
     }
+
+
+    private void coderun_alert_confirmation(Context context) {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+
+        // Create an EditText view to get user input
+        final EditText input = new EditText(context);
+
+        // Set the message and the title
+        builder.setMessage("Enter code to run in terminal.")
+            .setTitle("CodeRunner")
+            .setView(input);  // Add the EditText to the dialog
+
+        // Add the buttons
+        builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                String codeinput = input.getText().toString();
+                Intent intentC = new Intent();
+                intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+                intentC.setAction("com.termux.RUN_COMMAND");
+                intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+                intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"runcode",codeinput});
+                intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+                intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+                intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+                startService(intentC);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+    }
+
 
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -889,6 +979,20 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
+
+
+
+
+
+
+
+    private void sky_tv() {
+        Intent intent = new Intent();
+        intent.setAction("com.termux.SkyTV");
+        intent.putExtra("call", "start");
+        intent.setPackage("com.termux");
+        startActivity(intent);
+    }
 
 
     //////////////////////////////////////////////////////////////////////////////////////

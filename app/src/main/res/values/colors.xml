@@ -5,4 +5,9 @@
     <color name="tooltip_background_color">#40000000</color>
     <color name="focused_color">#FFD700</color>
     <color name="transparent">#00000000</color>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="drawer_background_color">#212121</color>
+    <color name="drawer_text_color">#FFFFFF</color>
 </resources>
