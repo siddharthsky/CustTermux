@@ -158,8 +158,8 @@
 
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
-            android:exported="true">
-<!--        android:screenOrientation="landscape"-->
+            android:exported="true"
+            android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="com.temux.URLPLAYER" />
                 <category android:name="android.intent.category.DEFAULT" />

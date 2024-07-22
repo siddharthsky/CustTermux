@@ -1,7 +1,5 @@
 package com.termux.app;
 
-import static com.termux.shared.view.ViewUtils.getActivity;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -12,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,7 +19,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.text.InputFilter;
 import android.text.InputType;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -42,7 +40,6 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.termux.R;
-import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
@@ -381,7 +378,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                                 break;
                             case 2:
                                 // Option 3 selected
-                                coderun_alert_confirmation(v.getContext());
+                                sky_runcode();
                                 break;
                             case 3:
                                 // Option 4 selected
@@ -557,6 +554,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Create an EditText view to get user input
         final EditText input = new EditText(context);
+        input.setTextColor(context.getResources().getColor(R.color.text_color_black));
+        input.setBackgroundTintList(ColorStateList.valueOf(000000));
+
+
 
         // Set the message and the title
         builder.setMessage("Enter code to run in terminal.")
