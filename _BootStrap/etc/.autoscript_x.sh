@@ -543,6 +543,7 @@ Default_Installation() {
 
 
 select_mode() {
+	echo "MODE MODE MDODE"
     # Create necessary directories
     if [[ ! -d "$HOME/.jiotv_go" ]]; then
         mkdir -p "$HOME/.jiotv_go"
