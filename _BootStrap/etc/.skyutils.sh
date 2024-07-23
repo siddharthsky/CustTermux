@@ -163,15 +163,15 @@ iptv() {
 iptvrunner() {
 	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
 
-	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+	#am start --user 0 -n com.termux/com.termux.app.TermuxActivity
 
-	sleep 0.5
+	#sleep 0.5
 
 	if [ "$retrieved_iptv" != "NULL" ]; then
-		
 		am start --user 0 -n "$retrieved_iptv"
 		exit 0
 	fi
+	exit 0
 
 }
 
