@@ -79,49 +79,44 @@ TheShowRunner() {
 
     if [ ! -f "$config_file" ]; then
         echo "PUBLIC" > "$config_file"
+		MODE_ONE="For all devices in Network [Default]"
+		MODE_TWO="This Device Only"
+
+		output=$(termux-dialog radio -t "Where do you want to use JioTVGo server?" -v "$MODE_ONE, $MODE_TWO")
+
+		selected=$(echo "$output" | jq -r '.text')
+		if [ $? != 0 ]; then
+			echo "Canceled."
+			exit 1
+		fi
+
+		if [ -n "$selected" ]; then
+			echo "Selected: $selected"
+
+			case "$selected" in
+				"$MODE_ONE")
+					echo "PRIVATE" > "$config_file"
+					echo "Setting Private Server..."
+					;;
+				*)
+					echo "Setting Public Server..."
+					;;
+			esac
+		else
+			echo "Setting Public Server..."
+		fi
     fi
 
-    MODE_ONE="This Device Only"
-    MODE_TWO="For all devices in Network [Default]"
-
-    output=$(termux-dialog radio -t "How do you want to use JioTVGo?" -v "$MODE_ONE, $MODE_TWO")
-
-    selected=$(echo "$output" | jq -r '.text')
-    if [ $? != 0 ]; then
-        echo "Canceled."
-        exit 1
-    fi
-
-    if [ -n "$selected" ]; then
-        echo "Selected: $selected"
-
-        case "$selected" in
-            "$MODE_ONE")
-                echo "PRIVATE" > "$config_file"
-                echo "Setting Private Server..."
-                ;;
-            "$MODE_TWO")
-                echo "PUBLIC" > "$config_file"
-                echo "Setting Public Server..."
-                ;;
-            *)
-                echo "PUBLIC" > "$config_file"
-                echo "Setting Public Server..."
-                ;;
-        esac
-    else
-        echo "PUBLIC" > "$config_file"
-        echo "Setting Public Server..."
-    fi
+   
 
     retrieved_runner=$(head -n 1 "$config_file")
 
     if [ "$retrieved_runner" = "PRIVATE" ]; then
-        echo "Running Server Locally..."
+        echo "Running JioTVGo Server Locallly..."
         $HOME/.jiotv_go/bin/jiotv_go bg run
         echo "Server Started."
     else
-        echo "Running Server..."
+        echo "Running JioTVGo Server..."
         $HOME/.jiotv_go/bin/jiotv_go bg run -a -P
         echo "Server Started."
     fi
@@ -239,12 +234,12 @@ Server_Runner() {
 		sleep 1
 		Init_Server_Check_Regular
 		LoginChecker
-		echo "Running JioTV GO"
+		#echo "Running JioTV GO"
 		am start --user 0 -n "$retrieved_iptv"
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
-		echo "____MODE____DEFAULT____"
+		echo -e "MODE:\e[32mDEFAULT\e[0m"
 		#termux-wake-lock
 		if [ "$retrieved_iptv" = "NULL" ]; then
 			#termux-wake-lock
@@ -255,21 +250,23 @@ Server_Runner() {
 		TheShowRunner
 		#$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
-		echo "____MODE____SERVERMODE____"
+		echo -e "MODE:\e[32mSERVERMODE\e[0m"
 		#termux-wake-lock
 		Init_Server_Check_Regular
 		LoginChecker
-		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
-		$HOME/.jiotv_go/bin/jiotv_go run -P
+		#echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
+		TheShowRunner
+		echo -e "To Stop Server: \e[31m'$HOME/.jiotv_go/bin/jiotv_go bg kill'\e[0m"
+		#$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
-		echo "____MODE____STANDALONE____"
+		echo "MODE:STANDALONE"
 		#termux-wake-lock
 		Init_Server_Check
 		LoginChecker
 		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		am start -a android.intent.action.VIEW -d "http://localhost:5001/" -e "android.support.customtabs.extra.SESSION" null
 		#termux-open-url http://localhost:5001/
-		$HOME/.jiotv_go/bin/jiotv_go run -P
+		#$HOME/.jiotv_go/bin/jiotv_go run -P
 	else
 		echo "____MODE____UNKNOWN____"
 	fi
@@ -287,9 +284,23 @@ gui_req() {
 	touch $HOME/.termux/termux.properties
 	chmod 755 $HOME/.termux/termux.properties
 	echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
-	am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
-	am settings get secure overlay_permission_enabled
- 	wait_and_count 20
+	
+	#am settings get secure overlay_permission_enabled
+	#MODE_ONE="Yes"
+	#MODE_TWO="No"
+	#output=$(termux-dialog radio -t "Give draw over other apps permission. To run server in background." -v "$MODE_ONE, $MODE_TWO")
+	#selected=$(echo $output | jq -r '.text')
+	#if [ "$selected" == "$MODE_ONE" ]; then
+		#am start --user 0 -a android.settings.action.MANAGE_OVERLAY_PERMISSION -d "package:com.termux"
+		#am start -a android.settings.action.MANAGE_OVERLAY_PERMISSION --es package com.termux
+		#wait_and_count 20
+	#elif [ "$selected" == "$MODE_TWO" ]; then
+		#run_no
+	#else
+		
+	#fi
+	
+ 	
 	echo "If stuck, Please clear app data and restart your device."
 }
 
@@ -543,6 +554,7 @@ Default_Installation() {
 
 
 select_mode() {
+	echo "MODE MODE MDODE"
     # Create necessary directories
     if [[ ! -d "$HOME/.jiotv_go" ]]; then
         mkdir -p "$HOME/.jiotv_go"
