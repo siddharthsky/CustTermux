@@ -73,60 +73,60 @@ Init_Server_Check_Regular() {
 }
 
 TheShowRunner() {
-	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-	config_file="$HOME/.jiotv_go/bin/run.cfg"
-	# Check if the file exists
-    if [ -f "$config_file" ]; then
-		######
-		touch $config_file
-		######
-		MODE_ONE="This Device Only"
-		MODE_TWO="For all devices in Network [Default]"
-		output=$(termux-dialog radio -t "How do you want to use JioTVGo?" -v "$MODE_ONE, $MODE_TWO")
+    pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 
-		selected=$(echo "$output" | jq -r '.text')
-		if [ $? != 0 ]; then
-			echo "Canceled."
-			exit 1
-		fi
+    config_file="$HOME/.jiotv_go/bin/run.cfg"
 
-		if [ -n "$selected" ]; then
-			echo "Selected: $selected"
-
-			case "$selected" in
-				"$MODE_ONE")
-					echo "PRIVATE" > "$config_file"
-					echo "Setting Private Server..."
-					;;
-				"$MODE_TWO")
-					echo "PUBLIC" > "$config_file"
-					echo "Setting Public Server..."
-					;;
-				*)
-					echo "PUBLIC" > "$config_file"
-					echo "Setting Public Server..."
-					;;
-			esac
-		else
-			echo "PUBLIC" > "$config_file"
-			echo "Setting Public Server..."
-		fi
-		######
+    if [ ! -f "$config_file" ]; then
+        echo "PUBLIC" > "$config_file"
     fi
-	
-	retrieved_runner=$(head -n 1 "$config_file")
+
+    MODE_ONE="This Device Only"
+    MODE_TWO="For all devices in Network [Default]"
+
+    output=$(termux-dialog radio -t "How do you want to use JioTVGo?" -v "$MODE_ONE, $MODE_TWO")
+
+    selected=$(echo "$output" | jq -r '.text')
+    if [ $? != 0 ]; then
+        echo "Canceled."
+        exit 1
+    fi
+
+    if [ -n "$selected" ]; then
+        echo "Selected: $selected"
+
+        case "$selected" in
+            "$MODE_ONE")
+                echo "PRIVATE" > "$config_file"
+                echo "Setting Private Server..."
+                ;;
+            "$MODE_TWO")
+                echo "PUBLIC" > "$config_file"
+                echo "Setting Public Server..."
+                ;;
+            *)
+                echo "PUBLIC" > "$config_file"
+                echo "Setting Public Server..."
+                ;;
+        esac
+    else
+        echo "PUBLIC" > "$config_file"
+        echo "Setting Public Server..."
+    fi
+
+    retrieved_runner=$(head -n 1 "$config_file")
 
     if [ "$retrieved_runner" = "PRIVATE" ]; then
         echo "Running Server Locally..."
-		$HOME/.jiotv_go/bin/jiotv_go run bg
-		echo "Server Started."	
+        $HOME/.jiotv_go/bin/jiotv_go run bg
+        echo "Server Started."
     else
-		echo "Running Server..."
+        echo "Running Server..."
         $HOME/.jiotv_go/bin/jiotv_go run bg -a -P
-		echo "Server Started."	
+        echo "Server Started."
     fi
-
 }
+
 
 LoginChecker() {
 	echo ""
