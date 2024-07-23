@@ -118,11 +118,11 @@ TheShowRunner() {
 
     if [ "$retrieved_runner" = "PRIVATE" ]; then
         echo "Running Server Locally..."
-        $HOME/.jiotv_go/bin/jiotv_go run bg
+        $HOME/.jiotv_go/bin/jiotv_go bg run
         echo "Server Started."
     else
         echo "Running Server..."
-        $HOME/.jiotv_go/bin/jiotv_go run bg -a -P
+        $HOME/.jiotv_go/bin/jiotv_go bg run -a -P
         echo "Server Started."
     fi
 }
@@ -543,7 +543,6 @@ Default_Installation() {
 
 
 select_mode() {
-	echo "MODE MODE MDODE"
     # Create necessary directories
     if [[ ! -d "$HOME/.jiotv_go" ]]; then
         mkdir -p "$HOME/.jiotv_go"
@@ -669,7 +668,7 @@ FINAL_INSTALL() {
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 			#$HOME/.jiotv_go/bin/jiotv_go bg kill
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
+            $HOME/.jiotv_go/bin/jiotv_go epg gen
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
 		"MODE_TWO")
@@ -680,7 +679,7 @@ FINAL_INSTALL() {
 			send_otp
 			verify_otp
 			pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-                        $HOME/.jiotv_go/bin/jiotv_go epg gen
+            $HOME/.jiotv_go/bin/jiotv_go epg gen
 			#$HOME/.jiotv_go/bin/jiotv_go bg kill
 			echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 			;;
