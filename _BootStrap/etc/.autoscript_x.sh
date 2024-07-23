@@ -116,7 +116,7 @@ TheShowRunner() {
         $HOME/.jiotv_go/bin/jiotv_go run
     else
         echo "Running JioTVGo Server..."
-        $HOME/.jiotv_go/bin/jiotv_go run -a -P
+        $HOME/.jiotv_go/bin/jiotv_go run -P
     fi
 }
 
