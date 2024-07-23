@@ -75,11 +75,10 @@ Init_Server_Check_Regular() {
 TheShowRunner() {
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	config_file="$HOME/.jiotv_go/bin/run.cfg"
-	retrieved_runner=$(retrieve_first_line $config_file)
 	# Check if the file exists
     if [ -f "$config_file" ]; then
 		######
-		nano config_file
+		touch $config_file
 		######
 		MODE_ONE="This Device Only"
 		MODE_TWO="For all devices in Network [Default]"
@@ -113,9 +112,9 @@ TheShowRunner() {
 			echo "Setting Public Server..."
 		fi
 		######
-    else
-        retrieved_runner=$(head -n 1 "$config_file")
     fi
+	
+	retrieved_runner=$(head -n 1 "$config_file")
 
     if [ "$retrieved_runner" = "PRIVATE" ]; then
         echo "Running Server Locally..."
@@ -254,7 +253,7 @@ Server_Runner() {
 			echo "Running JioTV GO"
 		fi
 		TheShowRunner
-		$HOME/.jiotv_go/bin/jiotv_go run -P
+		#$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_TWO" ]; then
 		echo "____MODE____SERVERMODE____"
 		#termux-wake-lock
@@ -557,7 +556,7 @@ select_mode() {
 	MODE_THREE="Standalone App Mode: Access JioTV Go via webpage [for Phone]."
 
     
-    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO,$MODE_THREE")
+    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO") #$MODE_THREE
 
     selected=$(echo "$output" | jq -r '.text')
     if [ $? != 0 ]; then
@@ -763,6 +762,5 @@ fi
 ################################################################################################
 #END
 ################################################################################################
-
 
 
