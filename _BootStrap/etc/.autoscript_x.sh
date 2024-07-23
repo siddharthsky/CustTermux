@@ -82,9 +82,9 @@ TheShowRunner() {
 		MODE_ONE="This Device Only"
 		MODE_TWO="For all devices in Network [Default]"
 
-		output=$(termux-dialog radio -t "Where do you want to use JioTVGo server?" -v "$MODE_TWO, $MODE_ONE")
+		outputz=$(termux-dialog radio -t "Where do you want to use JioTVGo server?" -v "$MODE_TWO, $MODE_ONE")
 
-		selected=$(echo "$output" | jq -r '.text')
+		selected=$(echo "$outputz" | jq -r '.text')
 		if [ $? != 0 ]; then
 			echo "Canceled."
 			exit 1
@@ -233,7 +233,7 @@ Server_Runner() {
 		LoginChecker
 		#echo "Running JioTV GO"
 		run_iptv_app = $(am start --user 0 -n "$retrieved_iptv")
-		$run_iptv_app
+		#$run_iptv_app
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
@@ -354,9 +354,9 @@ select_autoboot_or_not() {
 
 	touch $HOME/.jiotv_go/bin/autoboot_or_not.cfg 
     
-    output=$(termux-dialog radio -t "Do you want to autostart Server at boot?" -v "$MODE_ONE, $MODE_TWO")
+    outputw=$(termux-dialog radio -t "Do you want to autostart Server at boot?" -v "$MODE_ONE, $MODE_TWO")
 
-    selected=$(echo "$output" | jq -r '.text')
+    selected=$(echo "$outputw" | jq -r '.text')
     if [ $? != 0 ]; then
         echo "Canceled."
         exit 1
@@ -565,9 +565,9 @@ select_mode() {
 	MODE_THREE="Standalone App Mode: Access JioTV Go via webpage [for Phone]."
 
     
-    output=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO") #$MODE_THREE
+    outputf=$(termux-dialog radio -t "Select Usage Method for CustTermux" -v "$MODE_ONE, $MODE_TWO") #$MODE_THREE
 
-    selected=$(echo "$output" | jq -r '.text')
+    selected=$(echo "$outputf" | jq -r '.text')
     if [ $? != 0 ]; then
         echo "Canceled."
         exit 1
@@ -599,9 +599,9 @@ select_mode() {
 
 select_iptv() {
 	spr="SparkleTV2 - any app"	
-	output=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
+	outputx=$(termux-dialog radio -t "Select an IPTV Player to autostart" -v "OTTNavigator,Televizo,SparkleTV,TiviMate,Kodi,$spr,none")
 
-	selected=$(echo "$output" | jq -r '.text')
+	selected=$(echo "$outputx" | jq -r '.text')
 	if [ $? != 0 ]; then
  		rm -rf "$HOME/.jiotv_go/bin/iptv.cfg"
 		echo "NULL" > "$HOME/.jiotv_go/bin/iptv.cfg"
