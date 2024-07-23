@@ -185,7 +185,7 @@ reinstall() {
 	}
 
 	prompt_gui2() {
-		termux-dialog spinner -v "ReInstall:Done" -t "Re-Install Status"
+		termux-dialog spinner -v "ReInstalling Now!" -t "Re-Install Status"
 	}
 
 	reinstaller() {
