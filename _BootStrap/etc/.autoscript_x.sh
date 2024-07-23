@@ -79,10 +79,10 @@ TheShowRunner() {
 
     if [ ! -f "$config_file" ]; then
         echo "PUBLIC" > "$config_file"
-		MODE_ONE="For all devices in Network [Default]"
-		MODE_TWO="This Device Only"
+		MODE_ONE="This Device Only"
+		MODE_TWO="For all devices in Network [Default]"
 
-		output=$(termux-dialog radio -t "Where do you want to use JioTVGo server?" -v "$MODE_ONE, $MODE_TWO")
+		output=$(termux-dialog radio -t "Where do you want to use JioTVGo server?" -v "$MODE_TWO, $MODE_ONE")
 
 		selected=$(echo "$output" | jq -r '.text')
 		if [ $? != 0 ]; then
@@ -113,19 +113,16 @@ TheShowRunner() {
 
     if [ "$retrieved_runner" = "PRIVATE" ]; then
         echo "Running JioTVGo Server Locallly..."
-        $HOME/.jiotv_go/bin/jiotv_go bg run
-        echo "Server Started."
+        $HOME/.jiotv_go/bin/jiotv_go run
     else
         echo "Running JioTVGo Server..."
-        $HOME/.jiotv_go/bin/jiotv_go bg run -a -P
-        echo "Server Started."
+        $HOME/.jiotv_go/bin/jiotv_go run -a -P
     fi
 }
 
 
 LoginChecker() {
-	echo ""
-	#pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 }
 
 LoginChecker_Old() {
@@ -235,7 +232,8 @@ Server_Runner() {
 		Init_Server_Check_Regular
 		LoginChecker
 		#echo "Running JioTV GO"
-		am start --user 0 -n "$retrieved_iptv"
+		run_iptv_app = $(am start --user 0 -n "$retrieved_iptv")
+		$run_iptv_app
 	fi
 	
 	if [ "$retrieved_mode" = "MODE_ONE" ]; then
@@ -245,7 +243,7 @@ Server_Runner() {
 			#termux-wake-lock
 			Init_Server_Check_Regular
 			LoginChecker
-			echo "Running JioTV GO"
+			#echo "Running JioTV GO"
 		fi
 		TheShowRunner
 		#$HOME/.jiotv_go/bin/jiotv_go run -P
@@ -254,9 +252,9 @@ Server_Runner() {
 		#termux-wake-lock
 		Init_Server_Check_Regular
 		LoginChecker
-		#echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
+		echo -e "Press \e[31mCTRL + C\e[0m to interrupt"
 		TheShowRunner
-		echo -e "To Stop Server: \e[31m'$HOME/.jiotv_go/bin/jiotv_go bg kill'\e[0m"
+		#echo -e "To Stop Server: \e[31m'$HOME/.jiotv_go/bin/jiotv_go bg kill'\e[0m"
 		#$HOME/.jiotv_go/bin/jiotv_go run -P
 	elif [ "$retrieved_mode" = "MODE_THREE" ]; then
 		echo "MODE:STANDALONE"
@@ -554,7 +552,6 @@ Default_Installation() {
 
 
 select_mode() {
-	echo "MODE MODE MDODE"
     # Create necessary directories
     if [[ ! -d "$HOME/.jiotv_go" ]]; then
         mkdir -p "$HOME/.jiotv_go"
@@ -760,7 +757,7 @@ else
 		echo "FINAL_RUN" > "$FILE_PATH"
 		Server_Runner
 		echo -e "----------------------------"
-		echo -e "\e[0;36m-CustTermux by SiddharthSky\e[0m"
+		echo -e "\e[0;36mCustTermux by SiddharthSky\e[0m"
 		echo -e "----------------------------"
 	elif [ "$RUN_STATUS" == "FINAL_RUN" ]; then
 		echo ""
