@@ -239,6 +239,7 @@
 
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
+    <string name="app_icon_desc">App icon</string>
 
 
 </resources>

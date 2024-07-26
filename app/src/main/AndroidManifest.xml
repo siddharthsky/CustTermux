@@ -37,6 +37,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove" tools:ignore="QueryAllPackagesPermission" />
 
     <application
@@ -151,6 +152,21 @@
             </intent-filter>
         </activity>
 
+
+        <activity
+            android:name=".SkySharedPrefActivity"
+            android:theme="@style/AppTheme.Transparent"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.temux.GetReceiver" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.temux.SaveReceiver" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".VideoPlayerActivity"
             android:exported="true"/>
 <!--        android:screenOrientation="landscape"-->
@@ -167,6 +183,8 @@
 
         </activity>
 
+        <activity android:name=".AppSelectorActivity" />
+        <activity android:name=".SetupActivity" />
 
 
 

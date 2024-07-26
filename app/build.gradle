@@ -35,6 +35,7 @@ android {
 
 
 
+
         implementation project(":terminal-view")
         implementation project(":termux-shared")
     }
@@ -43,8 +44,8 @@ android {
         applicationId "com.termux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 121
-        versionName "0.121.0"
+        versionCode 122
+        versionName "0.122.0"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)

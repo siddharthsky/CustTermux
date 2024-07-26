@@ -17,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.ContextMenu;
@@ -40,6 +41,8 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.termux.R;
+import com.termux.SetupActivity;
+import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
@@ -74,6 +77,7 @@ import com.termux.view.TerminalViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
@@ -223,7 +227,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private boolean isWebViewVisible = false;
 
+    private static final int REQUEST_CODE_MANAGE_OVERLAY_PERMISSION = 1;
+    private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
 
+
+    private boolean isCanceled = false;
+
+
+    private Runnable autoDismissRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -246,6 +257,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        handler = new Handler();
+
 
         Button button1 = findViewById(R.id.button1);
         Button button1_5 = findViewById(R.id.button1_5);
@@ -293,7 +306,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //                Intent intent = new Intent(TermuxActivity.this, com.termux.VideoPlayerActivity.class);
 //                startActivity(intent);
 
-                Intent intent = new Intent(TermuxActivity.this, com.termux.WebPlayerActivity.class);
+                Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
                 startActivity(intent);
             }
         });
@@ -409,9 +422,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle button5 click -
+                // Handle button7 click -
+                //sky_exit();
 
-                sky_exit();
+                //Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+                //startActivity(intent);
+
+
+                Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+                startActivity(intent);
+
+
+
+
+
+
+
+
+
+
             }
         });
 
@@ -441,6 +470,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //                startActivity(browserIntent);
             }
         });
+
+        // Check and request MANAGE_OVERLAY_PERMISSION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                overapp_confirmation(this);
+
+            } else {
+                // Permission already granted, proceed with the app logic
+                proceedWithAppLogic();
+            }
+        }
+
+
 
 
 
@@ -515,6 +557,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
+    private void proceedWithAppLogic() {
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void requestOverlayPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, REQUEST_CODE_MANAGE_OVERLAY_PERMISSION);
+    }
+
+//////////////////////////////////////////////////////////////
+
+
 
     private void lake_alert_confirmation(Context context) {
         // Create an AlertDialog Builder
@@ -530,6 +585,39 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
                 sky_terminal();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+    }
+
+    private void overapp_confirmation(Context context) {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+
+        // Set the message and the title
+        builder.setMessage("Draw over other apps permission required. To run server in background.")
+            .setTitle("Permission Required");
+
+        // Add the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestOverlayPermission();
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -598,6 +686,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
     //////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    private void handleOverlayPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(this);
+        }
+    }
+
+    private void handleInstallPackagesPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkSelfPermission("android.permission.INSTALL_PACKAGES");
+
+        }
+    }
+
 
     public void wait_() {
         handler = new Handler();
@@ -915,9 +1019,41 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private void sky_exit() {
         //loginchecker();
         XStopTermux();
+
+
+
     }
 
+    private void sky_getter(){
+        Intent intent = new Intent();
+        intent.setAction("com.termux.GetReceiver");
+        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
+        intent.putExtra("key", "exampleKey");
+        startActivity(intent);
 
+        // Register a receiver to get the response
+        BroadcastReceiver responseReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String key = intent.getStringExtra("key");
+                String value = intent.getStringExtra("value");
+                // Use the key and value as needed
+                Toast.makeText(TermuxActivity.this, "Server not available."+key+"---"+value, Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        IntentFilter filter = new IntentFilter("com.termux.GetResponse");
+        registerReceiver(responseReceiver, filter);
+    }
+
+    private void sky_saver(){
+        Intent intent = new Intent();
+        intent.setAction("com.termux.SaveReceiver");
+        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
+        intent.putExtra("key", "exampleKey");
+        intent.putExtra("value", "exampleValue2");
+        startActivity(intent);
+    }
 
 
     private void sky_terminal() {
@@ -1024,6 +1160,49 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         registerTermuxActivityBroadcastReceiver();
     }
 
+
+
+
+
+    @SuppressLint("StaticFieldLeak")
+    private class CheckUrlTask extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(String... urls) {
+            String urlString = urls[0];
+            HttpURLConnection urlConnection = null;
+            try {
+                URL url = new URL(urlString);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                int responseCode = urlConnection.getResponseCode();
+                return (responseCode == HttpURLConnection.HTTP_OK);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isUrlAvailable) {
+            if (isUrlAvailable) {
+                showAlert();
+
+                openIptvCount++;
+            } else {
+                // Handle the case when the URL is not available
+                Toast.makeText(TermuxActivity.this, "Server not available.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private int openIptvCount = 0;
+    private final int maxOpenIptvCalls = 2;
+
     @Override
     public void onResume() {
         super.onResume();
@@ -1043,6 +1222,65 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
+
+
+
+        
+        
+        if (openIptvCount < maxOpenIptvCalls) {
+            new CheckUrlTask().execute("http://localhost:5001");
+
+        }
+
+
+    }
+
+
+
+    private void showAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Alert")
+            .setMessage("Do you want to proceed?")
+            .setCancelable(false)
+            .setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // Proceed with starting IPTV
+                    //iptv_check();
+                    XStartIPTV();
+                }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    isCanceled = true;
+                    //stopStartingOPTV(); // Called when user presses Cancel
+                }
+            });
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Ensure that the Handler and Runnable are not null before scheduling
+        if (handler != null) {
+            autoDismissRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (!isCanceled) {
+                        dialog.dismiss();
+                        //iptv_check(); // Proceed if not canceled
+                        XStartIPTV();
+                    }
+                }
+            };
+            handler.postDelayed(autoDismissRunnable, 4000); // 4000 milliseconds = 4 seconds
+        }
+    }
+
+    private void iptv_check() {
+        if (openIptvCount < maxOpenIptvCalls) {
+            new CheckUrlTask().execute("http://localhost:5001");
+        }
     }
 
     @Override
@@ -1070,6 +1308,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (handler != null && autoDismissRunnable != null) {
+            handler.removeCallbacks(autoDismissRunnable);
+        }
+        openIptvCount = 0;
 
         Logger.logDebug(LOG_TAG, "onDestroy");
 
@@ -1529,9 +1771,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Logger.logVerbose(LOG_TAG, "onActivityResult: requestCode: " + requestCode + ", resultCode: "  + resultCode + ", data: "  + IntentUtils.getIntentString(data));
-        if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
+        //if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
+        //    requestStoragePermission(true);
+        //}
+        //handleOverlayPermissionResult(requestCode);
+        //super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_MANAGE_OVERLAY_PERMISSION) {
+            handleOverlayPermissionResult();
+        } else if (requestCode == REQUEST_CODE_INSTALL_PACKAGES_PERMISSION) {
+            handleInstallPackagesPermissionResult();}
+        else if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
+
+
     }
 
     @Override
