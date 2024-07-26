@@ -1,17 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- Step One Title -->
     <TextView
-        android:id="@+id/step_two_title"
+        android:id="@+id/step_one_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Step two"
-        android:textSize="24sp"
-        android:textColor="@android:color/holo_red_dark"
-        android:textStyle="bold"
-        android:layout_centerInParent="true"/>  <!-- Center text both horizontally and vertically -->
+        android:text="Step One"
+        android:background="@color/text_color_black"
+        android:textSize="40sp"
+        android:textColor="@android:color/white" />
 
+    <!-- Device Selection Instructions -->
+    <TextView
+        android:id="@+id/step_one_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_one_title"
+        android:layout_marginTop="8dp"
+        android:background="@color/text_color_black"
+        android:text="Where do you want to use JioTV?"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
+
+    <!-- Device Selection Radio Group -->
+    <RadioGroup
+        android:id="@+id/device_selection_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_title2"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/device_only_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="This device only (Local access, Default mode)" />
+
+        <RadioButton
+            android:id="@+id/network_device_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Other device in network (Server mode)" />
+    </RadioGroup>
 </RelativeLayout>

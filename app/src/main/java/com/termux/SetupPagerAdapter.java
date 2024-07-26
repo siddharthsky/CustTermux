@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import com.termux.setup.StepOneFragment;
 import com.termux.setup.StepThreeFragment;
 import com.termux.setup.StepTwoFragment;
+import com.termux.setup.StepZeroFragment;
 
 // SetupPagerAdapter.java
 public class SetupPagerAdapter extends FragmentStatePagerAdapter {
@@ -24,16 +25,16 @@ public class SetupPagerAdapter extends FragmentStatePagerAdapter {
         switch (position) {
             case 0:
                 //Log.d("dx","0");
-                return new StepOneFragment();
+                return new StepZeroFragment();
             case 1:
                 //Log.d("dx","1");
-                return new StepTwoFragment();
+                return new StepOneFragment();
             case 2:
                 //Log.d("dx","2");
-                return new StepThreeFragment();
+                return new StepTwoFragment();
             // Add more cases for additional steps
             default:
-                return new StepOneFragment();
+                return new StepZeroFragment();
         }
     }
 

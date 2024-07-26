@@ -33,6 +33,7 @@ android {
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
 
+        implementation "com.airbnb.android:lottie:5.0.1"
 
 
 

@@ -4,14 +4,59 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- Step Two Title -->
     <TextView
         android:id="@+id/step_two_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Step two"
-        android:textSize="24sp"
-        android:textColor="@android:color/holo_red_dark"
-        android:textStyle="bold"
-        android:layout_centerInParent="true"/>  <!-- Center text both horizontally and vertically -->
+        android:text="Step Two"
+        android:background="@color/text_color_black"
+        android:textSize="40sp"
+        android:textColor="@android:color/white" />
+
+    <!-- Auto-Open IPTV Instructions -->
+    <TextView
+        android:id="@+id/step_two_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_two_title"
+        android:layout_marginTop="8dp"
+        android:background="@color/text_color_black"
+        android:text="Do you want to auto-open IPTV when you start CustTermux?"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
+
+    <!-- Auto-Open IPTV Radio Group -->
+    <RadioGroup
+        android:id="@+id/auto_open_iptv_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_two_title2"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/iptv_yes_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Yes" />
+
+        <RadioButton
+            android:id="@+id/iptv_no_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="No" />
+    </RadioGroup>
+
+    <!-- IPTV Name Button -->
+    <Button
+        android:id="@+id/button_iptv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/auto_open_iptv_group"
+        android:layout_marginTop="16dp"
+        android:text="Select IPTV Here"
+        android:visibility="gone" />
 
 </RelativeLayout>
