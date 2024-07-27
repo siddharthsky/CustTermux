@@ -20,8 +20,6 @@ case "$SHELL_NAME" in
 esac
 
 
-local VARIABLE01
-local VARIABLE02
 get_value_from_key_n1() {
     local KEY="$1"
     logcat -c
