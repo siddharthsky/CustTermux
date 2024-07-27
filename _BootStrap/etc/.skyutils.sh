@@ -192,6 +192,8 @@ reinstall() {
 		echo "Removing Server Files..."
 		rm -rf "$HOME/.jiotv_go/bin/"
 		rm  "$HOME/.autoscript.sh"
+		rm  "$HOME/.autoscript_x.sh"
+		rm  "$HOME/.autoscript_xm.sh"
 		rm  "$HOME/.skyutils.sh"
 
   		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
