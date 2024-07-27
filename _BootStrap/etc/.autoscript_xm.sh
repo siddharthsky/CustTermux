@@ -189,16 +189,16 @@ echo "Script : version 6.9"
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
-    mkdir -p "$HOME/.jiotv_go/bin/"
-    echo "FIRST_RUN" > "$FILE_PATH"
-    echo "-----------------------"
-    echo "INSTALLATION -- PART 1"
-    echo "-----------------------"
-    gui_req
+	mkdir -p "$HOME/.jiotv_go/bin/"
+	echo "FIRST_RUN" > "$FILE_PATH"
+	echo "-----------------------"
+	echo "INSTALLATION -- PART 1"
+	echo "-----------------------"
+	gui_req
 	Default_Installation
 	echo "FINAL_RUN" > "$FILE_PATH"
 	FINAL_INSTALL
 	Server_Runner
 else
-    Server_Runner
+	Server_Runner
 fi
