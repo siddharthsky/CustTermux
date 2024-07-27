@@ -23,54 +23,12 @@ esac
 # Utility functions
 ################################################################################################
 
-wait_and_count() {
-    local start_time=$(date +%s)
-    local counter=0
-    local spinner="/-\|"
-    local bar_length=40
-
-    echo "[${1}] Processing..."
-    while true; do
-        local current_time=$(date +%s)
-        local elapsed_time=$((current_time - start_time))
-        if [ $elapsed_time -gt $1 ]; then
-            break
-        fi
-
-        local progress=$((elapsed_time * bar_length / $1))
-        printf "\r[\033[0;32m%-*s\033[0m] %d%% %c" $bar_length $(printf '#%.0s' $(seq 1 $progress)) $((elapsed_time * 100 / $1)) ${spinner:counter%4:1}
-        sleep 0.1
-        counter=$((counter + 1))
-    done
-    printf "\r[\033[0;32m%-*s\033[0m] 100%% \n" $bar_length $(printf '#%.0s' $(seq 1 $bar_length))
-}
-
 IP_ADD=""
 get_ip_address() {
     local ip_address=$(termux-wifi-connectioninfo | grep -oP '(?<="ip": ")[^"]+')
     IP_ADD="$ip_address"
 }
 
-retrieve_first_line() {
-    local file_path=$1
-    local option=""
-    if [ -f "$file_path" ]; then
-        option=$(head -n 1 "$file_path")
-    else
-        echo "$file_path file not found or empty."
-    fi
-    echo "$option"
-}
-
-Init_Server_Check() {
-    pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-    starter=$($HOME/.jiotv_go/bin/jiotv_go bg run) # For Login Checker
-}
-
-Init_Server_Check_Regular() {
-    termux-wake-lock
-    # pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
-}
 
 Server_Runner() {
     get_ip_address
@@ -99,43 +57,6 @@ gui_req() {
     echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 }
 
-check_termux_api() {
-    app_permission_check() {
-        mkdir -p "$HOME/.jiotv_go/bin/"
-        touch "$HOME/.jiotv_go/bin/permission.cfg"
-        quick_var=$(head -n 1 "$HOME/.jiotv_go/bin/permission.cfg")
-        if [ "$quick_var" = "OVERLAY=TRUE" ]; then
-            :
-        else
-            am start --user 0 -a android.settings.MANAGE_UNKNOWN_APP_SOURCES -d "package:com.termux"
-            echo "waiting for app install permissions"
-            wait_and_count 20
-            echo "OVERLAY=TRUE" > "$HOME/.jiotv_go/bin/permission.cfg"
-        fi
-    }
-
-    check_package() {
-        PACKAGE_NAME="com.termux.api"
-        out="$(pm path $PACKAGE_NAME --user 0 2>&1 </dev/null)"
-        
-        if [[ "$out" == *"$PACKAGE_NAME"* ]]; then
-            echo -e "The package \e[32m$PACKAGE_NAME\e[0m is available."
-            am start --user 0 -n com.termux/com.termux.app.TermuxActivity
-            echo "If stuck, Please clear app data and restart your device."
-            return 0
-        else
-            return 1
-        fi
-    }
-
-    while ! check_package; do
-        echo "The package $PACKAGE_NAME is not installed. Checking again..."
-        curl -L -o "$HOME/Tapi.apk" "https://github.com/termux/termux-api/releases/download/v0.50.1/termux-api_v0.50.1+github-debug.apk"
-        chmod 755 "$HOME/Tapi.apk"
-        termux-open "$HOME/Tapi.apk"
-        wait_and_count 20
-    done
-}
 
 # Default Installation
 Default_Installation() {
@@ -222,21 +143,14 @@ Default_Installation() {
 }
 
 FINAL_INSTALL() {
-    #send_otp
-    #verify_otp
     #pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
     $HOME/.jiotv_go/bin/jiotv_go epg gen
     echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 }
 
-# Check if jiotv_go exists
-if [[ -f "$HOME/.jiotv_go/bin/jiotv_go" ]]; then
-    Server_Runner
-fi
+echo "Script : version 6.9"
 
-echo "Script : version 6.4"
-
-FILE_PATH="$HOME/.jiotv_go/bin/run_check.cfg"
+FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
     mkdir -p "$HOME/.jiotv_go/bin/"
@@ -245,40 +159,10 @@ if [ ! -f "$FILE_PATH" ]; then
     echo "INSTALLATION -- PART 1"
     echo "-----------------------"
     gui_req
-    echo "SECOND_RUN" > "$FILE_PATH"
+	Default_Installation
+	echo "FINAL_RUN" > "$FILE_PATH"
+	FINAL_INSTALL
+	Server_Runner
 else
-    RUN_STATUS=$(cat "$FILE_PATH")
-
-    case "$RUN_STATUS" in
-        "FIRST_RUN")
-            echo "-----------------------"
-            echo "INSTALLATION -- PART 1"
-            echo "-----------------------"
-            gui_req
-			Default_Installation
-            FINAL_INSTALL
-			Server_Runner
-            echo "SECOND_RUN" > "$FILE_PATH"
-            ;;
-        "SECOND_RUN")
-            echo "-----------------------"
-            echo "INSTALLATION -- PART 2"
-            echo "-----------------------"
-            Default_Installation
-            FINAL_INSTALL
-            echo "FINAL_RUN" > "$FILE_PATH"
-            Server_Runner
-            echo -e "----------------------------"
-            echo -e "\e[0;36mCustTermux by SiddharthSky\e[0m"
-            echo -e "----------------------------"
-            ;;
-        "FINAL_RUN")
-            echo ""
-            ;;
-        *)
-            echo "Something Went Wrong : Clear App Data"
-            sleep 30
-            exit 1
-            ;;
-    esac
+    Server_Runner
 fi
