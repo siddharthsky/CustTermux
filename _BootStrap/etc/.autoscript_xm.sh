@@ -53,7 +53,7 @@ TheShowRunner() {
 	get_value_from_key_n1 "app_name"
 	
 	# Check if the app name is "KrispyX1"
-	if [ "$VARIABLE01" == "KrispyX1" ]; then
+	if [ "$VARIABLE01" == "null" ]; then
 		echo ""
 	else	
  		get_value_from_key_n2 "app_launchactivity"
