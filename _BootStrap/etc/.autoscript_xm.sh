@@ -53,7 +53,14 @@ TheShowRunner() {
 	get_value_from_key_n1 "app_name"	
 	get_value_from_key_n2 "app_launchactivity"	
 	am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
-	$HOME/.jiotv_go/bin/jiotv_go run -P
+ 	get_value_from_key_n3 "server_setup_isLocal"
+  	if [ $VARIABLE03 == "Yes" ]; then
+		$HOME/.jiotv_go/bin/jiotv_go run
+	else
+		$HOME/.jiotv_go/bin/jiotv_go run -P
+	fi
+
+	
 }
 
 ################################################################################################
@@ -82,6 +89,18 @@ get_value_from_key_n2() {
 	VARIABLE02=$VALUE
 	#Debug
 	echo "Captured value: $VARIABLE02"
+}
+
+get_value_from_key_n3() {
+    local KEY="$1"
+    logcat -c
+	sleep 0
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 0
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE02=$VALUE
+	#Debug
+	echo "Captured value: $VARIABLE03"
 }
 
 
