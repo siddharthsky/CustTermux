@@ -44,7 +44,7 @@ Server_Runner() {
     echo -e "\e[93mIPTV Playlist:\e[0m http://$IP_ADD:5001/playlist.m3u"
     echo "---------------------------"
 
-    source ~/.bashrc # PATH update
+    #source ~/.bashrc # PATH update
 
     TheShowRunner
 }
@@ -160,7 +160,7 @@ Default_Installation() {
     echo "Step 4: Fetch the latest binary"
 
     # Make the binary executable
-    chmod +x "$HOME/.jiotv_go/bin/jiotv_go"
+    chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
     echo "Step 5: Granted executable permissions to the binary"
 
     # Add binary to PATH
@@ -194,13 +194,11 @@ FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
 	mkdir -p "$HOME/.jiotv_go/bin/"
-	echo "FIRST_RUN" > "$FILE_PATH"
 	echo "-----------------------"
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
 	Setup_Prerequisites
 	Default_Installation
-	echo "FINAL_RUN" > "$FILE_PATH"
 	Setup_Extra
  	clear
 	Server_Runner
