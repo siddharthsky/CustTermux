@@ -273,7 +273,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         Button button1 = findViewById(R.id.button1);
         Button button1_5 = findViewById(R.id.button1_5);
-//        Button button2 = findViewById(R.id.button2);
+        Button button2 = findViewById(R.id.button2);
 //        Button button3 = findViewById(R.id.button3);
 //        Button button4 = findViewById(R.id.button4);
 //        Button button5 = findViewById(R.id.button5);
@@ -295,7 +295,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         };
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
-//        button2.setOnFocusChangeListener(tooltipFocusListener);
+        button2.setOnFocusChangeListener(tooltipFocusListener);
 //        button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
 //        button5.setOnFocusChangeListener(tooltipFocusListener);
@@ -324,13 +324,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
-//        button2.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                // Handle button2 click
-//                sky_login();
-//            }
-//        });
+        button2.setOnClickListener(new View.OnClickListener() {
+            //sky_login();
+            @SuppressLint("SetJavaScriptEnabled")
+            @Override
+            public void onClick(View v) {
+                if (isWebViewVisible) {
+                    webView.setVisibility(View.GONE);
+                } else {
+                    webView.setVisibility(View.VISIBLE);
+                    webView.setWebChromeClient(new WebChromeClient());
+
+                    WebSettings webSettings = webView.getSettings();
+                    webSettings.setJavaScriptEnabled(true);
+                    webView.loadUrl("http://localhost:5001");
+                }
+                isWebViewVisible = !isWebViewVisible;
+            }
+        });
+
+
 //
 //        button3.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -1230,11 +1243,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 if (iptv_checker != null && !iptv_checker.isEmpty()) {
                     if (iptv_checker.equals("null")) {
                         System.out.println("IPTV, null!");
+                    } else {
+                        System.out.println("IPTV, found!");
+                        showAlert();
+                        openIptvCount++;
                     }
                 } else {
-                    System.out.println("IPTV, found!");
-                    showAlert();
-                    openIptvCount++;
+                    System.out.println("IPTV, null!");
                 }
 
             } else {
