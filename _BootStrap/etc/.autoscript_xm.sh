@@ -32,7 +32,7 @@ get_ip_address() {
 
 
 Server_Runner() {
-    get_ip_address
+    #get_ip_address
     $HOME/.jiotv_go/bin/jiotv_go -v
     echo "---------------------------"
     echo -e "\e[96mFor Local Access:\e[0m"
