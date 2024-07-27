@@ -202,6 +202,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	Default_Installation
 	echo "FINAL_RUN" > "$FILE_PATH"
 	Setup_Extra
+ 	clear
 	Server_Runner
 else
 	Server_Runner
