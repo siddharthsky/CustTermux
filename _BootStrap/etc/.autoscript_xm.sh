@@ -255,6 +255,9 @@ else
             echo "INSTALLATION -- PART 1"
             echo "-----------------------"
             gui_req
+			Default_Installation
+            FINAL_INSTALL
+			Server_Runner
             echo "SECOND_RUN" > "$FILE_PATH"
             ;;
         "SECOND_RUN")
