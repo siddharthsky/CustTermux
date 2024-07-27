@@ -106,7 +106,7 @@ get_value_from_key_n3() {
 	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
 	sleep 0
 	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-	VARIABLE02=$VALUE
+	VARIABLE03=$VALUE
 	#Debug
 	echo "Captured value: $VARIABLE03"
 }
