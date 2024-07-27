@@ -20,41 +20,6 @@ case "$SHELL_NAME" in
 esac
 
 
-get_value_from_key_n1() {
-    local KEY="$1"
-    logcat -c
-	sleep 0
-	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
-	sleep 0
-	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-	VARIABLE01=$VALUE
-	echo "Captured value: $VARIABLE01"
-}
-
-get_value_from_key_n2() {
-    local KEY="$1"
-    logcat -c
-	sleep 0
-	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
-	sleep 0
-	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-	VARIABLE02=$VALUE
-	echo "Captured value: $VARIABLE02"
-}
-
-
-TheShowRunner() {
-	get_value_from_key_n1 "app_name"	
-	get_value_from_key_n2 "app_launchactivity"	
-	
-	am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
-	
-	$HOME/.jiotv_go/bin/jiotv_go run -P
-}
-
-
-
-
 ################################################################################################
 # Utility functions
 ################################################################################################
@@ -84,8 +49,49 @@ Server_Runner() {
     TheShowRunner
 }
 
+TheShowRunner() {
+	get_value_from_key_n1 "app_name"	
+	get_value_from_key_n2 "app_launchactivity"	
+	am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
+	$HOME/.jiotv_go/bin/jiotv_go run -P
+}
+
+################################################################################################
+# AM functions
+################################################################################################
+
+get_value_from_key_n1() {
+    local KEY="$1"
+    logcat -c
+	sleep 0
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 0
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE01=$VALUE
+	#Debug
+	echo "Captured value: $VARIABLE01"
+}
+
+get_value_from_key_n2() {
+    local KEY="$1"
+    logcat -c
+	sleep 0
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 0
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE02=$VALUE
+	#Debug
+	echo "Captured value: $VARIABLE02"
+}
+
+
+################################################################################################
+# Installation functions
+################################################################################################
+
+
 # Checking required packages
-gui_req() {
+Setup_Prerequisites() {
     pkg install termux-am jq termux-api -y
     rm -f $HOME/.termux/termux.properties
     touch $HOME/.termux/termux.properties
@@ -178,10 +184,8 @@ Default_Installation() {
     esac
 }
 
-FINAL_INSTALL() {
-    #pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+Setup_Extra() {
     $HOME/.jiotv_go/bin/jiotv_go epg gen
-    echo "Running : \$HOME/.jiotv_go/bin/jiotv_go run -P"
 }
 
 echo "Script : version 6.9"
@@ -194,10 +198,10 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "-----------------------"
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
-	gui_req
+	Setup_Prerequisites
 	Default_Installation
 	echo "FINAL_RUN" > "$FILE_PATH"
-	FINAL_INSTALL
+	Setup_Extra
 	Server_Runner
 else
 	Server_Runner
