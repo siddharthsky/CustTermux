@@ -38,6 +38,13 @@ public class StepTwoFragment extends Fragment {
         ImageView appIcon = view.findViewById(R.id.app_icon);
         TextView textAppName = view.findViewById(R.id.text_app_name);
 
+        // Set default selection to "YES"
+        autoOpenIptvGroup.check(R.id.iptv_no_option);
+
+
+        SkySharedPref preferenceManager = new SkySharedPref(getActivity());
+
+
         // Set up listener for RadioGroup
         autoOpenIptvGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -46,6 +53,8 @@ public class StepTwoFragment extends Fragment {
                     buttonIptvName.setVisibility(View.VISIBLE);
                 } else if (checkedId == R.id.iptv_no_option) {
                     buttonIptvName.setVisibility(View.GONE);
+                    preferenceManager.setKey("app_name", "null");
+                    preferenceManager.setKey("app_launchactivity", "null");
                 }
             }
         });
@@ -53,40 +62,13 @@ public class StepTwoFragment extends Fragment {
         buttonIptvName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "IPTV Selected", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), "IPTV Selected", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getActivity(), AppSelectorActivity.class);
                 startActivity(intent);
-
-                // Retrieve and display app_launchactivity and app_name
-                SkySharedPref preferenceManager = new SkySharedPref(getActivity());
-                String packageName = preferenceManager.getKey("app_name"); // Assuming app_name contains the package name
-
-                if (packageName != null && !packageName.isEmpty()) {
-                    try {
-                        PackageManager packageManager = getActivity().getPackageManager();
-                        Drawable icon = packageManager.getApplicationIcon(packageName);
-                        String appLabel = packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString();
-
-                        // Set the app name and icon
-                        textAppName.setText(appLabel);
-                        appIcon.setImageDrawable(icon);
-
-                        appInfoLayout.setVisibility(View.VISIBLE);
-
-                    } catch (PackageManager.NameNotFoundException e) {
-                        e.printStackTrace();
-                        // Handle error: app package not found
-                        Toast.makeText(getActivity(), "App not found", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-
-
             }
         });
 
-
-
         return view;
     }
+
 }

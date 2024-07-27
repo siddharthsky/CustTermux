@@ -33,18 +33,19 @@
         android:layout_below="@id/step_one_title2"
         android:layout_marginTop="16dp">
 
-        <RadioButton
-            android:id="@+id/device_only_option"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="This device only (Local access, Default mode)" />
 
         <RadioButton
             android:id="@+id/network_device_option"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:text="Other device in network (Server mode)" />
+            android:text="Other device in network (Default mode)" />
+
+        <RadioButton
+            android:id="@+id/device_only_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="This device only (Local access)" />
     </RadioGroup>
 </RelativeLayout>

@@ -26,6 +26,9 @@ public class StepOneFragment extends Fragment {
         RadioButton deviceOnlyOption = view.findViewById(R.id.device_only_option);
         RadioButton networkDeviceOption = view.findViewById(R.id.network_device_option);
 
+        // Set default selection to "YES"
+        deviceSelectionGroup.check(R.id.network_device_option);
+
         // Set up listener for RadioGroup
         deviceSelectionGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override

@@ -2,6 +2,7 @@ package com.termux;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.widget.RadioGroup;
 
 public class SkySharedPref {
 

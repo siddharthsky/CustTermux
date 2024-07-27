@@ -31,7 +31,7 @@ public class SkySharedPrefActivity extends Activity {
                 if (key != null) {
                     String value = skySharedPref.getKey(key);
                     if (value == null) {
-                        value = "KrispyX1";
+                        value = "null";
                     }
 
                     // Send response

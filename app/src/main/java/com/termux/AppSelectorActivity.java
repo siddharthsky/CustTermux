@@ -4,8 +4,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +22,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.widget.Toast;
 
 public class AppSelectorActivity extends AppCompatActivity {
 
@@ -62,15 +73,37 @@ public class AppSelectorActivity extends AppCompatActivity {
                 String selectedPackageName = selectedApp.packageName;
                 String selectedLaunchActivity = getLaunchActivityForPackage(selectedPackageName);
 
+                // Convert Drawable to Bitmap and then to Base64
+                Bitmap appIconBitmap = drawableToBitmap(selectedApp.appIcon);
+                String appIconBase64 = bitmapToBase64(appIconBitmap);
+
                 SharedPreferences sharedPreferences = getSharedPreferences("SkySharedPref", MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("app_name", selectedPackageName);
                 editor.putString("app_launchactivity", selectedLaunchActivity);
+                editor.putString("app_icon", appIconBase64);
+                editor.putString("app_name_x", selectedApp.appName); // Save app name in app_name_x
                 editor.apply();
 
-                finish(); // Close the activity
+                // Show custom Toast
+                LayoutInflater inflater = getLayoutInflater();
+                View toastLayout = inflater.inflate(R.layout.custom_toast, null);
+
+                ImageView toastIcon = toastLayout.findViewById(R.id.toast_icon);
+                TextView toastText = toastLayout.findViewById(R.id.toast_text);
+
+                toastIcon.setImageDrawable(selectedApp.appIcon);
+                toastText.setText(selectedApp.appName);
+
+                Toast toast = new Toast(getApplicationContext());
+                toast.setView(toastLayout);
+                toast.setDuration(Toast.LENGTH_LONG);
+                toast.show();
+                new Handler(Looper.getMainLooper()).postDelayed(() -> finish(), 1000); // 1 second delay
+                //finish(); // Close the activity
             }
         });
+
     }
 
     private String getLaunchActivityForPackage(String packageName) {
@@ -79,6 +112,37 @@ public class AppSelectorActivity extends AppCompatActivity {
             return intent.getComponent().getClassName();
         }
         return "";
+    }
+
+    // Convert Drawable to Bitmap
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
+    // Convert Bitmap to Base64
+    public static String bitmapToBase64(Bitmap bitmap) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+        byte[] byteArray = outputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    // Convert Base64 to Bitmap
+    public static Bitmap base64ToBitmap(String base64String) {
+        byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+    }
+
+    // Convert Bitmap to Drawable
+    public static Drawable bitmapToDrawable(Context context, Bitmap bitmap) {
+        return new BitmapDrawable(context.getResources(), bitmap);
     }
 
     private static class AppInfo {

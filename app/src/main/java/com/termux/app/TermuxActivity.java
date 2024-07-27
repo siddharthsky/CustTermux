@@ -10,16 +10,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.Base64;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -267,12 +273,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         Button button1 = findViewById(R.id.button1);
         Button button1_5 = findViewById(R.id.button1_5);
-        Button button2 = findViewById(R.id.button2);
-        Button button3 = findViewById(R.id.button3);
+//        Button button2 = findViewById(R.id.button2);
+//        Button button3 = findViewById(R.id.button3);
 //        Button button4 = findViewById(R.id.button4);
 //        Button button5 = findViewById(R.id.button5);
         Button button6 = findViewById(R.id.button6);
         Button button7 = findViewById(R.id.button7);
+        Button button8 = findViewById(R.id.button8);
 
         button1.requestFocus();
 
@@ -288,12 +295,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         };
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
-        button2.setOnFocusChangeListener(tooltipFocusListener);
-        button3.setOnFocusChangeListener(tooltipFocusListener);
+//        button2.setOnFocusChangeListener(tooltipFocusListener);
+//        button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
 //        button5.setOnFocusChangeListener(tooltipFocusListener);
         button6.setOnFocusChangeListener(tooltipFocusListener);
         button7.setOnFocusChangeListener(tooltipFocusListener);
+        button8.setOnFocusChangeListener(tooltipFocusListener);
 
 
         button1.setOnClickListener(new View.OnClickListener() {
@@ -316,21 +324,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
-        button2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle button2 click
-                sky_login();
-            }
-        });
-
-        button3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle button3 click
-                sky_iptv();
-            }
-        });
+//        button2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Handle button2 click
+//                sky_login();
+//            }
+//        });
+//
+//        button3.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Handle button3 click
+//                sky_iptv();
+//            }
+//        });
 
 //        button4.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -428,24 +436,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             @Override
             public void onClick(View v) {
                 // Handle button7 click -
-                //sky_exit();
+                sky_exit();
 
-                //Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
-                //startActivity(intent);
-
-
-                Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+//                startActivity(intent);
 
 
+//                Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+//                startActivity(intent);
+            }
+        });
 
-
-
-
-
-
-
-
+        button8.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sky_config();
             }
         });
 
@@ -559,6 +564,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Send the {@link TermuxConstants#BROADCAST_TERMUX_OPENED} broadcast to notify apps that Termux
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
+    }
+
+    private void sky_config() {
+        Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+        startActivity(intent);
     }
 
 
@@ -1209,12 +1219,24 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         }
 
+
+
         @Override
         protected void onPostExecute(Boolean isUrlAvailable) {
             if (isUrlAvailable) {
-                showAlert();
+                SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                String iptv_checker = preferenceManager.getKey("app_name");
 
-                openIptvCount++;
+                if (iptv_checker != null && !iptv_checker.isEmpty()) {
+                    if (iptv_checker.equals("null")) {
+                        System.out.println("IPTV, null!");
+                    }
+                } else {
+                    System.out.println("IPTV, found!");
+                    showAlert();
+                    openIptvCount++;
+                }
+
             } else {
                 // Handle the case when the URL is not available
                 Toast.makeText(TermuxActivity.this, "Server not available.", Toast.LENGTH_SHORT).show();
@@ -1259,52 +1281,52 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void showAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        //builder.setTitle("Alert");
-
-        // Inflate the custom layout
         LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.iptv_alert, null); // Replace "your_layout_file" with your actual layout resource ID
+        View dialogView = inflater.inflate(R.layout.iptv_alert, null);
 
-        // Optionally, find and modify elements within the layout
-        //TextView messageTextView = (TextView) dialogView.findViewById(R.id.message_text_view); // Replace "message_text_view" with your TextView ID (if needed)
-        //messageTextView.setText("Do you want to proceed?xx");
+        // Retrieve the icon from SharedPreferences
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String iconBase64 = preferenceManager.getKey("app_icon");
 
-        builder.setView(dialogView); // Set the inflated layout as the dialog content
+        ImageView iconImageView = dialogView.findViewById(R.id.iptv_icon);
+        if (iconBase64 != null) {
+            // Convert base64 string to Bitmap
+            Bitmap iconBitmap = base64ToBitmap(iconBase64);
+            iconImageView.setImageBitmap(iconBitmap);
+        } else {
+            // Set default icon
+            iconImageView.setImageResource(R.mipmap.ic_launcher2);
+        }
 
-//        builder.setCancelable(false)
-//            .setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    // Proceed with starting IPTV
-//                    // iptv_check();
-//                    XStartIPTV();
-//                }
-//            })
-//            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    isCanceled = true;
-//                    //stopStartingOPTV(); // Called when user presses Cancel
-//                }
-//            });
+        // Retrieve the package name from SharedPreferences
+        String packageName = preferenceManager.getKey("app_name");
+
+        // Use PackageManager to get the application name
+        String appName = getAppNameFromPackageName(packageName);
+
+        // Set the application name in the TextView
+        TextView iptvNameTextView = dialogView.findViewById(R.id.iptv_name);
+        iptvNameTextView.setText("Opening " + appName);
+
+        // Set the countdown timer in the TextView
+        TextView countdownTextView = dialogView.findViewById(R.id.countdown_timer);
+        final int countdownDuration = 4000; // 4 seconds
+        countdownTextView.setText((countdownDuration / 1000) + "s");
+
         AlertDialog alertDialog = builder.create();
+        alertDialog.setView(dialogView); // Set the inflated layout as the dialog content
+
         Button dismissButton = dialogView.findViewById(R.id.dismiss_button);
         dismissButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 alertDialog.dismiss();
                 // Handle button click logic here
-
             }
         });
 
         alertDialog.show();
 
-
-        // Request focus on the dismiss button
-        //dismissButton.requestFocus();
-
-        // Request focus on the dismiss button after the dialog has been shown
         dismissButton.post(new Runnable() {
             @Override
             public void run() {
@@ -1312,23 +1334,46 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
-
-        // Set a timeout to dismiss the dialog if not interacted with
-        new Handler().postDelayed(new Runnable() {
+        // Countdown timer logic
+        new CountDownTimer(countdownDuration, 1000) {
             @Override
-            public void run() {
+            public void onTick(long millisUntilFinished) {
+                countdownTextView.setText((millisUntilFinished / 1000) + "s");
+            }
+
+            @Override
+            public void onFinish() {
                 if (alertDialog.isShowing()) {
                     alertDialog.dismiss();
                     onDialogTimeout();
                 }
             }
-        }, 4000); // Timeout duration (e.g., 4000 milliseconds = 4 seconds)
+        }.start();
+    }
+
+    // Convert Base64 to Bitmap
+    public static Bitmap base64ToBitmap(String base64String) {
+        byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+    }
+
+    // Get application name from package name
+    private String getAppNameFromPackageName(String packageName) {
+        PackageManager packageManager = getPackageManager();
+        try {
+            ApplicationInfo appInfo = packageManager.getApplicationInfo(packageName, 0);
+            return packageManager.getApplicationLabel(appInfo).toString();
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return packageName; // If not found, return the package name itself
+        }
     }
 
     private void onDialogTimeout() {
         // Logic to execute if the dialog is not interacted with within the timeout duration
         Toast.makeText(this, "Dialog dismissed due to timeout", Toast.LENGTH_SHORT).show();
     }
+
 
 
 
