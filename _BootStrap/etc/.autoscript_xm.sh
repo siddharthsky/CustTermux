@@ -19,6 +19,44 @@ case "$SHELL_NAME" in
         ;;
 esac
 
+
+local VARIABLE01
+local VARIABLE02
+get_value_from_key_n1() {
+    local KEY="$1"
+    logcat -c
+	sleep 1
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 2
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE01=$VALUE
+	echo "Captured value: $VARIABLE01"
+}
+
+get_value_from_key_n2() {
+    local KEY="$1"
+    logcat -c
+	sleep 1
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 2
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE02=$VALUE
+	echo "Captured value: $VARIABLE02"
+}
+
+
+TheShowRunner() {
+	get_value_from_key_n1 "app_name"	
+	get_value_from_key_n2 "app_launchactivity"	
+	
+	am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
+	
+	./$HOME/.jiotv_go/bin/jiotv_go run -P
+}
+
+
+
+
 ################################################################################################
 # Utility functions
 ################################################################################################
