@@ -38,6 +38,7 @@ import android.view.WindowManager;
 import android.view.autofill.AutofillManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -48,6 +49,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.LoginActivity;
 import com.termux.R;
 import com.termux.SetupActivity;
 import com.termux.SkyActionActivity;
@@ -325,23 +327,61 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         });
 
         button2.setOnClickListener(new View.OnClickListener() {
-            //sky_login();
-            @SuppressLint("SetJavaScriptEnabled")
             @Override
             public void onClick(View v) {
-                if (isWebViewVisible) {
-                    webView.setVisibility(View.GONE);
-                } else {
-                    webView.setVisibility(View.VISIBLE);
-                    webView.setWebChromeClient(new WebChromeClient());
 
-                    WebSettings webSettings = webView.getSettings();
-                    webSettings.setJavaScriptEnabled(true);
-                    webView.loadUrl("http://localhost:5001");
-                }
-                isWebViewVisible = !isWebViewVisible;
+                Intent intent = new Intent(TermuxActivity.this, LoginActivity.class);
+                startActivity(intent);
             }
         });
+
+
+//        button2.setOnClickListener(new View.OnClickListener() {
+//
+//
+//            Intent intent = new Intent(TermuxActivity.this, LoginActivity.class);
+//            startActivity(intent);
+//
+////            @SuppressLint("SetJavaScriptEnabled")
+////            @Override
+////            public void onClick(View v) {
+////                if (isWebViewVisible) {
+////                    webView.setVisibility(View.GONE);
+////                } else {
+////                    webView.setVisibility(View.VISIBLE);
+////                    webView.setWebChromeClient(new WebChromeClient());
+////
+////                    WebSettings webSettings = webView.getSettings();
+////                    webSettings.setJavaScriptEnabled(true);
+////
+////                    webView.loadUrl("http://localhost:5001");
+////
+////                    // Add a WebViewClient to execute JavaScript once the page is loaded
+////                    webView.setWebViewClient(new WebViewClient() {
+////                        @Override
+////                        @Override
+//public void onPageFinished(WebView view, String url) {
+//    // Inject JavaScript to modify innerHTML and open/center the modal
+//    view.evaluateJavascript(
+//        "document.body.innerHTML = '<div id=\"login_modal\">' + document.getElementById('login_modal').outerHTML + '</div>';" +
+//        "document.body.style.overflow = 'hidden'; " + // Prevent scrolling
+//        "var modal = document.getElementById('login_modal'); " +
+//        "if (modal) { " +
+//        "  modal.style.display = 'block'; " + // Ensure the modal is displayed
+//        "  modal.style.position = 'fixed'; " + // Fix position relative to the viewport
+//        "  modal.style.top = '50%'; " + // Center vertically
+//        "  modal.style.left = '50%'; " + // Center horizontally
+//        "  modal.style.transform = 'translate(-50%, -50%)'; " + // Offset for exact centering
+//        "  modal.style.zIndex = '10000'; " + // Ensure it’s on top of other content
+//        "}",
+//        null
+//    );
+//}
+////                }
+////                isWebViewVisible = !isWebViewVisible;
+////        }
+//        });
+
 
 
 //

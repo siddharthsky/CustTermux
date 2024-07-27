@@ -185,6 +185,7 @@
 
         <activity android:name=".AppSelectorActivity" />
         <activity android:name=".SetupActivity" />
+        <activity android:name=".LoginActivity" />
 
 
 
