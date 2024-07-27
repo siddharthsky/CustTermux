@@ -215,6 +215,7 @@ Default_Installation() {
 
 Setup_Extra() {
     $HOME/.jiotv_go/bin/jiotv_go epg gen
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
 echo "Script : version 6.9"
@@ -227,7 +228,6 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
 	Setup_Prerequisites
- 	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 	Default_Installation
 	Setup_Extra
  	clear
