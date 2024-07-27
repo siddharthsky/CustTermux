@@ -51,8 +51,15 @@ Server_Runner() {
 
 TheShowRunner() {
 	get_value_from_key_n1 "app_name"	
-	get_value_from_key_n2 "app_launchactivity"	
-	am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
+	
+	 if [ $VARIABLE01 == "KrispyX1" ]; then
+		#ECHO
+	else
+ 		get_value_from_key_n2 "app_launchactivity"
+		am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
+	fi
+ 
+	
  	get_value_from_key_n3 "server_setup_isLocal"
   	if [ $VARIABLE03 == "Yes" ]; then
 		$HOME/.jiotv_go/bin/jiotv_go run
