@@ -126,7 +126,6 @@ Setup_Prerequisites() {
     touch $HOME/.termux/termux.properties
     chmod 755 $HOME/.termux/termux.properties
     echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
-    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
 
@@ -228,6 +227,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
 	Setup_Prerequisites
+ 	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 	Default_Installation
 	Setup_Extra
  	clear
