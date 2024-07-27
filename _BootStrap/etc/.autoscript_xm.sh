@@ -200,7 +200,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	Setup_Prerequisites
 	Default_Installation
 	Setup_Extra
- 	clear
+ 	#clear
 	Server_Runner
 else
 	Server_Runner
