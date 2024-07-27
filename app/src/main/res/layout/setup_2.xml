@@ -59,4 +59,30 @@
         android:text="Select IPTV Here"
         android:visibility="gone" />
 
+    <!-- Horizontal LinearLayout to show app icon and app name -->
+    <LinearLayout
+        android:id="@+id/app_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_iptv_name"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/app_icon_description"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/text_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:padding="8dp"
+            android:background="@color/text_color_black" />
+    </LinearLayout>
+
 </RelativeLayout>

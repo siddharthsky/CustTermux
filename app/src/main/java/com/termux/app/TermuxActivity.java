@@ -23,6 +23,7 @@ import android.text.InputType;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,10 +39,13 @@ import android.widget.ImageView;
 import android.webkit.WebView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.R;
 import com.termux.SetupActivity;
+import com.termux.SkyActionActivity;
+import com.termux.SkySharedPref;
 import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
@@ -86,6 +90,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A terminal emulator activity.
@@ -1142,8 +1147,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onStart() {
         super.onStart();
 
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
+
+        if (serverSetupDone != null && serverSetupDone.equals("Done")) {
+            //sky_exit();
+        } else {
+            Toast.makeText(TermuxActivity.this, "setup starts here", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+            startActivity(intent);
+
+        }
+
+
+
         Logger.logDebug(LOG_TAG, "onStart");
 
+        //System.out.println("Error occurred while checking status code.");
         if (mIsInvalidState) return;
 
         mIsVisible = true;
@@ -1156,6 +1176,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (mPreferences.isTerminalMarginAdjustmentEnabled())
             addTermuxActivityRootViewGlobalLayoutListener();
+
+
 
         registerTermuxActivityBroadcastReceiver();
     }
@@ -1201,7 +1223,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private int openIptvCount = 0;
-    private final int maxOpenIptvCalls = 2;
+    private final int maxOpenIptvCalls = 10;
 
     @Override
     public void onResume() {
@@ -1235,9 +1257,85 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     }
 
-
-
     private void showAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        //builder.setTitle("Alert");
+
+        // Inflate the custom layout
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.iptv_alert, null); // Replace "your_layout_file" with your actual layout resource ID
+
+        // Optionally, find and modify elements within the layout
+        //TextView messageTextView = (TextView) dialogView.findViewById(R.id.message_text_view); // Replace "message_text_view" with your TextView ID (if needed)
+        //messageTextView.setText("Do you want to proceed?xx");
+
+        builder.setView(dialogView); // Set the inflated layout as the dialog content
+
+//        builder.setCancelable(false)
+//            .setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    // Proceed with starting IPTV
+//                    // iptv_check();
+//                    XStartIPTV();
+//                }
+//            })
+//            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    isCanceled = true;
+//                    //stopStartingOPTV(); // Called when user presses Cancel
+//                }
+//            });
+        AlertDialog alertDialog = builder.create();
+        Button dismissButton = dialogView.findViewById(R.id.dismiss_button);
+        dismissButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+                // Handle button click logic here
+
+            }
+        });
+
+        alertDialog.show();
+
+
+        // Request focus on the dismiss button
+        //dismissButton.requestFocus();
+
+        // Request focus on the dismiss button after the dialog has been shown
+        dismissButton.post(new Runnable() {
+            @Override
+            public void run() {
+                dismissButton.requestFocus();
+            }
+        });
+
+
+        // Set a timeout to dismiss the dialog if not interacted with
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (alertDialog.isShowing()) {
+                    alertDialog.dismiss();
+                    onDialogTimeout();
+                }
+            }
+        }, 4000); // Timeout duration (e.g., 4000 milliseconds = 4 seconds)
+    }
+
+    private void onDialogTimeout() {
+        // Logic to execute if the dialog is not interacted with within the timeout duration
+        Toast.makeText(this, "Dialog dismissed due to timeout", Toast.LENGTH_SHORT).show();
+    }
+
+
+
+
+
+
+    private void showAlert1() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Alert")
             .setMessage("Do you want to proceed?")

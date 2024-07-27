@@ -55,6 +55,9 @@ public class SetupActivity extends AppCompatActivity {
             } else {
                 // Handle completion or final step
                 Toast.makeText(SetupActivity.this, "Finsihed setup", Toast.LENGTH_SHORT).show();
+                SkySharedPref preferenceManager = new SkySharedPref(this);
+                preferenceManager.setKey("isServerSetupDone", "Done");
+                finish();
             }
         });
     }

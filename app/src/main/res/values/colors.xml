@@ -12,4 +12,5 @@
     <color name="drawer_text_color">#FFFFFF</color>
     <color name="text_color_black">#000000</color>
     <color name="text_color_white">#FFFFFF</color>
+    <color name="btn_color_white">#FF0000</color>
 </resources>
