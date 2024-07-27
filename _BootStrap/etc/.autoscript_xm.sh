@@ -50,25 +50,28 @@ Server_Runner() {
 }
 
 TheShowRunner() {
-	get_value_from_key_n1 "app_name"	
-	
-	 if [ $VARIABLE01 == "KrispyX1" ]; then
-		#ECHO
+	# Get values from keys
+	VARIABLE01=$(get_value_from_key_n1 "app_name")	
+	VARIABLE02=$(get_value_from_key_n2 "app_launchactivity")
+	VARIABLE03=$(get_value_from_key_n3 "server_setup_isLocal")
+
+	# Check if the app name is "KrispyX1"
+	if [ "$VARIABLE01" == "KrispyX1" ]; then
+		# Do nothing (ECHO)
+		echo "KrispyX1 is selected"
 	else
- 		get_value_from_key_n2 "app_launchactivity"
-		am start --user 0 -n "$VARIABLE01/$VARIABLE02"	
+		# Launch the app using the obtained activity
+		am start --user 0 -n "$VARIABLE01/$VARIABLE02"
 	fi
- 
-	
- 	get_value_from_key_n3 "server_setup_isLocal"
-  	if [ $VARIABLE03 == "Yes" ]; then
+
+	# Check if the server setup is local
+	if [ "$VARIABLE03" == "Yes" ]; then
 		$HOME/.jiotv_go/bin/jiotv_go run
 	else
 		$HOME/.jiotv_go/bin/jiotv_go run -P
 	fi
-
-	
 }
+
 
 ################################################################################################
 # AM functions
