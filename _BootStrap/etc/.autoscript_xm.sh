@@ -126,6 +126,7 @@ Setup_Prerequisites() {
     touch $HOME/.termux/termux.properties
     chmod 755 $HOME/.termux/termux.properties
     echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
 
