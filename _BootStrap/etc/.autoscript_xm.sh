@@ -61,6 +61,7 @@ TheShowRunner() {
 	# fi
 
 	get_value_from_key_n3 "server_setup_isLocal"
+ 
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
 		$HOME/.jiotv_go/bin/jiotv_go bg run
