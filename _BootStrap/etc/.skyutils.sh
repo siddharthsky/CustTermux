@@ -180,13 +180,7 @@ reinstall() {
 	echo "Reinstall Utility"
 	echo "-----------------------"
 
-	prompt_gui() {
-		termux-dialog confirm -t "Re-Install Server" -i "Do you want to reinstall JioTV GO server?"
-	}
-
-	prompt_gui2() {
-		termux-dialog spinner -v "ReInstalling Now!" -t "Re-Install Status"
-	}
+ 	wait_and_count 3
 
 	reinstaller() {
 		echo "Removing Server Files..."
@@ -198,21 +192,9 @@ reinstall() {
 
   		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 
-    		
-
-
 	}
-		
-	if prompt_gui | grep -q "yes"; then
-		#Update
-		reinstaller
-		prompt_gui2
-	else
-		echo -e "\e[31mUser chose not to reinstall.\e[0m"
-		exit 0
-	fi	
 
-
+  	reinstaller
 	
 }
 
