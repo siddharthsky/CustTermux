@@ -42,7 +42,6 @@ Server_Runner() {
 	#source ~/.bashrc # PATH update
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
-	TheShowRunner
 }
 
 TheShowRunner() {
@@ -71,22 +70,8 @@ TheShowRunner() {
 }
 
 TheShowRunner_onetime() {
-	get_value_from_key_n1 "app_name"
-	
-	# Check if the app name is "null"
-	if [ "$VARIABLE01" == "null" ]; then
-		get_value_from_key_n3 "server_setup_isLocal"
-	elif [ "$VARIABLE01" == "sky_web_tv" ]; then
-		get_value_from_key_n3 "server_setup_isLocal"
-		am start --user 0 -n com.termux/.WebPlayerActivity
-	else	
-		get_value_from_key_n2 "app_launchactivity"
-		get_value_from_key_n3 "server_setup_isLocal"
-		am start --user 0 -n "$VARIABLE01/$VARIABLE02"
-	fi
-
- 	
-
+	get_value_from_key_n3 "server_setup_isLocal"
+ 
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
 		$HOME/.jiotv_go/bin/jiotv_go bg run
@@ -255,6 +240,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	Setup_Extra
  	clear
 	Server_Runner
+ 	TheShowRunner_onetime
 else
 	Server_Runner
 fi
