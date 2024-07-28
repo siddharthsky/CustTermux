@@ -78,6 +78,8 @@ TheShowRunner_onetime() {
 	else
 		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
+
+ 	am start --user 0 -n com.termux/.LoginActivity
 }
 
 
