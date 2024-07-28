@@ -203,14 +203,8 @@ update() {
 	echo "Update Utility"
 	echo "-----------------------"
 
-	prompt_gui() {
-		termux-dialog confirm -t "Update" -i "Do you want to update JioTV GO server?"
-	}
-	
-	prompt_gui2() {
-		termux-dialog spinner -v "Update:Done" -t "Update Status"
-	}
-	
+ 	wait_and_count 3
+
 	updater() {
 		pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 		rm "$HOME/.jiotv_go/bin/jiotv_go"
@@ -270,14 +264,7 @@ update() {
 	
 	}
 		
-	if prompt_gui | grep -q "yes"; then
-		#Update
-		updater
-		prompt_gui2
-	else
-		echo -e "\e[31mUser chose not to update.\e[0m"
-		exit 0
-	fi	
+	updater
 }
 
 runcode() {
