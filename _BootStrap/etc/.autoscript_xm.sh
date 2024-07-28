@@ -245,4 +245,5 @@ if [ ! -f "$FILE_PATH" ]; then
  	TheShowRunner_onetime
 else
 	Server_Runner
+ 	TheShowRunner
 fi
