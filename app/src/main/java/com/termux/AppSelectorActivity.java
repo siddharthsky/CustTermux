@@ -49,7 +49,7 @@ public class AppSelectorActivity extends AppCompatActivity {
 
         // Add the "WEB TV" option as the first entry
         Drawable webTvIcon = getResources().getDrawable(R.mipmap.ic_banner2); // Replace with your actual drawable resource
-        appInfoList.add(new AppInfo("WEB TV", "sky_web_tv", webTvIcon));
+        appInfoList.add(new AppInfo("WEB TV - for standalone use (No IPTV player needed)", "sky_web_tv", webTvIcon));
 
         Intent intent = new Intent(Intent.ACTION_MAIN, null);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);

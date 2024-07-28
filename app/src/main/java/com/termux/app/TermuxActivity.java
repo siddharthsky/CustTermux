@@ -44,7 +44,6 @@ import android.view.WindowManager;
 import android.view.autofill.AutofillManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -55,11 +54,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.AppSelectorActivity;
 import com.termux.LoginActivity;
+import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
 import com.termux.SetupActivity;
-import com.termux.SkyActionActivity;
 import com.termux.SkySharedPref;
 import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
@@ -298,7 +298,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button1 = findViewById(R.id.button1);
         Button button1_5 = findViewById(R.id.button1_5);
         Button button2 = findViewById(R.id.button2);
-//        Button button3 = findViewById(R.id.button3);
+        Button button3 = findViewById(R.id.button3);
 //        Button button4 = findViewById(R.id.button4);
 //        Button button5 = findViewById(R.id.button5);
         Button button6 = findViewById(R.id.button6);
@@ -320,7 +320,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
-//        button3.setOnFocusChangeListener(tooltipFocusListener);
+        button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
 //        button5.setOnFocusChangeListener(tooltipFocusListener);
         button6.setOnFocusChangeListener(tooltipFocusListener);
@@ -407,19 +407,36 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 //
-//        button3.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                // Handle button3 click
-//                sky_iptv();
-//            }
-//        });
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle button3 click
+                SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                String apppkg = preferenceManager.getKey("app_name");
+                String appclass = preferenceManager.getKey("app_launchactivity");
+
+                if (apppkg == null || "null".equals(apppkg)) {
+                    Toast.makeText(TermuxActivity.this, "IPTV is not set up. Please setup.", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(apppkg, appclass));
+                    startActivity(intent);
+                }
+
+            }
+        });
 
 //        button4.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
 //                // Handle button4 click
-//                sky_update();
+//                if (checkPermission()) {
+//                    downloadFile(DOWNLOAD_URL);
+//                } else {
+//                    requestPermission();
+//                }
 //            }
 //        });
 
@@ -451,7 +468,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Reinstall","Run Code","Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Reinstall","Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -478,10 +495,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                                 sky_reinstall();
                                 break;
                             case 2:
-                                // Option 3 selected
-                                sky_runcode();
-                                break;
-                            case 3:
                                 // Option 4 selected
                                 lake_alert_confirmation(v.getContext());
                                 break;
@@ -570,12 +583,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         ipAddressTextView = findViewById(R.id.ip_address);
         serverStatusTextView = findViewById(R.id.server_status);
+        TextView loginStatusTextView = findViewById(R.id.login_status);
 
         SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
         String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
 
         if (Objects.equals(isLOCAL, "Yes")){
             Log.d("d","Server is Local!");
+            ipAddressTextView.setText("localhost");
         } else {
             // Get and display Wi-Fi IP address
             String wifiIpAddress = getWifiIpAddress(this);
@@ -588,6 +603,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Start checking server status
         serverStatusChecker = new ServerStatusChecker(serverStatusTextView);
         serverStatusChecker.startChecking();
+
+        // Start checking login status
+        LoginStatusChecker checker = new LoginStatusChecker(loginStatusTextView);
+        checker.startChecking();
 
 
         ipAddressTextView = findViewById(R.id.ip_address);
@@ -960,20 +979,37 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
     private void sky_rerun() {
         Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
-        XpkillIntent();
-        XpkillIntentbg();
-        //XStopTermux();
 
-        //XStartTermuxAct();
+        // Create an intent to restart the app
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent != null) {
+            // Finish current activity
+            finish();
 
-        wait_X();
+            // Restart the app
+            startActivity(intent);
 
-        //XStartEMPTY();
-        //XStartIPTV();
-        XStartTermux();
-        //launchTermux();
-
+            // Exit the app
+            System.exit(0);
+        }
     }
+
+//    private void sky_rerun() {
+//        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+//        XpkillIntent();
+//        XpkillIntentbg();
+//        //XStopTermux();
+//
+//        //XStartTermuxAct();
+//
+//        wait_X();
+//
+//        //XStartEMPTY();
+//        //XStartIPTV();
+//        XStartTermux();
+//        //launchTermux();
+//
+//    }
 //    private void sky_login() {
 //        Intent intentC = new Intent();
 //        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -1199,7 +1235,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         new CheckStatusTask().execute(url);
     }
 
-    private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
+    private class CheckStatusTask2 extends AsyncTask<String, Void, Integer> {
 
         @Override
         protected Integer doInBackground(String... urls) {
@@ -1362,60 +1398,78 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
-    @SuppressLint("StaticFieldLeak")
-    private class CheckUrlTask extends AsyncTask<String, Void, Boolean> {
 
+    private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
         @Override
-        protected Boolean doInBackground(String... urls) {
+        protected Integer doInBackground(String... urls) {
             String urlString = urls[0];
-            HttpURLConnection urlConnection = null;
+            HttpURLConnection connection = null;
             try {
                 URL url = new URL(urlString);
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                int responseCode = urlConnection.getResponseCode();
-                return (responseCode == HttpURLConnection.HTTP_OK);
-            } catch (Exception e) {
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
+                return connection.getResponseCode();
+            } catch (IOException e) {
                 e.printStackTrace();
-                return false;
+                return null;
             } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
+                if (connection != null) {
+                    connection.disconnect();
                 }
             }
         }
-
-
 
         @Override
-        protected void onPostExecute(Boolean isUrlAvailable) {
-            if (isUrlAvailable) {
-                SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                String iptv_checker = preferenceManager.getKey("app_name");
-
-                if (iptv_checker != null && !iptv_checker.isEmpty()) {
-                    if (iptv_checker.equals("null")) {
-                        System.out.println("IPTV, null!");
-                    } else if (iptv_checker.equals("sky_web_tv")) {
-                        System.out.println("IPTV, webTV!");
-                        Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
-                        startActivity(intent);
-                        openIptvCount++;
-                    } else {
-                        System.out.println("IPTV, found!");
-                        showAlert();
-                        openIptvCount++;
-                    }
-                } else {
-                    System.out.println("IPTV, null!");
+        protected void onPostExecute(Integer responseCode) {
+            if (responseCode != null) {
+                // Handle the response code
+                switch (responseCode) {
+                    case HttpURLConnection.HTTP_OK:
+                        System.out.println("The webpage is accessible.");
+                        runner2x();
+                        break;
+                    case HttpURLConnection.HTTP_NOT_FOUND:
+                        System.out.println("The webpage was not found.");
+                        break;
+                    default:
+                        System.out.println("Response code: " + responseCode);
+                        if (responseCode == 500) {
+                            System.out.println("The webpage was not found. 500");
+                        }
+                        break;
                 }
-
             } else {
-                // Handle the case when the URL is not available
-                Toast.makeText(TermuxActivity.this, "Server not available.", Toast.LENGTH_SHORT).show();
+                System.out.println("Error occurred while checking status code.");
+                Toast.makeText(TermuxActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
             }
         }
+
+        private void runner2x() {
+            SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+            String iptv_checker = preferenceManager.getKey("app_name");
+
+            if (iptv_checker != null && !iptv_checker.isEmpty()) {
+                if (iptv_checker.equals("null")) {
+                    System.out.println("IPTV, null!");
+                } else if (iptv_checker.equals("sky_web_tv")) {
+                    System.out.println("IPTV, webTV!");
+//                        Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
+//                        startActivity(intent);
+//                        openIptvCount++;
+                } else {
+                    System.out.println("IPTV, found!");
+                    showAlert();
+                    openIptvCount++;
+                }
+            } else {
+                System.out.println("IPTV, null!");
+            }
+
+        }
+
     }
+
 
     private int openIptvCount = 0;
     private final int maxOpenIptvCalls = 10;
@@ -1445,8 +1499,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         
         
         if (openIptvCount < maxOpenIptvCalls) {
-            new CheckUrlTask().execute("http://localhost:5001");
-
+            String url = "http://localhost:5001/live/144.m3u8";
+            new TermuxActivity.CheckStatusTask().execute(url);
         }
 
 
@@ -1595,7 +1649,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void iptv_check() {
         if (openIptvCount < maxOpenIptvCalls) {
-            new CheckUrlTask().execute("http://localhost:5001");
+            //new CheckUrlTask().execute("http://localhost:5001");
         }
     }
 

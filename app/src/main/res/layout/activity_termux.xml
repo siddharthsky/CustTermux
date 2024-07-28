@@ -64,19 +64,6 @@
                 android:tooltipText="Play TV" />
 
             <Button
-                android:id="@+id/button2"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/button_background_selector"
-                android:contentDescription="Refresh"
-                android:text="🔐 LogIn"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:tooltipText="LogIn via OTP" />
-
-
-            <Button
                 android:id="@+id/button3"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
@@ -89,16 +76,31 @@
                 android:tooltipText="Change IPTV" />
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/button2"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
-                android:contentDescription="Tool"
-                android:text=""
+                android:contentDescription="Refresh"
+                android:text="🔐 LogIn"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="Update JioTV GO" />
+                android:tooltipText="LogIn via OTP" />
+
+
+
+
+<!--            <Button-->
+<!--                android:id="@+id/button4"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginEnd="8dp"-->
+<!--                android:backgroundTint="@color/button_background_selector"-->
+<!--                android:contentDescription="Tool"-->
+<!--                android:text="️️⬇️      M3U"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:textSize="14sp"-->
+<!--                android:tooltipText="Update JioTV GO" />-->
 
             <!--            <Button-->
             <!--                android:id="@+id/button5"-->
@@ -225,17 +227,18 @@
             android:padding="8dp">
 
             <TextView
-                android:id="@+id/android_version_label"
+                android:id="@+id/login_status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Download:"
+                android:text="Login Status:"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/android_version"
+                android:id="@+id/login_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="playlist" />
+                android:textColor="#00C853"
+                android:text="Logged In" />
 
 
         </LinearLayout>

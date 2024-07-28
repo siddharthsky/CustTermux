@@ -178,8 +178,8 @@
 
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
-            android:exported="true"
-            android:screenOrientation="landscape" >
+            android:exported="true">
+<!--            android:screenOrientation="landscape" >-->
             <intent-filter>
                 <action android:name="com.temux.URLPLAYER" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -189,7 +189,22 @@
 
         <activity android:name=".AppSelectorActivity" />
         <activity android:name=".SetupActivity" />
-        <activity android:name=".LoginActivity" />
+<!--        <activity android:name=".LoginErrorActivity" />-->
+
+        <activity
+            android:name=".LoginErrorActivity"
+            android:theme="@style/AppTheme.Transparent"
+            android:exported="true">
+        </activity>
+<!--        <activity android:name=".LoginActivity" />-->
+
+        <activity android:name=".LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
 
 
 
