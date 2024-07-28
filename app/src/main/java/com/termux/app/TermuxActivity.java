@@ -2,6 +2,7 @@ package com.termux.app;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -16,16 +17,21 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.format.Formatter;
 import android.util.Base64;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -51,6 +57,7 @@ import android.widget.Toast;
 
 import com.termux.LoginActivity;
 import com.termux.R;
+import com.termux.ServerStatusChecker;
 import com.termux.SetupActivity;
 import com.termux.SkyActionActivity;
 import com.termux.SkySharedPref;
@@ -91,10 +98,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
@@ -242,6 +255,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private static final int REQUEST_CODE_MANAGE_OVERLAY_PERMISSION = 1;
     private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
+
+    private ImageView downloadIcon;
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final String DOWNLOAD_URL = "http://localhost:5001/playlist.m3u";
+
+    private TextView ipAddressTextView;
+    private TextView serverStatusTextView;
+    private ServerStatusChecker serverStatusChecker;
 
 
     private boolean isCanceled = false;
@@ -544,6 +566,43 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 proceedWithAppLogic();
             }
         }
+
+
+        ipAddressTextView = findViewById(R.id.ip_address);
+        serverStatusTextView = findViewById(R.id.server_status);
+
+        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+        String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
+
+        if (Objects.equals(isLOCAL, "Yes")){
+            Log.d("d","Server is Local!");
+        } else {
+            // Get and display Wi-Fi IP address
+            String wifiIpAddress = getWifiIpAddress(this);
+            ipAddressTextView.setText(wifiIpAddress);
+        }
+
+
+
+
+        // Start checking server status
+        serverStatusChecker = new ServerStatusChecker(serverStatusTextView);
+        serverStatusChecker.startChecking();
+
+
+        ipAddressTextView = findViewById(R.id.ip_address);
+        downloadIcon = findViewById(R.id.ic_download);
+
+        downloadIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (checkPermission()) {
+                    downloadFile(DOWNLOAD_URL);
+                } else {
+                    requestPermission();
+                }
+            }
+        });
 
 
 
@@ -1199,6 +1258,60 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         startActivity(intent);
     }
 
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this, "Storage permission is required. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    private void downloadFile(String fileUrl) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(fileUrl);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+
+                    InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "playlist.m3u");
+                    FileOutputStream outputStream = new FileOutputStream(file);
+
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = inputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, length);
+                    }
+
+                    outputStream.close();
+                    inputStream.close();
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(TermuxActivity.this, "Playlist downloaded to Downloads folder", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(TermuxActivity.this, "Download failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -1283,6 +1396,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 if (iptv_checker != null && !iptv_checker.isEmpty()) {
                     if (iptv_checker.equals("null")) {
                         System.out.println("IPTV, null!");
+                    } else if (iptv_checker.equals("sky_web_tv")) {
+                        System.out.println("IPTV, webTV!");
+                        Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
+                        startActivity(intent);
+                        openIptvCount++;
                     } else {
                         System.out.println("IPTV, found!");
                         showAlert();
@@ -1481,6 +1599,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
+
+    public String getWifiIpAddress(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int ipAddress = wifiInfo.getIpAddress();
+        return Formatter.formatIpAddress(ipAddress);
+    }
+
+
+
+    
+
+
+
+
+
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -1510,6 +1645,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             handler.removeCallbacks(autoDismissRunnable);
         }
         openIptvCount = 0;
+
+        serverStatusChecker.stopChecking();
 
         Logger.logDebug(LOG_TAG, "onDestroy");
 
@@ -1993,7 +2130,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                downloadFile(DOWNLOAD_URL);
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
 
 
 

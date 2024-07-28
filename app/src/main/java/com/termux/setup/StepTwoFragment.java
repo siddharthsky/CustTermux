@@ -39,7 +39,7 @@ public class StepTwoFragment extends Fragment {
         TextView textAppName = view.findViewById(R.id.text_app_name);
 
         // Set default selection to "YES"
-        autoOpenIptvGroup.check(R.id.iptv_no_option);
+        //autoOpenIptvGroup.check(R.id.iptv_no_option);
 
 
         SkySharedPref preferenceManager = new SkySharedPref(getActivity());

@@ -76,29 +76,29 @@
                 android:tooltipText="LogIn via OTP" />
 
 
-<!--            <Button-->
-<!--                android:id="@+id/button3"-->
-<!--                android:layout_width="100dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginEnd="8dp"-->
-<!--                android:backgroundTint="@color/button_background_selector"-->
-<!--                android:contentDescription="Magic"-->
-<!--                android:text="🛠️    IPTV"-->
-<!--                android:textColor="@android:color/white"-->
-<!--                android:textSize="14sp"-->
-<!--                android:tooltipText="Change IPTV" />-->
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector"
+                android:contentDescription="Magic"
+                android:text="▶️️    IPTV"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Change IPTV" />
 
-            <!--            <Button-->
-            <!--                android:id="@+id/button4"-->
-            <!--                android:layout_width="100dp"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginEnd="8dp"-->
-            <!--                android:backgroundTint="@color/button_background_selector"-->
-            <!--                android:contentDescription="Tool"-->
-            <!--                android:text="⬇️️ Update"-->
-            <!--                android:textColor="@android:color/white"-->
-            <!--                android:textSize="14sp"-->
-            <!--                android:tooltipText="Update JioTV GO" />-->
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector"
+                android:contentDescription="Tool"
+                android:text=""
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Update JioTV GO" />
 
             <!--            <Button-->
             <!--                android:id="@+id/button5"-->
@@ -119,7 +119,7 @@
                 android:layout_marginEnd="8dp"
                 android:backgroundTint="@color/button_background_selector"
                 android:contentDescription="Setup"
-                android:text="⚙️ Config"
+                android:text="⚙️ Setup"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:tooltipText="Config CustTermux" />
@@ -153,9 +153,9 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="0dp">
 
         <!-- Server Status -->
         <LinearLayout
@@ -169,14 +169,15 @@
                 android:id="@+id/server_status_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Server Status:"
-                android:textStyle="bold"/>
+                android:text="Status:"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/server_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Running"/>
+                android:textColor="#00C853"
+                android:text="Running" />
         </LinearLayout>
 
         <!-- IP Address -->
@@ -192,16 +193,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="IP Address:"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/ip_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="192.168.1.91"/>
+                android:textColor="#FF6F00"
+                android:text="192.168.1.91" />
         </LinearLayout>
 
-        <!-- Android Version -->
+
+        <!-- Copy Icon -->
+<!--        <LinearLayout-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="1"-->
+<!--            android:orientation="vertical"-->
+<!--            android:padding="8dp">-->
+
+<!--            -->
+
+<!--        </LinearLayout>-->
+
+        <!--        &lt;!&ndash; Android Version &ndash;&gt;-->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -213,15 +228,25 @@
                 android:id="@+id/android_version_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Version:"
-                android:textStyle="bold"/>
+                android:text="Download:"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/android_version"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="V4.14"/>
+                android:text="playlist" />
+
+
         </LinearLayout>
+        <ImageView
+            android:id="@+id/ic_download"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_download"
+            app:tint="#FFFFFF" />
     </LinearLayout>
 
     <WebView

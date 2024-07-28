@@ -46,6 +46,11 @@ public class AppSelectorActivity extends AppCompatActivity {
         packageManager = getPackageManager();
 
         List<AppInfo> appInfoList = new ArrayList<>();
+
+        // Add the "WEB TV" option as the first entry
+        Drawable webTvIcon = getResources().getDrawable(R.mipmap.ic_banner2); // Replace with your actual drawable resource
+        appInfoList.add(new AppInfo("WEB TV", "sky_web_tv", webTvIcon));
+
         Intent intent = new Intent(Intent.ACTION_MAIN, null);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
@@ -72,6 +77,10 @@ public class AppSelectorActivity extends AppCompatActivity {
                 AppInfo selectedApp = appInfoList.get(position);
                 String selectedPackageName = selectedApp.packageName;
                 String selectedLaunchActivity = getLaunchActivityForPackage(selectedPackageName);
+
+                if ("sky_web_tv".equals(selectedPackageName)) {
+                    selectedLaunchActivity = "WEB TV"; // or any default activity for WEB TV
+                }
 
                 // Convert Drawable to Bitmap and then to Base64
                 Bitmap appIconBitmap = drawableToBitmap(selectedApp.appIcon);
@@ -100,7 +109,6 @@ public class AppSelectorActivity extends AppCompatActivity {
                 toast.setDuration(Toast.LENGTH_LONG);
                 toast.show();
                 new Handler(Looper.getMainLooper()).postDelayed(() -> finish(), 1000); // 1 second delay
-                //finish(); // Close the activity
             }
         });
 

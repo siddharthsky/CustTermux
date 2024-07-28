@@ -27,7 +27,7 @@ public class StepOneFragment extends Fragment {
         RadioButton networkDeviceOption = view.findViewById(R.id.network_device_option);
 
         // Set default selection to "YES"
-        deviceSelectionGroup.check(R.id.network_device_option);
+        //deviceSelectionGroup.check(R.id.network_device_option);
 
         // Set up listener for RadioGroup
         deviceSelectionGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -40,6 +40,7 @@ public class StepOneFragment extends Fragment {
                 } else if (checkedId == R.id.network_device_option) {
                     preferenceManager.setKey("server_setup_isLocal", "No");
                 }
+                preferenceManager.setKey("server_setup_isLocal", "No");
             }
         });
 

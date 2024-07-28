@@ -4,7 +4,8 @@
     package="com.termux"
     android:installLocation="internalOnly"
     android:sharedUserId="${TERMUX_PACKAGE_NAME}"
-    android:sharedUserLabel="@string/shared_user_label">
+    android:sharedUserLabel="@string/shared_user_label"
+    tools:ignore="LeanbackUsesWifi">
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -38,6 +39,9 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:ignore="LeanbackUsesWifi" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove" tools:ignore="QueryAllPackagesPermission" />
 
     <application
