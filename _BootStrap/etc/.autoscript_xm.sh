@@ -118,7 +118,7 @@ get_value_from_key_n3() {
 
 # Checking required packages
 Setup_Prerequisites() {
-    pkg install termux-am jq termux-api -y
+    #pkg install termux-am jq termux-api -y
     rm -f $HOME/.termux/termux.properties
     touch $HOME/.termux/termux.properties
     chmod 755 $HOME/.termux/termux.properties
