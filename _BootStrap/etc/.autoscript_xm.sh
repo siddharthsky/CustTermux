@@ -45,8 +45,8 @@ Server_Runner() {
 	echo "---------------------------"
 	
 	#source ~/.bashrc # PATH update
-	PXKILL = $(pkill -f "$HOME/.jiotv_go/bin/jiotv_go")
-	PXKILL2 = $(pkill -f "jiotv_go")
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+	pkill -f "jiotv_go"
 	TheShowRunner
 }
 
