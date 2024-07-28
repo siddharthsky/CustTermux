@@ -45,28 +45,33 @@ Server_Runner() {
 }
 
 TheShowRunner() {
-	get_value_from_key_n1 "app_name"
+
+	#get_value_from_key_n1 "app_name"
 	
-	# Check if the app name is "null"
-	if [ "$VARIABLE01" == "null" ]; then
-		get_value_from_key_n3 "server_setup_isLocal"
-	elif [ "$VARIABLE01" == "sky_web_tv" ]; then
-		get_value_from_key_n3 "server_setup_isLocal"
-		am start --user 0 -n com.termux/.WebPlayerActivity
-	else	
-		get_value_from_key_n2 "app_launchactivity"
-		get_value_from_key_n3 "server_setup_isLocal"
-		am start --user 0 -n "$VARIABLE01/$VARIABLE02"
-	fi
+	# # Check if the app name is "null"
+	# if [ "$VARIABLE01" == "null" ]; then
+	# 	get_value_from_key_n3 "server_setup_isLocal"
+	# elif [ "$VARIABLE01" == "sky_web_tv" ]; then
+	# 	get_value_from_key_n3 "server_setup_isLocal"
+	# 	am start --user 0 -n com.termux/.WebPlayerActivity
+	# else	
+	# 	get_value_from_key_n2 "app_launchactivity"
+	# 	get_value_from_key_n3 "server_setup_isLocal"
+	# 	am start --user 0 -n "$VARIABLE01/$VARIABLE02"
+	# fi
 
- 	
-
+	get_value_from_key_n3 "server_setup_isLocal"
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
 		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
 		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
+
+ 	am start -a com.temux.SKY_ACTION -e mode "loginstatus2" com.termux/.SkyActionActivity
+
+
+  
 }
 
 TheShowRunner_onetime() {
