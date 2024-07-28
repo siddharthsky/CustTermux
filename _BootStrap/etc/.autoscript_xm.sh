@@ -35,15 +35,10 @@ Server_Runner() {
 	#get_ip_address
 	$HOME/.jiotv_go/bin/jiotv_go -v
 	echo "---------------------------"
-	echo -e "\e[96mFor Local Access:\e[0m"
+	echo -e "\e[96mFor Access:\e[0m"
 	echo -e "\e[96mLogin Page:\e[0m http://localhost:5001"
 	echo -e "\e[96mIPTV Playlist:\e[0m http://localhost:5001/playlist.m3u"
 	echo "---------------------------"
-	echo -e "\e[93mFor External Access:\e[0m"
-	echo -e "\e[93mLogin Page:\e[0m http://$IP_ADD:5001"
-	echo -e "\e[93mIPTV Playlist:\e[0m http://$IP_ADD:5001/playlist.m3u"
-	echo "---------------------------"
-	
 	#source ~/.bashrc # PATH update
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
