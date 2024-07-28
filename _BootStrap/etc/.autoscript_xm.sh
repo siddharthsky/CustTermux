@@ -53,7 +53,7 @@ Server_Runner() {
 TheShowRunner() {
 	get_value_from_key_n1 "app_name"
 	
-	# Check if the app name is "KrispyX1"
+	# Check if the app name is "null"
 	if [ "$VARIABLE01" == "null" ]; then
 		get_value_from_key_n3 "server_setup_isLocal"
 	elif [ "$VARIABLE01" == "sky_web_tv" ]; then
