@@ -68,9 +68,9 @@ TheShowRunner() {
  	
 
 	if [ "$VARIABLE03" == "Yes" ]; then
-		$HOME/.jiotv_go/bin/jiotv_go run
+		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
-		$HOME/.jiotv_go/bin/jiotv_go run -P
+		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
 }
 
