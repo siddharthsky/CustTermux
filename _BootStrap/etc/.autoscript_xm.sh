@@ -63,6 +63,7 @@ TheShowRunner() {
  	
 
 	if [ "$VARIABLE03" == "Yes" ]; then
+ 		echo -e "\e[32mRunning Server Locally\e[0m"
 		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
 		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
