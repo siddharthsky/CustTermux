@@ -56,9 +56,12 @@ TheShowRunner() {
 	# Check if the app name is "KrispyX1"
 	if [ "$VARIABLE01" == "null" ]; then
 		get_value_from_key_n3 "server_setup_isLocal"
+	elif [ "$VARIABLE01" == "sky_web_tv" ]; then
+		get_value_from_key_n3 "server_setup_isLocal"
+		am start --user 0 -n com.termux/.WebPlayerActivity
 	else	
- 		get_value_from_key_n2 "app_launchactivity"
-   		get_value_from_key_n3 "server_setup_isLocal"
+		get_value_from_key_n2 "app_launchactivity"
+		get_value_from_key_n3 "server_setup_isLocal"
 		am start --user 0 -n "$VARIABLE01/$VARIABLE02"
 	fi
 
