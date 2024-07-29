@@ -262,7 +262,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	 # Loop until the setup is complete
 	while true; do
 	    get_value_from_key_n0 "isServerSetupDone"
-	    if [ "$VARIABLE02" == "Done" ]; then
+	    if [ "$VARIABLE00" == "Done" ]; then
 	        echo "Initial setup is complete."
 	        break
 	    else
