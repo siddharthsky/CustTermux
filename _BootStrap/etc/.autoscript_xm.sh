@@ -267,7 +267,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	        break
 	    else
 	        echo "Waiting for initial setup to complete..."
-	        sleep 1
+	        sleep 3
 	    fi
 	done
 	Setup_Prerequisites
