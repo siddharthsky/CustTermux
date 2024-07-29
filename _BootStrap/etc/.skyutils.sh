@@ -390,6 +390,9 @@ verifyotpx() {
 }
 
 exitpath() {
+	echo "-----------------------"
+	echo -e "\033[31mStopping Server CustTermux\033[0m"
+	echo "-----------------------"
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
 	
