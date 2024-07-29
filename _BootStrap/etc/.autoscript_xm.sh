@@ -84,7 +84,7 @@ TheShowRunner_onetime() {
 		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
 
- 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+ 	#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 }
 
 
