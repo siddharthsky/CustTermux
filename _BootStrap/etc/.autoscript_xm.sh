@@ -255,10 +255,6 @@ echo "Script : version 6.9"
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
-	mkdir -p "$HOME/.jiotv_go/bin/"
-	echo "-----------------------"
-	echo "INSTALLATION -- PART 1"
-	echo "-----------------------"
 	 # Loop until the setup is complete
 	while true; do
 	    get_value_from_key_n0 "isServerSetupDone"
@@ -270,6 +266,10 @@ if [ ! -f "$FILE_PATH" ]; then
 	        sleep 3
 	    fi
 	done
+	echo "-----------------------"
+	echo "INSTALLATION -- PART 1"
+	echo "-----------------------"
+ 	mkdir -p "$HOME/.jiotv_go/bin/"
 	Setup_Prerequisites
  	clear
  	echo "-----------------------"
