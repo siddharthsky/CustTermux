@@ -389,31 +389,40 @@ verifyotpx() {
 	exit 0
 }
 
+exitpath() {
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+	pkill -f "jiotv_go"
+	
+}
+
+
 
 
 
 if [ "$1" == "login" ]; then
-    login
+ 	   login
 elif [ "$1" == "sendotp" ]; then
-    sendotp "$2"
+ 	   sendotp "$2"
 elif [ "$1" == "verifyotp" ]; then
-    verifyotp "$2" "$3"
+  	  verifyotp "$2" "$3"
 elif [ "$1" == "sendotpx" ]; then
-    sendotp "$2"
+  	  sendotp "$2"
 elif [ "$1" == "verifyotpx" ]; then
-    verifyotp "$2" "$3"
+  	  verifyotp "$2" "$3"
 elif [ "$1" == "theshowrunner" ]; then
-    theshowrunner
+  	  theshowrunner
 elif [ "$1" == "iptv" ]; then
-    iptv
+  	  iptv
 elif [ "$1" == "iptvrunner" ]; then
-    iptvrunner
+  	  iptvrunner
 elif [ "$1" == "reinstall" ]; then
-    reinstall
+  	  reinstall
 elif [ "$1" == "update" ]; then
-    update
+   	 update
 elif [ "$1" == "runcode" ]; then
-    runcode 
+    	runcode 
+elif [ "$1" == "exitpath" ]; then
+	exitpath 
 else
     echo "Usage Error"
     echo "Command: .skyutils.sh $1"
