@@ -395,7 +395,7 @@ exitpath() {
 	echo "-----------------------"
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
-	
+ 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key isExit --es value yesExit
 }
 
 
