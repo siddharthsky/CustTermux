@@ -246,7 +246,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version 6.9"
+echo "Script : version v6.9"
 
 
 
