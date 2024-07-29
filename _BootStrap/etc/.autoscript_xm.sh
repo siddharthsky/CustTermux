@@ -92,6 +92,18 @@ TheShowRunner_onetime() {
 # AM functions
 ################################################################################################
 
+get_value_from_key_n0() {
+    local KEY="$1"
+    logcat -c
+	sleep 0
+	am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+	sleep 0
+	local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+	VARIABLE00=$VALUE
+	#Debug
+	echo "Captured value: $VARIABLE00"
+}
+
 get_value_from_key_n1() {
     local KEY="$1"
     logcat -c
@@ -127,6 +139,7 @@ get_value_from_key_n3() {
 	#Debug
 	echo "Captured value: $VARIABLE03"
 }
+
 
 
 ################################################################################################
@@ -235,6 +248,10 @@ Setup_Extra() {
 
 echo "Script : version 6.9"
 
+
+
+
+
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
@@ -242,7 +259,22 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "-----------------------"
 	echo "INSTALLATION -- PART 1"
 	echo "-----------------------"
+	 # Loop until the setup is complete
+	while true; do
+	    get_value_from_key_n0 "isServerSetupDone"
+	    if [ "$VARIABLE02" == "Done" ]; then
+	        echo "Initial setup is complete."
+	        break
+	    else
+	        echo "Waiting for initial setup to complete..."
+	        sleep 1
+	    fi
+	done
 	Setup_Prerequisites
+ 	clear
+ 	echo "-----------------------"
+	echo "INSTALLATION -- PART 2"
+	echo "-----------------------"
 	Default_Installation
 	Setup_Extra
  	clear
