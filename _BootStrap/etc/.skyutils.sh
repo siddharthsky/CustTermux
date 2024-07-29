@@ -395,6 +395,9 @@ exitpath() {
 	echo "-----------------------"
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
+ 	echo "-----------------------"
+	echo -e "\033[31mExiting CustTermux\033[0m"
+	echo "-----------------------"
  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key isExit --es value yesExit
 }
 
