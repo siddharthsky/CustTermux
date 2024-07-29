@@ -179,7 +179,7 @@ reinstall() {
 	echo "-----------------------"
 	echo "Reinstall Utility"
 	echo "-----------------------"
-
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
  	wait_and_count 3
 
 	reinstaller() {
@@ -190,8 +190,8 @@ reinstall() {
 		rm  "$HOME/.autoscript_xm.sh"
 		rm  "$HOME/.skyutils.sh"
 
-  		#am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
-    		am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
+  		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 
 
 	}
@@ -204,7 +204,7 @@ update() {
 	echo "-----------------------"
 	echo "Update Utility"
 	echo "-----------------------"
-
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
  	wait_and_count 3
 
 	updater() {
@@ -267,7 +267,8 @@ update() {
 	}
 		
 	updater
- 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
+	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+ 	#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 }
 
 runcode() {
