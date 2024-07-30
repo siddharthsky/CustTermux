@@ -164,7 +164,7 @@ public class TermuxActivityResume {
         iptvNameTextView.setText("Opening " + appName);
 
         TextView countdownTextView = dialogView.findViewById(R.id.countdown_timer);
-        final int countdownDuration = 5000; // 5 seconds
+        final int countdownDuration = 6000; // 5 seconds
         countdownTextView.setText((countdownDuration / 1000) + "s");
 
         iptvAlertDialog = builder.create();

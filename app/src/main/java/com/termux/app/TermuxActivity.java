@@ -256,6 +256,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TextView ipAddressTextView;
     private TextView serverStatusTextView;
     private ServerStatusChecker serverStatusChecker;
+    private LoginStatusChecker loginStatusChecker;
 
 
     private boolean isCanceled = false;
@@ -264,8 +265,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private Runnable autoDismissRunnable;
 
     private AlertDialog alertDialog;
-    private Handler handlerz;
+
     private TermuxActivityResume termuxActivityResume;
+
+    private Runnable stopRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -288,7 +291,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        handler = new Handler();
+
+        TextView serverStatusTextView = findViewById(R.id.server_status);
+        TextView loginStatusTextView = findViewById(R.id.login_status);
+        serverStatusChecker = new ServerStatusChecker(TermuxActivity.this, serverStatusTextView);
+        loginStatusChecker = new LoginStatusChecker(TermuxActivity.this, loginStatusTextView);
+//        handler = new Handler();
+//
+//        // Define the runnable that will stop the server status checking
+//        stopRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                serverStatusChecker.stopChecking();
+//                loginStatusChecker.stopChecking();
+//            }
+//        };
+
 
 
         termuxActivityResume = new TermuxActivityResume(this);
@@ -311,7 +329,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
                     //for (int i = 0; i < 3; i++) {
-                        v.performLongClick();
+                    v.performLongClick();
                     //}
                 }
             }
@@ -320,7 +338,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button1.setOnFocusChangeListener(tooltipFocusListener);
         button1_5.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
-  //      button3.setOnFocusChangeListener(tooltipFocusListener);
+        //      button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
 //        button5.setOnFocusChangeListener(tooltipFocusListener);
         button6.setOnFocusChangeListener(tooltipFocusListener);
@@ -406,7 +424,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        });
 
 
-
 //
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -441,7 +458,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 return true;
             }
         });
-
 
 
 //        button4.setOnClickListener(new View.OnClickListener() {
@@ -484,7 +500,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Reinstall","Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -559,7 +575,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         });
 
 
-
         imageView = findViewById(R.id.imageView);
         //webView = findViewById(R.id.webview_tv);
 
@@ -598,14 +613,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
         ipAddressTextView = findViewById(R.id.ip_address);
-        TextView serverStatusTextView = findViewById(R.id.server_status);
-        TextView loginStatusTextView = findViewById(R.id.login_status);
+//        TextView serverStatusTextView = findViewById(R.id.server_status);
+//        TextView loginStatusTextView = findViewById(R.id.login_status);
 
         SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
         String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
 
-        if (Objects.equals(isLOCAL, "Yes")){
-            Log.d("d","Server is Local!");
+        if (Objects.equals(isLOCAL, "Yes")) {
+            Log.d("d", "Server is Local!");
             ipAddressTextView.setText("localhost");
         } else {
             // Get and display Wi-Fi IP address
@@ -614,17 +629,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
 
 
-
-
-        // Start checking server status
-        ServerStatusChecker serverStatusChecker = new ServerStatusChecker(this, serverStatusTextView);
-        serverStatusChecker.startChecking();
-
-
-        // Start checking login status
-        LoginStatusChecker loginStatusChecker = new LoginStatusChecker(this, loginStatusTextView);
-        loginStatusChecker.startChecking();
-
+//        // Start checking server status
+//        ServerStatusChecker serverStatusChecker = new ServerStatusChecker(this, serverStatusTextView);
+//        serverStatusChecker.startChecking();
+//
+//
+//        // Start checking login status
+//        loginStatusChecker = new LoginStatusChecker(this, loginStatusTextView);
+//        loginStatusChecker.startChecking();
 
 
         ipAddressTextView = findViewById(R.id.ip_address);
@@ -639,13 +651,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
         preferenceManager.setKey("isExit", "noExit");
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -699,7 +704,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             if (!bindService(serviceIntent, this, 0))
                 throw new RuntimeException("bindService() failed");
         } catch (Exception e) {
-            Logger.logStackTraceWithMessage(LOG_TAG,"TermuxActivity failed to start TermuxService", e);
+            Logger.logStackTraceWithMessage(LOG_TAG, "TermuxActivity failed to start TermuxService", e);
             Logger.showToast(this,
                 getString(e.getMessage() != null && e.getMessage().contains("app is in background") ?
                     R.string.error_termux_service_start_failed_bg : R.string.error_termux_service_start_failed_general),
@@ -878,29 +883,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         handler1.postDelayed(runnable1, 100);
     }
 
-    public void wait_special() {
-        Handler handler2 = new Handler();
-        Runnable runnable2 = new Runnable() {
-            @Override
-            public void run() {
-                //EMPTY
-            }
-        };
-        handler2.postDelayed(runnable2, 1000);
-    }
-
-    public void waitSpecial(long delayMillis) {
-        Handler handler3 = new Handler();
-        Runnable runnable3 = new Runnable() {
-            @Override
-            public void run() {
-                // Your code to run after the delay
-            }
-        };
-        handler3.postDelayed(runnable3, delayMillis);
-    }
-
-
 
 
     private void XpkillIntent() {
@@ -937,7 +919,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         termuxServiceStopIntent.setClassName("com.termux", "com.termux.app.TermuxService");
         termuxServiceStopIntent.setAction("com.termux.service_stop");
         startService(termuxServiceStopIntent);
-        wait_();
+        //wait_();
     }
 
     private void XStartTermux() {
@@ -946,7 +928,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         termuxServiceStartIntent.setClassName("com.termux", "com.termux.app.TermuxService");
         termuxServiceStartIntent.setAction("com.termux.service_execute");
         startService(termuxServiceStartIntent);
-        wait_();
+        //wait_();
     }
 
     private void XStartTermuxAct() {
@@ -998,18 +980,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
-    public void wait_X() {
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                //EMPTY
-            }
-        };
-        handler.postDelayed(runnable, 2000);
-    }
-    private int rerunCount = 0; // Class-level variable to track the rerun count
-    private static final int MAX_RERUN_COUNT = 5; // Maximum number of times to rerun
+
 
 //    private void sky_rerun() {
 //        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
@@ -1205,8 +1176,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentC);
-
-        wait_special();
 
         sky_otp();
     }
@@ -1477,6 +1446,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onPause() {
         super.onPause();
         termuxActivityResume.onPause();
+
+        serverStatusChecker.stopChecking();
+        loginStatusChecker.stopChecking();
     }
 
 
@@ -1508,6 +1480,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button1.requestFocus();
 
         termuxActivityResume.onResume();
+
+        serverStatusChecker.startChecking();
+        loginStatusChecker.startChecking();
+        // Stop checking after 30 seconds
+        //handler.postDelayed(stopRunnable, 30000);
     }
 
 //    public void waitAndExecute(final int delayMillis) {

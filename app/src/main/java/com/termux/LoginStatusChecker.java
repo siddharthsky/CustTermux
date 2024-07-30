@@ -28,7 +28,7 @@ public class LoginStatusChecker {
             @Override
             public void run() {
                 checkServerStatus();
-                handler.postDelayed(this, 5000); // Check every 5 seconds
+                handler.postDelayed(this, 7000); // Check every 5 seconds
             }
         };
         handler.post(runnable);
