@@ -7,15 +7,20 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import android.content.Context;
+import androidx.core.content.ContextCompat;
+
 public class LoginStatusChecker {
 
     private Handler handler;
     private Runnable runnable;
     private TextView loginStatusTextView;
+    private Context context;
 
-    public LoginStatusChecker(TextView serverStatusTextView) {
+    public LoginStatusChecker(Context context, TextView serverStatusTextView) {
         this.handler = new Handler();
         this.loginStatusTextView = serverStatusTextView;
+        this.context = context;
     }
 
     public void startChecking() {
@@ -43,7 +48,7 @@ public class LoginStatusChecker {
 
                 int responseCode = urlConnection.getResponseCode();
                 if (responseCode == 200) {
-                    updateStatus("Running");
+                    updateStatus("Logged In");
                 } else if (responseCode == 500) {
                     handleLogout(); // Handle logout on 500 response code
                 } else {
@@ -56,12 +61,28 @@ public class LoginStatusChecker {
     }
 
     private void updateStatus(final String status) {
-        loginStatusTextView.post(() -> loginStatusTextView.setText(status));
+        loginStatusTextView.post(() -> {
+            loginStatusTextView.setText(status);
+            int color;
+            switch (status) {
+                case "Logged In":
+                    color = ContextCompat.getColor(context, R.color.status_running);
+                    break;
+                case "Error":
+                    color = ContextCompat.getColor(context, R.color.status_error);
+                    break;
+                case "Logged Out":
+                    color = ContextCompat.getColor(context, R.color.status_stopped);
+                    break;
+                default:
+                    color = ContextCompat.getColor(context, android.R.color.black);
+                    break;
+            }
+            loginStatusTextView.setTextColor(color);
+        });
     }
 
     private void handleLogout() {
-        // Implement logout logic here
-        // For example, you might want to start a new activity or show a dialog
         // Update the status to indicate the logout
         updateStatus("Logged Out");
     }
