@@ -54,6 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="24sp"
+            android:layout_marginTop="15dp"
             android:text="This device only (Local access)"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -61,18 +62,18 @@
             android:accessibilityLiveRegion="polite" />
     </RadioGroup>
 
-    <!-- Lottie Animation View -->
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottie_animation_view1"
-        android:layout_width="128dp"
-        android:layout_height="128dp"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/gem_moving"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:importantForAccessibility="yes"
-        android:accessibilityLiveRegion="polite" />
+<!--    &lt;!&ndash; Lottie Animation View &ndash;&gt;-->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view1"-->
+<!--        android:layout_width="128dp"-->
+<!--        android:layout_height="128dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:importantForAccessibility="yes"-->
+<!--        android:accessibilityLiveRegion="polite" />-->
 </RelativeLayout>
