@@ -64,8 +64,10 @@ TheShowRunner() {
  
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
+   		termux-wake-lock
 		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
+ 		termux-wake-lock
 		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
 
