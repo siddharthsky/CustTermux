@@ -1,6 +1,7 @@
 package com.termux;
 
 import android.os.Handler;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class LoginStatusChecker {
             @Override
             public void run() {
                 checkServerStatus();
-                handler.postDelayed(this, 7000); // Check every 5 seconds
+                handler.postDelayed(this, 10000); // Check every 5 seconds
             }
         };
         handler.post(runnable);
@@ -58,6 +59,7 @@ public class LoginStatusChecker {
                 updateStatus("Error");
             }
         }).start();
+        Log.d("TAG","Checked Login");
     }
 
     private void updateStatus(final String status) {

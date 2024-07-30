@@ -2,6 +2,7 @@ package com.termux;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
@@ -53,6 +54,7 @@ public class ServerStatusChecker {
                 updateStatus("Stopped");
             }
         }).start();
+        Log.d("TAG","Checked Server");
     }
 
     private void updateStatus(final String status) {
