@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp">
+
+    <!-- Step Two Title -->
+    <TextView
+        android:id="@+id/step_two_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Step Two"
+        android:background="@color/transparent"
+        android:textSize="60sp"
+        android:textColor="@android:color/white"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Auto-Open IPTV Instructions -->
+    <TextView
+        android:id="@+id/step_two_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_two_title"
+        android:layout_marginTop="16dp"
+        android:background="@color/transparent"
+        android:text="Do you want to auto-open IPTV when you start CustTermux?"
+        android:textColor="@android:color/white"
+        android:textSize="36sp"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Auto-Open IPTV Radio Group -->
+    <RadioGroup
+        android:id="@+id/auto_open_iptv_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_two_title2"
+        android:layout_marginTop="32dp">
+
+        <RadioButton
+            android:id="@+id/iptv_yes_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:text="Yes"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+
+        <RadioButton
+            android:id="@+id/iptv_no_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:text="No"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+    </RadioGroup>
+
+    <!-- IPTV Name Button -->
+    <Button
+        android:id="@+id/button_iptv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/auto_open_iptv_group"
+        android:layout_marginTop="32dp"
+        android:text="Select IPTV Here"
+        android:visibility="gone"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Horizontal LinearLayout to show app icon and app name -->
+    <LinearLayout
+        android:id="@+id/app_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_iptv_name"
+        android:layout_marginTop="32dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/app_icon_description"
+            android:padding="16dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+
+        <TextView
+            android:id="@+id/text_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:padding="16dp"
+            android:background="@color/transparent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+    </LinearLayout>
+
+    <!-- Lottie Animation View -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottie_animation_view2"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/gem_moving"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+</RelativeLayout>

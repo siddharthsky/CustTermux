@@ -49,7 +49,8 @@
                 android:text="✨ ReRun"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="ReRun Server+IPTV" />
+                android:tooltipText="ReRun CustTermux" />
+
 
             <Button
                 android:id="@+id/button1_5"
@@ -73,7 +74,7 @@
                 android:text="▶️️    IPTV"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="Change IPTV" />
+                android:tooltipText="Open IPTV" />
 
             <Button
                 android:id="@+id/button2"
@@ -136,7 +137,7 @@
                 android:text="📜 Extra"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="Extra options" />
+                android:tooltipText="Extra Utilities" />
 
             <Button
                 android:id="@+id/button7"
@@ -155,7 +156,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="0dp">
 
@@ -178,8 +179,8 @@
                 android:id="@+id/server_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#00C853"
-                android:text="Running" />
+                android:text="Running"
+                android:textColor="#00C853" />
         </LinearLayout>
 
         <!-- IP Address -->
@@ -201,22 +202,22 @@
                 android:id="@+id/ip_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#FF6F00"
-                android:text="192.168.1.91" />
+                android:text="192.168.1.91"
+                android:textColor="#FF6F00" />
         </LinearLayout>
 
 
         <!-- Copy Icon -->
-<!--        <LinearLayout-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:layout_weight="1"-->
-<!--            android:orientation="vertical"-->
-<!--            android:padding="8dp">-->
+        <!--        <LinearLayout-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:layout_weight="1"-->
+        <!--            android:orientation="vertical"-->
+        <!--            android:padding="8dp">-->
 
-<!--            -->
+        <!--            -->
 
-<!--        </LinearLayout>-->
+        <!--        </LinearLayout>-->
 
         <!--        &lt;!&ndash; Android Version &ndash;&gt;-->
         <LinearLayout
@@ -237,11 +238,12 @@
                 android:id="@+id/login_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#00C853"
-                android:text="Logged In" />
+                android:text="Logged In"
+                android:textColor="#00C853" />
 
 
         </LinearLayout>
+
         <ImageView
             android:id="@+id/ic_download"
             android:layout_width="30dp"
@@ -249,14 +251,9 @@
             android:layout_gravity="center"
             android:layout_marginEnd="8dp"
             android:src="@drawable/ic_download"
+            android:tooltipText="Download Playlist"
             app:tint="#FFFFFF" />
     </LinearLayout>
-
-    <WebView
-        android:id="@+id/webview_tv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
 
 
 
@@ -281,7 +278,6 @@
             android:layout_height="match_parent">
 
 
-
             <com.termux.view.TerminalView
                 android:id="@+id/terminal_view"
                 android:layout_width="match_parent"
@@ -293,6 +289,7 @@
                 android:importantForAutofill="no"
                 android:autofillHints="password"
                 tools:ignore="UnusedAttribute" />
+
 
 
 

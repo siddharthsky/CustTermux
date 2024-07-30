@@ -1,7 +1,9 @@
 package com.termux;
 
+import android.content.Context;
 import android.os.Handler;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -12,10 +14,12 @@ public class ServerStatusChecker {
     private Handler handler;
     private Runnable runnable;
     private TextView serverStatusTextView;
+    private Context context;
 
-    public ServerStatusChecker(TextView serverStatusTextView) {
+    public ServerStatusChecker(Context context, TextView serverStatusTextView) {
         this.handler = new Handler();
         this.serverStatusTextView = serverStatusTextView;
+        this.context = context;
     }
 
     public void startChecking() {
@@ -52,6 +56,15 @@ public class ServerStatusChecker {
     }
 
     private void updateStatus(final String status) {
-        serverStatusTextView.post(() -> serverStatusTextView.setText(status));
+        serverStatusTextView.post(() -> {
+            serverStatusTextView.setText(status);
+            int color;
+            if ("Running".equals(status)) {
+                color = ContextCompat.getColor(context, R.color.status_running);
+            } else {
+                color = ContextCompat.getColor(context, R.color.status_stopped);
+            }
+            serverStatusTextView.setTextColor(color);
+        });
     }
 }

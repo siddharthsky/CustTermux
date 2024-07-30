@@ -22,6 +22,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Previous"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/button_background_selector"
             android:visibility="gone" />
 
         <Button
@@ -29,6 +33,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/button_background_selector"
             android:text="Next" />
     </LinearLayout>
 

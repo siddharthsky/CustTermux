@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true" android:color="#339CF5"/>
-    <item android:color="#0000FF"/>
+<!--<item android:drawable="@drawable/button_pressed"-->
+<!--    android:state_pressed="true" />-->
+<!--<item android:drawable="@drawable/button_focused"-->
+<!--    android:state_focused="true" />-->
+<!--<item android:drawable="@drawable/button_default" />-->
+    <item android:color="#0D47A1"
+        android:state_pressed="true" />
+    <item android:color="#339CF5"
+        android:state_focused="true" />
+    <item android:color="#0000FF" />
+    <!--    <item android:state_focused="true" android:color="#339CF5"/>-->
+<!--    <item android:color="#0000FF"#311B92/>-->
 </selector>
