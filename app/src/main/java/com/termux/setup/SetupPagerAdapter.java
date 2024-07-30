@@ -1,16 +1,9 @@
-package com.termux;
-
-import android.util.Log;
+package com.termux.setup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-
-import com.termux.setup.StepOneFragment;
-import com.termux.setup.StepThreeFragment;
-import com.termux.setup.StepTwoFragment;
-import com.termux.setup.StepZeroFragment;
 
 // SetupPagerAdapter.java
 public class SetupPagerAdapter extends FragmentStatePagerAdapter {

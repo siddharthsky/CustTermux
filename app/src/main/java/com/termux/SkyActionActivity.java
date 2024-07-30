@@ -80,7 +80,11 @@ public class SkyActionActivity extends AppCompatActivity {
                             finish();
                             break;
                         case "iptvrunner2":
-                            iptvrunner2();
+//                            iptvrunner2();
+                            finish();
+                            break;
+                        case "setup_finisher":
+                            setup_finisher();
                             finish();
                             break;
                         default:
@@ -92,6 +96,39 @@ public class SkyActionActivity extends AppCompatActivity {
                     }
                 }
             }
+        }
+
+    }
+
+    private void setup_finisher() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"exitpath"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String isExit = preferenceManager.getKey("isExit");
+
+        while (!isExit.equals("yesExit")) {
+            isExit = preferenceManager.getKey("isExit");
+        }
+
+        // Create an intent to restart the app
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent != null) {
+            // Finish current activity
+            finish();
+
+            // Restart the app
+            startActivity(intent);
+
+            // Exit the app
+            System.exit(0);
         }
 
     }
@@ -109,6 +146,30 @@ public class SkyActionActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
+    }
+
+    private void runner2x() {
+        SkySharedPref preferenceManager = new SkySharedPref(SkyActionActivity.this);
+        String iptvChecker = preferenceManager.getKey("app_name");
+        String appclass = preferenceManager.getKey("app_launchactivity");
+
+        if (iptvChecker != null && !iptvChecker.isEmpty()) {
+            if (iptvChecker.equals("null")) {
+                System.out.println("IPTV, null!");
+            } else if (iptvChecker.equals("sky_web_tv")) {
+                System.out.println("IPTV, webTV!");
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName(iptvChecker, appclass));
+                startActivity(intent);
+            } else {
+                System.out.println("IPTV, found!");
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName(iptvChecker, appclass));
+                startActivity(intent);
+            }
+        } else {
+            System.out.println("IPTV, null!");
+        }
     }
 
     public void wait_X() {
@@ -253,15 +314,17 @@ public class SkyActionActivity extends AppCompatActivity {
                 // Handle the response code
                 switch (responseCode) {
                     case HttpURLConnection.HTTP_OK:
-                        System.out.println("The webpage is accessible.");
+                        System.out.println("SkyActivity: The webpage is accessible.");
                         iptvrunner2();
+                        //runner2x();
+
                         break;
                     case HttpURLConnection.HTTP_NOT_FOUND:
-                        System.out.println("The webpage was not found.");
+                        System.out.println("SkyActivity: The webpage was not found.");
                         Toast.makeText(SkyActionActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
                         break;
                     default:
-                        System.out.println("Response code: " + responseCode);
+                        System.out.println("SkyActivity: Response code: " + responseCode);
                         if (responseCode == 500) {
                             Intent intent = new Intent(SkyActionActivity.this, LoginErrorActivity.class);
                             startActivity(intent);
@@ -292,7 +355,7 @@ public class SkyActionActivity extends AppCompatActivity {
         private void sky_login() {
             Intent intent = new Intent(SkyActionActivity.this, LoginActivity.class);
             startActivity(intent);
-//            iptvrunner2();
+            iptvrunner2();
         }
 
         private void lake_alert_confirmation(Context context) {
