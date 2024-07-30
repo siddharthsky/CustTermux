@@ -1,157 +1,157 @@
 package com.termux;
 
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class LoginActivity2 extends AppCompatActivity {
 
-    private WebView webView;
-    private TextView loadingMessage;
-    private ProgressBar loadingSpinner;
-    private String url;
-    private static final String DEFAULT_URL = "http://localhost:5001/";
+    private static final String TAG = "LoginActivity2";
+    private static final String BASE_URL = "http://localhost:5001/";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        setTheme(R.style.DarkActivityTheme);
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login_setup);
 
-        // Enable the home button as an up button
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        // Initialize Views
+        EditText inputNumber = findViewById(R.id.input_number);
+        EditText inputOtp = findViewById(R.id.input_otp);
+        Button sendOtpButton = findViewById(R.id.button_send_otp);
+        Button verifyOtpButton = findViewById(R.id.button_verify_otp);
 
-        // Create a LinearLayout to hold the WebView, ProgressBar, and TextViews
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        ));
+        // Set up Button Click Listeners
+        sendOtpButton.setOnClickListener(v -> {
+            String phoneNumber = inputNumber.getText().toString().trim();
+            if (!phoneNumber.isEmpty()) {
+                new SendOtpTask().execute(phoneNumber);
+            } else {
+                Toast.makeText(LoginActivity2.this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        // Create and configure the instruction message TextView
-        TextView instructionMessage = new TextView(this);
-        instructionMessage.setText("After logging in please press back to exit");
-        instructionMessage.setTextSize(16);
-        instructionMessage.setGravity(Gravity.CENTER);
-        instructionMessage.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-        layout.addView(instructionMessage);
-
-        // Create and configure the loading message TextView
-        loadingMessage = new TextView(this);
-        loadingMessage.setText("Loading...");
-        loadingMessage.setTextSize(18);
-        loadingMessage.setGravity(Gravity.CENTER);
-        loadingMessage.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-        layout.addView(loadingMessage);
-
-        // Create and configure the loading spinner ProgressBar
-        loadingSpinner = new ProgressBar(this);
-        LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        spinnerParams.gravity = Gravity.CENTER;
-        loadingSpinner.setLayoutParams(spinnerParams);
-        layout.addView(loadingSpinner);
-
-        // Create and configure the WebView
-        webView = new WebView(this);
-        webView.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        ));
-        webView.setWebViewClient(new CustomWebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setLoadWithOverviewMode(true);
-        webSettings.setUseWideViewPort(true);
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setDisplayZoomControls(false);
-        webSettings.setSupportZoom(true);
-        webSettings.setDefaultTextEncodingName("utf-8");
-        webView.setVisibility(View.GONE);  // Hide WebView initially
-        layout.addView(webView);
-
-        setContentView(layout);
-
-        // Start the flashing effect
-        startFlashingEffect(instructionMessage);
-
-        url = DEFAULT_URL;
-        // Load the initial URL
-        loadUrl();
+        verifyOtpButton.setOnClickListener(v -> {
+            String otp = inputOtp.getText().toString().trim();
+            String phoneNumber = inputNumber.getText().toString().trim();
+            if (!otp.isEmpty() && !phoneNumber.isEmpty()) {
+                new VerifyOtpTask().execute(phoneNumber, otp);
+            } else {
+                Toast.makeText(LoginActivity2.this, "Please enter phone number and OTP", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void loadUrl() {
-        if (url != null) {
-            webView.loadUrl(url);
-        }
-    }
-
-    private void setModal() {
-        if (webView != null) {
-            String jsCode = "document.getElementById('login_modal').showModal();";
-            webView.evaluateJavascript(jsCode, null);
-        }
-    }
-
-    private class CustomWebViewClient extends WebViewClient {
+    private class SendOtpTask extends AsyncTask<String, Void, String> {
         @Override
-        public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
-            // Show loading message and spinner
-            loadingMessage.setVisibility(View.VISIBLE);
-            loadingSpinner.setVisibility(View.VISIBLE);
-            webView.setVisibility(View.GONE);
+        protected String doInBackground(String... params) {
+            String phoneNumber = params[0];
+            try {
+                URL url = new URL(BASE_URL + "login/sendOTP");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                String jsonInputString = "{\"number\": \"+91" + phoneNumber + "\"}";
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                return response.toString();
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending OTP", e);
+                return null;
+            }
         }
 
         @Override
-        public void onPageFinished(WebView view, String url) {
-            // Hide loading message and spinner, show WebView
-            loadingMessage.setVisibility(View.GONE);
-            loadingSpinner.setVisibility(View.GONE);
-            webView.setVisibility(View.VISIBLE);
-            setModal();
+        protected void onPostExecute(String result) {
+            if (result != null) {
+                Toast.makeText(LoginActivity2.this, "OTP Sent: " + result, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(LoginActivity2.this, "Failed to send OTP", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
+    private class VerifyOtpTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String phoneNumber = params[0];
+            String otp = params[1];
+            try {
+                URL url = new URL(BASE_URL + "login/verifyOTP");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                String jsonInputString = "{\"number\": \"+91" + phoneNumber + "\", \"otp\": \"" + otp + "\"}";
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
+                }
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                return response.toString();
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error verifying OTP", e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(result);
+                    String status = jsonObject.optString("status");
+                    if ("success".equals(status)) {
+                        Toast.makeText(LoginActivity2.this, "OTP Verified Successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(LoginActivity2.this, "Error parsing response", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
+            }
             finish();
-            return true;
         }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void startFlashingEffect(TextView textView) {
-        ObjectAnimator animator = ObjectAnimator.ofInt(textView, "textColor", Color.WHITE, Color.RED);
-        animator.setDuration(750);
-        animator.setEvaluator(new android.animation.ArgbEvaluator());
-        animator.setRepeatCount(ObjectAnimator.INFINITE);
-        animator.setRepeatMode(ObjectAnimator.REVERSE);
-        animator.start();
     }
 }

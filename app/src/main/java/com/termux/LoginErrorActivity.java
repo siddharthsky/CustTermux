@@ -50,7 +50,7 @@ public class LoginErrorActivity extends AppCompatActivity {
     }
 
     private void sky_login() {
-        Intent intent = new Intent(LoginErrorActivity.this, LoginActivity.class);
+        Intent intent = new Intent(LoginErrorActivity.this, LoginActivity2.class);
         startActivity(intent);
     }
 

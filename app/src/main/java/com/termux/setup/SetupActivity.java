@@ -31,6 +31,7 @@ public class SetupActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTheme(R.style.DarkActivityTheme);
         setContentView(R.layout.activity_setup);
 
         // Change status bar color

@@ -25,10 +25,11 @@ public class LoginActivity extends AppCompatActivity {
     private String url;
     private static final String DEFAULT_URL = "http://localhost:5001/";
 
-    @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTheme(R.style.DarkActivityTheme);
+        setContentView(R.layout.activity_login_setup);
 
         // Enable the home button as an up button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

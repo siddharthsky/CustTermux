@@ -38,6 +38,7 @@ public class AppSelectorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTheme(R.style.DarkActivityTheme);
         setContentView(R.layout.activity_app_selector); // Ensure this matches your layout file
 
         getSupportActionBar().setTitle("Select IPTV app to launch");

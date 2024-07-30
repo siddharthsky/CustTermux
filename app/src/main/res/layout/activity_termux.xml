@@ -172,6 +172,8 @@
                 android:id="@+id/server_status_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@color/text_color_black"
+                android:textColor="@android:color/white"
                 android:text="Status:"
                 android:textStyle="bold" />
 
@@ -195,6 +197,8 @@
                 android:id="@+id/ip_address_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@color/text_color_black"
+                android:textColor="@android:color/white"
                 android:text="IP Address:"
                 android:textStyle="bold" />
 
@@ -231,6 +235,8 @@
                 android:id="@+id/login_status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:background="@color/text_color_black"
                 android:text="Login Status:"
                 android:textStyle="bold" />
 
@@ -239,6 +245,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Logged In"
+
                 android:textColor="#00C853" />
 
 

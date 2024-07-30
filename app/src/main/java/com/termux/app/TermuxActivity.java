@@ -47,6 +47,7 @@ import android.widget.Toast;
 
 import com.termux.AppSelectorActivity;
 import com.termux.LoginActivity;
+import com.termux.LoginActivity2;
 import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
@@ -352,7 +353,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(TermuxActivity.this, LoginActivity.class);
+                Intent intent = new Intent(TermuxActivity.this, LoginActivity2.class);
                 startActivity(intent);
             }
         });
