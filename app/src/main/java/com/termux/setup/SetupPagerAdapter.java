@@ -25,6 +25,9 @@ public class SetupPagerAdapter extends FragmentStatePagerAdapter {
             case 2:
                 //Log.d("dx","2");
                 return new StepTwoFragment();
+            case 3:
+                //Log.d("dx","3");
+                return new StepThreeFragment();
             // Add more cases for additional steps
             default:
                 return new StepZeroFragment();
@@ -33,6 +36,6 @@ public class SetupPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return 3; // Number of steps or fragments
+        return 4; // Number of steps or fragments
     }
 }

@@ -23,7 +23,7 @@
         android:layout_below="@+id/step_two_title"
         android:layout_marginTop="8dp"
         android:background="@color/text_color_black"
-        android:text="Do you want to auto-open IPTV when you start CustTermux?"
+        android:text="Do you want to auto-open IPTV when you start CustTermux? (AutoStart)"
         android:textColor="@android:color/white"
         android:textSize="22sp" />
 

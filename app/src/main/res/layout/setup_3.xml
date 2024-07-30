@@ -1,51 +1,67 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="16dp">
 
-    <!-- Step Final Title -->
+    <!-- Step Three Title -->
     <TextView
         android:id="@+id/step_three_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Step Final"
+        android:text="Step Three"
         android:background="@color/text_color_black"
         android:textSize="40sp"
         android:textColor="@android:color/white" />
 
-    <!-- Container for side-by-side layout -->
-    <RelativeLayout
-        android:id="@+id/download_container"
-        android:layout_width="match_parent"
+    <!-- Start Server at Boot Instructions -->
+    <TextView
+        android:id="@+id/step_three_title2"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/step_three_title"
-        android:layout_marginTop="20dp">
+        android:layout_below="@+id/step_three_title"
+        android:layout_marginTop="8dp"
+        android:background="@color/text_color_black"
+        android:text="Do you want to start the CustTermux after boot? (AutoBoot)"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
 
-        <!-- Download Playlist TextView -->
-        <TextView
-            android:id="@+id/download_playlist_text"
+    <!-- Start Server at Boot Radio Group -->
+    <RadioGroup
+        android:id="@+id/server_boot_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_three_title2"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/server_yes_option"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginTop="20dp"
-            android:text="Download Playlist:"
-            android:textSize="18sp"
-            android:background="@color/text_color_black"
-            android:textColor="@android:color/white" />
+            android:textSize="16sp"
+            android:text="Yes" />
 
-
-        <!-- Download Button -->
-        <Button
-            android:id="@+id/download_button"
+        <RadioButton
+            android:id="@+id/server_no_option"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:text="Download"
-            android:background="@color/colorPrimary"
-            android:textColor="@android:color/white"
-            android:onClick="onDownloadButtonClick" />
-    </RelativeLayout>
+            android:textSize="16sp"
+            android:text="No" />
+    </RadioGroup>
+
+
+
+    <!-- Lottie Animation View -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottie_animation_view3"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/gem_moving"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp" />
 
 </RelativeLayout>

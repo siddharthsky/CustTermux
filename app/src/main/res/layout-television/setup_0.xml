@@ -24,7 +24,6 @@
         android:layout_centerHorizontal="true"
         android:text="Welcome to CustTermux! JioTVGo easy setup."
         android:textSize="36sp"
-        android:textColor="@android:color/white"
         android:gravity="center"
         android:layout_marginBottom="80dp"
         android:importantForAccessibility="yes"
