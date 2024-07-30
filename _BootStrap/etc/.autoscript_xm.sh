@@ -62,16 +62,31 @@ TheShowRunner() {
 
 	get_value_from_key_n3 "server_setup_isLocal"
  
+
+	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
    		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run
+		$HOME/.jiotv_go/bin/jiotv_go run
 	else
  		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+		$HOME/.jiotv_go/bin/jiotv_go run -P
 	fi
 
-	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+	
+
+ 	
+ 
+	# if [ "$VARIABLE03" == "Yes" ]; then
+ # 		echo -e "\e[32mRunning Server Locally\e[0m"
+ #   		termux-wake-lock
+	# 	$HOME/.jiotv_go/bin/jiotv_go bg run
+	# else
+ # 		termux-wake-lock
+	# 	$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+	# fi
+
+	# am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 
   
 }
