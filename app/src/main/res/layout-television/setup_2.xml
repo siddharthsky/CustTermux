@@ -73,6 +73,8 @@
         android:text="Select IPTV Here"
         android:visibility="gone"
         android:focusable="true"
+        android:backgroundTint="@color/button_background_selector"
+        android:textColor="@android:color/white"
         android:focusableInTouchMode="true"
         android:importantForAccessibility="yes"
         android:accessibilityLiveRegion="polite" />

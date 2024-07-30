@@ -38,27 +38,28 @@
             android:id="@+id/network_device_option"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="20sp"
             android:text="Other device in network (Default mode)" />
 
         <RadioButton
             android:id="@+id/device_only_option"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:textSize="020sp"
             android:text="This device only (Local access)" />
     </RadioGroup>
 
     <!-- Lottie Animation View -->
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottie_animation_view1"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/gem_moving"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp" />
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view1"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="0dp"-->
+<!--        android:layout_marginEnd="0dp" />-->
 </RelativeLayout>

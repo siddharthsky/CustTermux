@@ -47,6 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
+            android:layout_marginTop="16dp"
             android:text="No" />
     </RadioGroup>
 
@@ -56,6 +57,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/auto_open_iptv_group"
+        android:backgroundTint="@color/button_background_selector"
+        android:textColor="@android:color/white"
         android:layout_marginTop="16dp"
         android:text="Select IPTV Here"
         android:visibility="gone" />
@@ -86,17 +89,17 @@
             android:background="@color/text_color_black" />
     </LinearLayout>
 
-    <!-- Lottie Animation View -->
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottie_animation_view2"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/gem_moving"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp" />
+<!--    &lt;!&ndash; Lottie Animation View &ndash;&gt;-->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view2"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="0dp"-->
+<!--        android:layout_marginEnd="0dp" />-->
 
 </RelativeLayout>
