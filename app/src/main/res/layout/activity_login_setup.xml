@@ -4,11 +4,25 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <TextView
+        android:id="@+id/step_one_titles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Make sure server is running before logging in."
+        android:textSize="15sp"
+        android:textColor="@android:color/white"
+        android:background="@color/text_color_black"
+        android:padding="2dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
     <!-- Step One Title -->
     <TextView
         android:id="@+id/step_one_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/step_one_titles"
+        android:layout_marginTop="8dp"
         android:text="Login"
         android:background="@color/text_color_black"
         android:textSize="36sp"
@@ -43,6 +57,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/input_number"
         android:layout_marginTop="16dp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/button_background_selector"
         android:text="Send OTP" />
 
     <!-- OTP Input Instructions -->
@@ -74,6 +90,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/input_otp"
         android:layout_marginTop="16dp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/button_background_selector"
         android:text="Verify OTP" />
 
 </RelativeLayout>
