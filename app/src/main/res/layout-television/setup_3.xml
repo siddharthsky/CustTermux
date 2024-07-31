@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp">
+
+    <!-- Step Two Title -->
+    <TextView
+        android:id="@+id/step_three_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Step Three"
+        android:background="@color/transparent"
+        android:textSize="60sp"
+
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Auto-Open IPTV Instructions -->
+    <TextView
+        android:id="@+id/step_three_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_three_title"
+        android:layout_marginTop="16dp"
+        android:background="@color/transparent"
+        android:text="Do you want to start the CustTermux after boot? (AutoBoot)"
+
+        android:textSize="33sp"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Start Server at Boot Radio Group -->
+    <RadioGroup
+        android:id="@+id/server_boot_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_three_title2"
+        android:layout_marginTop="32dp">
+
+        <RadioButton
+            android:id="@+id/server_yes_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:text="Yes" />
+
+        <RadioButton
+            android:id="@+id/server_no_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:textSize="24sp"
+            android:text="No" />
+    </RadioGroup>
+
+    <!-- Lottie Animation View -->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view2"-->
+<!--        android:layout_width="128dp"-->
+<!--        android:layout_height="128dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:importantForAccessibility="yes"-->
+<!--        android:accessibilityLiveRegion="polite" />-->
+</RelativeLayout>

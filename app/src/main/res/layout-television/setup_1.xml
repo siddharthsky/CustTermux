@@ -1,0 +1,79 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp">
+
+    <!-- Step One Title -->
+    <TextView
+        android:id="@+id/step_one_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Step One"
+        android:background="@color/transparent"
+        android:textSize="60sp"
+
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Device Selection Instructions -->
+    <TextView
+        android:id="@+id/step_one_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_one_title"
+        android:layout_marginTop="16dp"
+        android:background="@color/transparent"
+        android:text="Where do you want to use JioTV?"
+
+        android:textSize="36sp"
+        android:importantForAccessibility="yes"
+        android:accessibilityLiveRegion="polite" />
+
+    <!-- Device Selection Radio Group -->
+    <RadioGroup
+        android:id="@+id/device_selection_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_title2"
+        android:layout_marginTop="32dp">
+
+        <RadioButton
+            android:id="@+id/network_device_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:text="Other device in network (Default mode)"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+
+        <RadioButton
+            android:id="@+id/device_only_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:layout_marginTop="15dp"
+            android:text="This device only (Local access)"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:importantForAccessibility="yes"
+            android:accessibilityLiveRegion="polite" />
+    </RadioGroup>
+
+<!--    &lt;!&ndash; Lottie Animation View &ndash;&gt;-->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view1"-->
+<!--        android:layout_width="128dp"-->
+<!--        android:layout_height="128dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:importantForAccessibility="yes"-->
+<!--        android:accessibilityLiveRegion="polite" />-->
+</RelativeLayout>

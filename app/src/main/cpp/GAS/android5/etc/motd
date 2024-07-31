@@ -1,0 +1,8 @@
+
+Welcome to CustTermux! <apt-android-5>
+
+Subscribing to additional repositories:
+
+ * Root:     pkg install root-repo
+ * X11:      pkg install x11-repo
+ 

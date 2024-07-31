@@ -49,7 +49,8 @@
                 android:text="✨ ReRun"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="ReRun Server+IPTV" />
+                android:tooltipText="ReRun CustTermux" />
+
 
             <Button
                 android:id="@+id/button1_5"
@@ -64,6 +65,18 @@
                 android:tooltipText="Play TV" />
 
             <Button
+                android:id="@+id/button3"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector"
+                android:contentDescription="Magic"
+                android:text="▶️️    IPTV"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Open IPTV" />
+
+            <Button
                 android:id="@+id/button2"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
@@ -76,29 +89,19 @@
                 android:tooltipText="LogIn via OTP" />
 
 
-            <Button
-                android:id="@+id/button3"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/button_background_selector"
-                android:contentDescription="Magic"
-                android:text="🛠️    IPTV"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:tooltipText="Change IPTV" />
 
-            <!--            <Button-->
-            <!--                android:id="@+id/button4"-->
-            <!--                android:layout_width="100dp"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginEnd="8dp"-->
-            <!--                android:backgroundTint="@color/button_background_selector"-->
-            <!--                android:contentDescription="Tool"-->
-            <!--                android:text="⬇️️ Update"-->
-            <!--                android:textColor="@android:color/white"-->
-            <!--                android:textSize="14sp"-->
-            <!--                android:tooltipText="Update JioTV GO" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/button4"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginEnd="8dp"-->
+<!--                android:backgroundTint="@color/button_background_selector"-->
+<!--                android:contentDescription="Tool"-->
+<!--                android:text="️️⬇️      M3U"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:textSize="14sp"-->
+<!--                android:tooltipText="Update JioTV GO" />-->
 
             <!--            <Button-->
             <!--                android:id="@+id/button5"-->
@@ -113,6 +116,18 @@
             <!--                android:tooltipText="Reinstall Server" />-->
 
             <Button
+                android:id="@+id/button8"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector"
+                android:contentDescription="Setup"
+                android:text="⚙️ Setup"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Config CustTermux" />
+
+            <Button
                 android:id="@+id/button6"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
@@ -122,7 +137,7 @@
                 android:text="📜 Extra"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
-                android:tooltipText="Extra options" />
+                android:tooltipText="Extra Utilities" />
 
             <Button
                 android:id="@+id/button7"
@@ -139,7 +154,113 @@
         </LinearLayout>
     </HorizontalScrollView>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="0dp">
 
+        <!-- Server Status -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/server_status_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/text_color_black"
+                android:textColor="@android:color/white"
+                android:text="Status:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/server_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Running"
+                android:textColor="#00C853" />
+        </LinearLayout>
+
+        <!-- IP Address -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/ip_address_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/text_color_black"
+                android:textColor="@android:color/white"
+                android:text="IP Address:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/ip_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="192.168.1.91"
+                android:textColor="#FF6F00" />
+        </LinearLayout>
+
+
+        <!-- Copy Icon -->
+        <!--        <LinearLayout-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="match_parent"-->
+        <!--            android:layout_weight="1"-->
+        <!--            android:orientation="vertical"-->
+        <!--            android:padding="8dp">-->
+
+        <!--            -->
+
+        <!--        </LinearLayout>-->
+
+        <!--        &lt;!&ndash; Android Version &ndash;&gt;-->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/login_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:background="@color/text_color_black"
+                android:text="Login Status:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/login_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Logged In"
+
+                android:textColor="#00C853" />
+
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/ic_download"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_download"
+            android:tooltipText="Download Playlist"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
 
 
 
@@ -164,7 +285,6 @@
             android:layout_height="match_parent">
 
 
-
             <com.termux.view.TerminalView
                 android:id="@+id/terminal_view"
                 android:layout_width="match_parent"
@@ -176,6 +296,7 @@
                 android:importantForAutofill="no"
                 android:autofillHints="password"
                 tools:ignore="UnusedAttribute" />
+
 
 
 
@@ -238,10 +359,8 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <WebView
-                android:id="@+id/webview_tv"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+
+
 
         </androidx.drawerlayout.widget.DrawerLayout>
 

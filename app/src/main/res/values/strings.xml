@@ -17,6 +17,7 @@
     <string name="category_2">Category 2</string>
     <string name="category_3">Category 3</string>
     <string name="category_1_text">Categorys 3</string>
+    <string name="app_icon_description">Categorys 3</string>
 
 
     <string name="application_name">&TERMUX_APP_NAME;</string>
@@ -239,6 +240,7 @@
 
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
+    <string name="app_icon_desc">App icon</string>
 
 
 </resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="#673AB7"/> <!-- Red color when focused -->
+    <item android:color="#C51162"/> <!-- Dark Red color when not focused -->
+    <corners android:radius="8dp"/>
+</selector>

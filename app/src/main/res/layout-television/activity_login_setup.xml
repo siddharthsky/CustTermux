@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="32dp"
+    android:background="@color/transparent">
+
+    <!-- Step One Title -->
+    <TextView
+        android:id="@+id/step_one_titles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Make sure server is running before logging in."
+        android:textSize="15sp"
+        android:textColor="@android:color/white"
+        android:background="@color/text_color_black"
+        android:padding="2dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+
+    <!-- Step One Title -->
+<!--    <TextView-->
+<!--        android:id="@+id/step_one_title"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Login"-->
+<!--        android:textSize="20sp"-->
+<!--        android:layout_marginTop="5dp"-->
+<!--        android:layout_below="@id/step_one_titles"-->
+<!--        android:textColor="@android:color/white"-->
+<!--        android:background="@color/text_color_black"-->
+<!--        android:padding="16dp"-->
+<!--        android:focusable="true"-->
+<!--        android:focusableInTouchMode="true" />-->
+
+    <!-- Phone Number Input Instructions -->
+    <TextView
+        android:id="@+id/step_one_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_titles"
+        android:layout_marginTop="10dp"
+        android:text="Enter your phone number to login"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        android:background="@color/text_color_black"
+        android:padding="5dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- Phone Number Input Field -->
+    <EditText
+        android:id="@+id/input_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_title2"
+        android:layout_marginTop="12dp"
+        android:hint="987654321"
+        android:inputType="phone"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- Send OTP Button -->
+    <Button
+        android:id="@+id/button_send_otp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/input_number"
+        android:layout_marginTop="5dp"
+        android:text="Send OTP"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/button_background_selector"
+        android:textSize="15sp"
+        android:padding="5dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- OTP Input Instructions -->
+    <TextView
+        android:id="@+id/step_one_title2x"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_send_otp"
+        android:layout_marginTop="10dp"
+        android:text="Enter OTP"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        android:background="@color/text_color_black"
+        android:padding="5dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- OTP Input Field -->
+    <EditText
+        android:id="@+id/input_otp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_title2x"
+        android:layout_marginTop="12dp"
+        android:hint="123456"
+        android:inputType="number"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- Verify OTP Button -->
+    <Button
+        android:id="@+id/button_verify_otp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/input_otp"
+        android:layout_marginTop="5dp"
+        android:text="Verify OTP"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/button_background_selector"
+        android:textSize="15sp"
+        android:padding="5dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+</RelativeLayout>

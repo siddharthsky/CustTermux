@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp">
+
+    <!-- Step Two Title -->
+    <TextView
+        android:id="@+id/step_two_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Step Two"
+        android:background="@color/text_color_black"
+        android:textSize="40sp"
+        android:textColor="@android:color/white" />
+
+    <!-- Auto-Open IPTV Instructions -->
+    <TextView
+        android:id="@+id/step_two_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_two_title"
+        android:layout_marginTop="8dp"
+        android:background="@color/text_color_black"
+        android:text="Do you want to auto-open IPTV when you start CustTermux? (AutoStart)"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
+
+    <!-- Auto-Open IPTV Radio Group -->
+    <RadioGroup
+        android:id="@+id/auto_open_iptv_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_two_title2"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/iptv_yes_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="Yes" />
+
+        <RadioButton
+            android:id="@+id/iptv_no_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:text="No" />
+    </RadioGroup>
+
+    <!-- IPTV Name Button -->
+    <Button
+        android:id="@+id/button_iptv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/auto_open_iptv_group"
+        android:backgroundTint="@color/button_background_selector"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="16dp"
+        android:text="Select IPTV Here"
+        android:visibility="gone" />
+
+    <!-- Horizontal LinearLayout to show app icon and app name -->
+    <LinearLayout
+        android:id="@+id/app_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_iptv_name"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/app_icon_description"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/text_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:padding="8dp"
+            android:background="@color/text_color_black" />
+    </LinearLayout>
+
+<!--    &lt;!&ndash; Lottie Animation View &ndash;&gt;-->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view2"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="0dp"-->
+<!--        android:layout_marginEnd="0dp" />-->
+
+</RelativeLayout>

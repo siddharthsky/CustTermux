@@ -11,4 +11,9 @@
     <color name="drawer_background_color">#212121</color>
     <color name="drawer_text_color">#FFFFFF</color>
     <color name="text_color_black">#000000</color>
+    <color name="text_color_white">#FFFFFF</color>
+    <color name="btn_color_white">#FF0000</color>
+    <color name="status_running">#00C853</color>
+    <color name="status_error">#FFA500</color>
+    <color name="status_stopped">#FF0000</color>
 </resources>

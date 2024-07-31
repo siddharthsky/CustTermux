@@ -1,0 +1,65 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp">
+
+    <!-- Step One Title -->
+    <TextView
+        android:id="@+id/step_one_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Step One"
+        android:background="@color/text_color_black"
+        android:textSize="40sp"
+        android:textColor="@android:color/white" />
+
+    <!-- Device Selection Instructions -->
+    <TextView
+        android:id="@+id/step_one_title2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/step_one_title"
+        android:layout_marginTop="8dp"
+        android:background="@color/text_color_black"
+        android:text="Where do you want to use JioTV?"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
+
+    <!-- Device Selection Radio Group -->
+    <RadioGroup
+        android:id="@+id/device_selection_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/step_one_title2"
+        android:layout_marginTop="16dp">
+
+        <RadioButton
+            android:id="@+id/network_device_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Other device in network (Default mode)" />
+
+        <RadioButton
+            android:id="@+id/device_only_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="020sp"
+            android:text="This device only (Local access)" />
+    </RadioGroup>
+
+    <!-- Lottie Animation View -->
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view1"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="0dp"-->
+<!--        android:layout_marginEnd="0dp" />-->
+</RelativeLayout>

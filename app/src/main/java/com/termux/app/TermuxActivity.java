@@ -2,6 +2,7 @@ package com.termux.app;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -10,15 +11,21 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.format.Formatter;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
@@ -28,8 +35,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.autofill.AutofillManager;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -37,9 +42,19 @@ import android.widget.ImageView;
 import android.webkit.WebView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.AppSelectorActivity;
+import com.termux.LoginActivity;
+import com.termux.LoginActivity2;
+import com.termux.LoginStatusChecker;
 import com.termux.R;
+import com.termux.ServerStatusChecker;
+import com.termux.TermuxActivityResume;
+import com.termux.setup.SetupActivity;
+import com.termux.SkySharedPref;
+import com.termux.WebPlayerActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
@@ -74,14 +89,21 @@ import com.termux.view.TerminalViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
-import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A terminal emulator activity.
@@ -223,7 +245,30 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private boolean isWebViewVisible = false;
 
+    private static final int REQUEST_CODE_MANAGE_OVERLAY_PERMISSION = 1;
+    private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
 
+    private ImageView downloadIcon;
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final String DOWNLOAD_URL = "http://localhost:5001/playlist.m3u";
+
+    private TextView ipAddressTextView;
+    private TextView serverStatusTextView;
+    private ServerStatusChecker serverStatusChecker;
+    private LoginStatusChecker loginStatusChecker;
+
+
+    private boolean isCanceled = false;
+
+
+    private Runnable autoDismissRunnable;
+
+    private AlertDialog alertDialog;
+
+    private TermuxActivityResume termuxActivityResume;
+
+    private Runnable stopRunnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -247,6 +292,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        TextView serverStatusTextView = findViewById(R.id.server_status);
+        TextView loginStatusTextView = findViewById(R.id.login_status);
+        serverStatusChecker = new ServerStatusChecker(TermuxActivity.this, serverStatusTextView);
+        loginStatusChecker = new LoginStatusChecker(TermuxActivity.this, loginStatusTextView);
+//        handler = new Handler();
+//
+//        // Define the runnable that will stop the server status checking
+//        stopRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                serverStatusChecker.stopChecking();
+//                loginStatusChecker.stopChecking();
+//            }
+//        };
+
+
+
+        termuxActivityResume = new TermuxActivityResume(this);
+
         Button button1 = findViewById(R.id.button1);
         Button button1_5 = findViewById(R.id.button1_5);
         Button button2 = findViewById(R.id.button2);
@@ -255,6 +319,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        Button button5 = findViewById(R.id.button5);
         Button button6 = findViewById(R.id.button6);
         Button button7 = findViewById(R.id.button7);
+        Button button8 = findViewById(R.id.button8);
+        ImageView downloadIconx = findViewById(R.id.ic_download);
 
         button1.requestFocus();
 
@@ -263,19 +329,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
                     //for (int i = 0; i < 3; i++) {
-                        v.performLongClick();
+                    v.performLongClick();
                     //}
                 }
             }
         };
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
+        button1_5.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
-        button3.setOnFocusChangeListener(tooltipFocusListener);
+        //      button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
 //        button5.setOnFocusChangeListener(tooltipFocusListener);
         button6.setOnFocusChangeListener(tooltipFocusListener);
         button7.setOnFocusChangeListener(tooltipFocusListener);
+        button8.setOnFocusChangeListener(tooltipFocusListener);
+        downloadIconx.setOnFocusChangeListener(tooltipFocusListener);
 
 
         button1.setOnClickListener(new View.OnClickListener() {
@@ -293,7 +362,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //                Intent intent = new Intent(TermuxActivity.this, com.termux.VideoPlayerActivity.class);
 //                startActivity(intent);
 
-                Intent intent = new Intent(TermuxActivity.this, com.termux.WebPlayerActivity.class);
+                Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
                 startActivity(intent);
             }
         });
@@ -301,24 +370,105 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle button2 click
-                sky_login();
+
+                Intent intent = new Intent(TermuxActivity.this, LoginActivity2.class);
+                startActivity(intent);
             }
         });
 
+
+//        button2.setOnClickListener(new View.OnClickListener() {
+//
+//
+//            Intent intent = new Intent(TermuxActivity.this, LoginActivity.class);
+//            startActivity(intent);
+//
+////            @SuppressLint("SetJavaScriptEnabled")
+////            @Override
+////            public void onClick(View v) {
+////                if (isWebViewVisible) {
+////                    webView.setVisibility(View.GONE);
+////                } else {
+////                    webView.setVisibility(View.VISIBLE);
+////                    webView.setWebChromeClient(new WebChromeClient());
+////
+////                    WebSettings webSettings = webView.getSettings();
+////                    webSettings.setJavaScriptEnabled(true);
+////
+////                    webView.loadUrl("http://localhost:5001");
+////
+////                    // Add a WebViewClient to execute JavaScript once the page is loaded
+////                    webView.setWebViewClient(new WebViewClient() {
+////                        @Override
+////                        @Override
+//public void onPageFinished(WebView view, String url) {
+//    // Inject JavaScript to modify innerHTML and open/center the modal
+//    view.evaluateJavascript(
+//        "document.body.innerHTML = '<div id=\"login_modal\">' + document.getElementById('login_modal').outerHTML + '</div>';" +
+//        "document.body.style.overflow = 'hidden'; " + // Prevent scrolling
+//        "var modal = document.getElementById('login_modal'); " +
+//        "if (modal) { " +
+//        "  modal.style.display = 'block'; " + // Ensure the modal is displayed
+//        "  modal.style.position = 'fixed'; " + // Fix position relative to the viewport
+//        "  modal.style.top = '50%'; " + // Center vertically
+//        "  modal.style.left = '50%'; " + // Center horizontally
+//        "  modal.style.transform = 'translate(-50%, -50%)'; " + // Offset for exact centering
+//        "  modal.style.zIndex = '10000'; " + // Ensure it’s on top of other content
+//        "}",
+//        null
+//    );
+//}
+////                }
+////                isWebViewVisible = !isWebViewVisible;
+////        }
+//        });
+
+
+//
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Handle button3 click
-                sky_iptv();
+                SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                String apppkg = preferenceManager.getKey("app_name");
+                String appclass = preferenceManager.getKey("app_launchactivity");
+
+                if (apppkg != null && !apppkg.isEmpty()) {
+                    if (apppkg.equals("null")) {
+                        Toast.makeText(TermuxActivity.this, "IPTV is not set up. Please setup.", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+                        startActivity(intent);
+                    } else if (apppkg.equals("sky_web_tv")) {
+                        Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent();
+                        intent.setComponent(new ComponentName(apppkg, appclass));
+                        startActivity(intent);
+                    }
+                }
             }
         });
+
+        button3.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+                startActivity(intent);
+                return true;
+            }
+        });
+
 
 //        button4.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
 //                // Handle button4 click
-//                sky_update();
+//                if (checkPermission()) {
+//                    downloadFile(DOWNLOAD_URL);
+//                } else {
+//                    requestPermission();
+//                }
 //            }
 //        });
 
@@ -350,7 +500,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Reinstall","Run Code","Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -377,10 +527,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                                 sky_reinstall();
                                 break;
                             case 2:
-                                // Option 3 selected
-                                sky_runcode();
-                                break;
-                            case 3:
                                 // Option 4 selected
                                 lake_alert_confirmation(v.getContext());
                                 break;
@@ -409,44 +555,102 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle button5 click -
-
+                // Handle button7 click -
                 sky_exit();
+
+//                Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+//                startActivity(intent);
+
+
+//                Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+//                startActivity(intent);
+            }
+        });
+
+        button8.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sky_config();
             }
         });
 
 
-
         imageView = findViewById(R.id.imageView);
-        webView = findViewById(R.id.webview_tv);
+        //webView = findViewById(R.id.webview_tv);
 
-        webView.setVisibility(View.GONE); // Initially hide the WebView
+        //webView.setVisibility(View.GONE); // Initially hide the WebView
         imageView.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SetJavaScriptEnabled")
             @Override
             public void onClick(View v) {
-                if (isWebViewVisible) {
-                    webView.setVisibility(View.GONE);
-                } else {
-                    webView.setVisibility(View.VISIBLE);
-                    webView.setWebChromeClient(new WebChromeClient());
+//                if (isWebViewVisible) {
+//                    webView.setVisibility(View.GONE);
+//                } else {
+//                    webView.setVisibility(View.VISIBLE);
+//                    webView.setWebChromeClient(new WebChromeClient());
+//
+//                    WebSettings webSettings = webView.getSettings();
+//                    webSettings.setJavaScriptEnabled(true);
+//                    webView.loadUrl("http://localhost:5001");
+//                }
+//                isWebViewVisible = !isWebViewVisible;
 
-                    WebSettings webSettings = webView.getSettings();
-                    webSettings.setJavaScriptEnabled(true);
-                    webView.loadUrl("http://localhost:5001");
-                }
-                isWebViewVisible = !isWebViewVisible;
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
+                startActivity(browserIntent);
+            }
+        });
 
-//                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
-//                startActivity(browserIntent);
+        // Check and request MANAGE_OVERLAY_PERMISSION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                overapp_confirmation(this);
+
+            } else {
+                // Permission already granted, proceed with the app logic
+                proceedWithAppLogic();
+            }
+        }
+
+
+        ipAddressTextView = findViewById(R.id.ip_address);
+//        TextView serverStatusTextView = findViewById(R.id.server_status);
+//        TextView loginStatusTextView = findViewById(R.id.login_status);
+
+        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+        String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
+
+        if (Objects.equals(isLOCAL, "Yes")) {
+            Log.d("d", "Server is Local!");
+            ipAddressTextView.setText("localhost");
+        } else {
+            // Get and display Wi-Fi IP address
+            String wifiIpAddress = getWifiIpAddress(this);
+            ipAddressTextView.setText(wifiIpAddress);
+        }
+
+
+//        // Start checking server status
+//        ServerStatusChecker serverStatusChecker = new ServerStatusChecker(this, serverStatusTextView);
+//        serverStatusChecker.startChecking();
+//
+//
+//        // Start checking login status
+//        loginStatusChecker = new LoginStatusChecker(this, loginStatusTextView);
+//        loginStatusChecker.startChecking();
+
+
+        ipAddressTextView = findViewById(R.id.ip_address);
+        downloadIcon = findViewById(R.id.ic_download);
+
+        downloadIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onDownloadButtonClick();
             }
         });
 
 
-
-
-
-
+        preferenceManager.setKey("isExit", "noExit");
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -500,7 +704,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             if (!bindService(serviceIntent, this, 0))
                 throw new RuntimeException("bindService() failed");
         } catch (Exception e) {
-            Logger.logStackTraceWithMessage(LOG_TAG,"TermuxActivity failed to start TermuxService", e);
+            Logger.logStackTraceWithMessage(LOG_TAG, "TermuxActivity failed to start TermuxService", e);
             Logger.showToast(this,
                 getString(e.getMessage() != null && e.getMessage().contains("app is in background") ?
                     R.string.error_termux_service_start_failed_bg : R.string.error_termux_service_start_failed_general),
@@ -513,6 +717,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
+
+
+
+    private void sky_config() {
+        Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+        startActivity(intent);
+    }
+
+
+    private void proceedWithAppLogic() {
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void requestOverlayPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, REQUEST_CODE_MANAGE_OVERLAY_PERMISSION);
+    }
+
+//////////////////////////////////////////////////////////////
 
 
 
@@ -530,6 +754,39 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
                 sky_terminal();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+    }
+
+    private void overapp_confirmation(Context context) {
+        // Create an AlertDialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+
+        // Set the message and the title
+        builder.setMessage("Draw over other apps permission required. To run server in background.")
+            .setTitle("Permission Required");
+
+        // Add the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestOverlayPermission();
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -599,27 +856,33 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     //////////////////////////////////////////////////////////////////////////////////////
 
-    public void wait_() {
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                //EMPTY
-            }
-        };
-        handler.postDelayed(runnable, 100);
+
+
+    private void handleOverlayPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(this);
+        }
     }
 
-    public void wait_special() {
-        handler = new Handler();
-        runnable = new Runnable() {
+    private void handleInstallPackagesPermissionResult() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkSelfPermission("android.permission.INSTALL_PACKAGES");
+
+        }
+    }
+
+
+    public void wait_() {
+        Handler handler1 = new Handler();
+        Runnable runnable1 = new Runnable() {
             @Override
             public void run() {
                 //EMPTY
             }
         };
-        handler.postDelayed(runnable, 1000);
+        handler1.postDelayed(runnable1, 100);
     }
+
 
 
     private void XpkillIntent() {
@@ -656,7 +919,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         termuxServiceStopIntent.setClassName("com.termux", "com.termux.app.TermuxService");
         termuxServiceStopIntent.setAction("com.termux.service_stop");
         startService(termuxServiceStopIntent);
-        wait_();
+        //wait_();
     }
 
     private void XStartTermux() {
@@ -665,7 +928,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         termuxServiceStartIntent.setClassName("com.termux", "com.termux.app.TermuxService");
         termuxServiceStartIntent.setAction("com.termux.service_execute");
         startService(termuxServiceStartIntent);
-        wait_();
+        //wait_();
     }
 
     private void XStartTermuxAct() {
@@ -717,32 +980,102 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
-    public void wait_X() {
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                //EMPTY
-            }
-        };
-        handler.postDelayed(runnable, 2000);
-    }
+
+
+//    private void sky_rerun() {
+//        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+//        XpkillIntent();
+//        XpkillIntentbg();
+//        //XStopTermux();
+//
+//        //XStartTermuxAct();
+//
+//        wait_X();
+//
+//        //XStartEMPTY();
+//        //XStartIPTV();
+//        XStartTermux();
+//        //launchTermux();
+//
+//        // Increment the rerun count
+//        rerunCount++;
+//
+//        // Check if the rerun count has reached the maximum limit
+//        if (rerunCount >= MAX_RERUN_COUNT) {
+//            LMN();
+//            // Reset the rerun count if you want to allow rerunning again after LMN() is called
+//            rerunCount = 0;
+//        }
+//    }
+
+    private int rerunCountx = 0; // Class-level variable to track the rerun count
+    private static final int MAX_RERUN_COUNTx = 3; // Maximum number of times to rerun
+
     private void sky_rerun() {
         Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
-        XpkillIntent();
-        XpkillIntentbg();
-        //XStopTermux();
-
-        //XStartTermuxAct();
-
-        wait_X();
-
-        //XStartEMPTY();
-        //XStartIPTV();
         XStartTermux();
-        //launchTermux();
+        // Increment the rerun count
+        rerunCountx++;
 
+        // Check if the rerun count has reached the maximum limit
+        if (rerunCountx >= MAX_RERUN_COUNTx) {
+            LMN();
+            rerunCountx = 0;
+        }
     }
+
+    private void LMN() {
+        // Your logic for function LMN()
+        Toast.makeText(this, "Restarting after 5 reruns", Toast.LENGTH_SHORT).show();
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent != null) {
+            // Finish current activity
+            finish();
+            Log.d("d", "out of the app");
+            // Restart the app
+            startActivity(intent);
+
+            // Exit the app
+            System.exit(0);
+        }
+    }
+
+//    private void sky_rerun() {
+//        Toast.makeText(TermuxActivity.this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+//
+//        waitSpecial(2000);
+//
+//        // Create an intent to restart the app
+//        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+//        if (intent != null) {
+//            // Finish current activity
+//            finish();
+//            Log.d("d","out of the app");
+//            // Restart the app
+//            startActivity(intent);
+//
+//            // Exit the app
+//            System.exit(0);
+//        }
+//
+//    }
+
+//    private void sky_rerun() {
+//        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+//        XpkillIntent();
+//        XpkillIntentbg();
+//        //XStopTermux();
+//
+//        //XStartTermuxAct();
+//
+//        wait_X();
+//
+//        //XStartEMPTY();
+//        //XStartIPTV();
+//        XStartTermux();
+//        //launchTermux();
+//
+//    }
 //    private void sky_login() {
 //        Intent intentC = new Intent();
 //        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -844,8 +1177,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         startService(intentC);
 
-        wait_special();
-
         sky_otp();
     }
 
@@ -913,11 +1244,47 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void sky_exit() {
-        //loginchecker();
+        // Finish current activity
+        finish();
+
+        // Exit the process
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(0);
+
+        // Official killer
         XStopTermux();
     }
 
+    private void sky_getter(){
+        Intent intent = new Intent();
+        intent.setAction("com.termux.GetReceiver");
+        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
+        intent.putExtra("key", "exampleKey");
+        startActivity(intent);
 
+        // Register a receiver to get the response
+        BroadcastReceiver responseReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String key = intent.getStringExtra("key");
+                String value = intent.getStringExtra("value");
+                // Use the key and value as needed
+                Toast.makeText(TermuxActivity.this, "Server not available."+key+"---"+value, Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        IntentFilter filter = new IntentFilter("com.termux.GetResponse");
+        registerReceiver(responseReceiver, filter);
+    }
+
+    private void sky_saver(){
+        Intent intent = new Intent();
+        intent.setAction("com.termux.SaveReceiver");
+        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
+        intent.putExtra("key", "exampleKey");
+        intent.putExtra("value", "exampleValue2");
+        startActivity(intent);
+    }
 
 
     private void sky_terminal() {
@@ -927,63 +1294,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         terminalView.setFocusableInTouchMode(true);
         terminalView.setFocusable(true);
     }
-
-    public void loginchecker() {
-        // URL to check
-        String url = "http://localhost:5001/live/144.m3u8";
-
-        // Execute AsyncTask to check status code
-        new CheckStatusTask().execute(url);
-    }
-
-    private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
-
-        @Override
-        protected Integer doInBackground(String... urls) {
-            String urlString = urls[0];
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-                return connection.getResponseCode();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Integer responseCode) {
-            if (responseCode != null) {
-                // Handle the response code
-                switch (responseCode) {
-                    case HttpURLConnection.HTTP_OK:
-                        System.out.println("The webpage is accessible.");
-                        break;
-                    case HttpURLConnection.HTTP_NOT_FOUND:
-                        System.out.println("The webpage was not found.");
-                        break;
-                    default:
-                        System.out.println("Response code: " + responseCode);
-                        break;
-                }
-            } else {
-                System.out.println("Error occurred while checking status code.");
-            }
-        }
-    }
-
-
-
-
-
-
 
 
 
@@ -995,6 +1305,95 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         startActivity(intent);
     }
 
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this, "Storage permission is required. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    private void downloadFile(String fileUrl, String extraString) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(fileUrl);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+
+                    InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+
+                    // Define the file name with the extra string
+                    String fileName = "playlist";
+                    if (extraString != null && !extraString.isEmpty()) {
+                        fileName += "_" + extraString;
+                    }
+                    fileName += ".m3u";
+
+
+                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+                    FileOutputStream outputStream = new FileOutputStream(file);
+
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = inputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, length);
+                    }
+
+                    outputStream.close();
+                    inputStream.close();
+
+                    // Update UI on the main thread
+                    String finalFileName = fileName;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(TermuxActivity.this, "Playlist downloaded to Downloads folder as " + finalFileName, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Update UI on the main thread
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(TermuxActivity.this, "Download failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    public void onDownloadButtonClick() {
+        if (checkPermission()) {
+            SkySharedPref preferenceManager = new SkySharedPref(this);
+            String isLocal = preferenceManager.getKey("server_setup_isLocal");
+
+            if (isLocal != null && !isLocal.isEmpty()) {
+                if (isLocal.equals("Yes")) {
+                    downloadFile(DOWNLOAD_URL, "local");
+                } else {
+                    String wifiIpAddress = getWifiIpAddress();
+                    String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
+                    downloadFile(downloadUrl, wifiIpAddress);
+                }
+            } else {
+                String wifiIpAddress = getWifiIpAddress();
+                String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
+                downloadFile(downloadUrl, wifiIpAddress);
+            }
+        } else {
+            requestPermission();
+        }
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -1006,8 +1405,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onStart() {
         super.onStart();
 
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
+
+        if (serverSetupDone != null && serverSetupDone.equals("Done")) {
+            //sky_exit();
+        } else {
+            //Toast.makeText(TermuxActivity.this, "CustTermux", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+            startActivity(intent);
+
+        }
+
+
+
         Logger.logDebug(LOG_TAG, "onStart");
 
+        //System.out.println("Error occurred while checking status code.");
         if (mIsInvalidState) return;
 
         mIsVisible = true;
@@ -1021,8 +1435,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mPreferences.isTerminalMarginAdjustmentEnabled())
             addTermuxActivityRootViewGlobalLayoutListener();
 
+
+
         registerTermuxActivityBroadcastReceiver();
     }
+
+
+
+
+    public void onPause() {
+        super.onPause();
+        termuxActivityResume.onPause();
+
+        serverStatusChecker.stopChecking();
+        loginStatusChecker.stopChecking();
+    }
+
+
+
+    private int openIptvCount = 0;
+    private final int maxOpenIptvCalls = 10;
 
     @Override
     public void onResume() {
@@ -1043,7 +1475,65 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
+
+        Button button1 = findViewById(R.id.button1);
+        button1.requestFocus();
+
+        termuxActivityResume.onResume();
+
+        serverStatusChecker.startChecking();
+        loginStatusChecker.startChecking();
+        // Stop checking after 30 seconds
+        //handler.postDelayed(stopRunnable, 30000);
     }
+
+//    public void waitAndExecute(final int delayMillis) {
+//        Handler handlerz = new Handler();
+//        runnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                if (openIptvCount < maxOpenIptvCalls) {
+//                    String url = "http://localhost:5001/live/144.m3u8";
+//                    new TermuxActivityHelper(TermuxActivity.this, openIptvCount, maxOpenIptvCalls, alertDialog).execute(url);
+//                }
+//            }
+//        };
+//        handlerz.postDelayed(runnable, delayMillis);
+//    }
+
+
+
+
+
+
+
+    public String getWifiIpAddress(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int ipAddress = wifiInfo.getIpAddress();
+        return Formatter.formatIpAddress(ipAddress);
+    }
+
+    public String getWifiIpAddress() {
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager == null) {
+            return "Wi-Fi Manager is null";
+        }
+
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo == null) {
+            return "Wi-Fi Info is null";
+        }
+
+        int ipAddress = wifiInfo.getIpAddress();
+        return Formatter.formatIpAddress(ipAddress);
+    }
+
+
+
+
+
+
 
     @Override
     protected void onStop() {
@@ -1070,6 +1560,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (handler != null && autoDismissRunnable != null) {
+            handler.removeCallbacks(autoDismissRunnable);
+        }
+        openIptvCount = 0;
+
+        if (serverStatusChecker != null) {
+            serverStatusChecker.stopChecking();
+        }
 
         Logger.logDebug(LOG_TAG, "onDestroy");
 
@@ -1510,7 +2008,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
                 // If permission is granted, then also setup storage symlinks.
                 if(PermissionUtils.checkAndRequestLegacyOrManageExternalStoragePermission(
-                    TermuxActivity.this, requestCode, !isPermissionCallback)) {
+                    TermuxActivity.this, requestCode, true, !isPermissionCallback)) {
                     if (isPermissionCallback)
                         Logger.logInfoAndShowToast(TermuxActivity.this, LOG_TAG,
                             getString(com.termux.shared.R.string.msg_storage_permission_granted_on_request));
@@ -1529,9 +2027,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Logger.logVerbose(LOG_TAG, "onActivityResult: requestCode: " + requestCode + ", resultCode: "  + resultCode + ", data: "  + IntentUtils.getIntentString(data));
-        if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
+        //if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
+        //    requestStoragePermission(true);
+        //}
+        //handleOverlayPermissionResult(requestCode);
+        //super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_MANAGE_OVERLAY_PERMISSION) {
+            handleOverlayPermissionResult();
+        } else if (requestCode == REQUEST_CODE_INSTALL_PACKAGES_PERMISSION) {
+            handleInstallPackagesPermissionResult();}
+        else if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
+
+
     }
 
     @Override
@@ -1541,7 +2051,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                onDownloadButtonClick();
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
 
 
 

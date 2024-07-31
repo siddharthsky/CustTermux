@@ -63,17 +63,19 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
     @NonNull
     @Override
     public HashMap<String, String> getEnvironment(@NonNull Context currentPackageContext, boolean isFailSafe) {
-
+        
         // Termux environment builds upon the Android environment
         HashMap<String, String> environment = super.getEnvironment(currentPackageContext, isFailSafe);
 
         HashMap<String, String> termuxAppEnvironment = TermuxAppShellEnvironment.getEnvironment(currentPackageContext);
         if (termuxAppEnvironment != null)
             environment.putAll(termuxAppEnvironment);
-
+        /*
         HashMap<String, String> termuxApiAppEnvironment = TermuxAPIShellEnvironment.getEnvironment(currentPackageContext);
         if (termuxApiAppEnvironment != null)
             environment.putAll(termuxApiAppEnvironment);
+
+         */
 
         environment.put(ENV_HOME, TermuxConstants.TERMUX_HOME_DIR_PATH);
         environment.put(ENV_PREFIX, TermuxConstants.TERMUX_PREFIX_DIR_PATH);
