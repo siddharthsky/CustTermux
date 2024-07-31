@@ -4,8 +4,9 @@
     package="com.termux"
     android:installLocation="internalOnly"
     android:sharedUserId="${TERMUX_PACKAGE_NAME}"
-    android:sharedUserLabel="@string/shared_user_label"
-    tools:ignore="LeanbackUsesWifi">
+    android:sharedUserLabel="@string/shared_user_label">
+    <!-- android:sharedUserLabel="@string/shared_user_label"
+    tools:ignore="LeanbackUsesWifi"> -->
 
 <!--    android:hardwareAccelerated="true"-->
 
