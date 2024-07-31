@@ -158,8 +158,7 @@ public class SkyActionActivity extends AppCompatActivity {
                 System.out.println("IPTV, null!");
             } else if (iptvChecker.equals("sky_web_tv")) {
                 System.out.println("IPTV, webTV!");
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(iptvChecker, appclass));
+                Intent intent = new Intent(SkyActionActivity.this, WebPlayerActivity.class);
                 startActivity(intent);
             } else {
                 System.out.println("IPTV, found!");
@@ -315,8 +314,8 @@ public class SkyActionActivity extends AppCompatActivity {
                 switch (responseCode) {
                     case HttpURLConnection.HTTP_OK:
                         System.out.println("SkyActivity: The webpage is accessible.");
-                        iptvrunner2();
-                        //runner2x();
+                        //iptvrunner2();
+                        runner2x();
 
                         break;
                     case HttpURLConnection.HTTP_NOT_FOUND:

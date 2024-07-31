@@ -18,6 +18,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.termux.R;
 import com.termux.SkySharedPref;
+import com.termux.Utils;
 
 public class SetupActivity extends AppCompatActivity {
 
@@ -72,7 +73,8 @@ public class SetupActivity extends AppCompatActivity {
                 viewPager.setCurrentItem(currentItem + 1);
             } else {
                 // Handle completion or final step
-                Toast.makeText(SetupActivity.this, "Finished setup", Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(SetupActivity.this, "Finished setup");
+                //Toast.makeText(SetupActivity.this, "Finished setup", Toast.LENGTH_SHORT).show();
                 SkySharedPref preferenceManager = new SkySharedPref(this);
                 preferenceManager.setKey("isServerSetupDone", "Done");
 

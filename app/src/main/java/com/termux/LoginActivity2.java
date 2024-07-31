@@ -12,6 +12,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.termux.setup.SetupActivity;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -44,7 +46,8 @@ public class LoginActivity2 extends AppCompatActivity {
             if (!phoneNumber.isEmpty()) {
                 new SendOtpTask().execute(phoneNumber);
             } else {
-                Toast.makeText(LoginActivity2.this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(LoginActivity2.this, "Please enter a phone number");
+                //Toast.makeText(LoginActivity2.this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -54,7 +57,8 @@ public class LoginActivity2 extends AppCompatActivity {
             if (!otp.isEmpty() && !phoneNumber.isEmpty()) {
                 new VerifyOtpTask().execute(phoneNumber, otp);
             } else {
-                Toast.makeText(LoginActivity2.this, "Please enter phone number and OTP", Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(LoginActivity2.this, "Please enter phone number and OTP");
+                //Toast.makeText(LoginActivity2.this, "Please enter phone number and OTP", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -94,9 +98,11 @@ public class LoginActivity2 extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             if (result != null) {
-                Toast.makeText(LoginActivity2.this, "OTP Sent: " + result, Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(LoginActivity2.this, "OTP Sent: " + result);
+                //Toast.makeText(LoginActivity2.this, "OTP Sent: " + result, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(LoginActivity2.this, "Failed to send OTP", Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(LoginActivity2.this, "Failed to send OTP");
+                //Toast.makeText(LoginActivity2.this, "Failed to send OTP", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -141,15 +147,19 @@ public class LoginActivity2 extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(result);
                     String status = jsonObject.optString("status");
                     if ("success".equals(status)) {
-                        Toast.makeText(LoginActivity2.this, "OTP Verified Successfully", Toast.LENGTH_SHORT).show();
+                        Utils.showCustomToast(LoginActivity2.this, "OTP Verified Successfully");
+                        //Toast.makeText(LoginActivity2.this, "OTP Verified Successfully", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
+                        Utils.showCustomToast(LoginActivity2.this, "Failed to verify OTP");
+                        //Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
-                    Toast.makeText(LoginActivity2.this, "Error parsing response", Toast.LENGTH_SHORT).show();
+                    Utils.showCustomToast(LoginActivity2.this, "Error parsing response");
+                    //Toast.makeText(LoginActivity2.this, "Error parsing response", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
+                Utils.showCustomToast(LoginActivity2.this, "Failed to verify OTP");
+                //Toast.makeText(LoginActivity2.this, "Failed to verify OTP", Toast.LENGTH_SHORT).show();
             }
             finish();
         }
