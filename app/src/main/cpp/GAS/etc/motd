@@ -1,8 +1,0 @@
-
-Welcome to CustTermux!
-
-Subscribing to additional repositories:
-
- * Root:     pkg install root-repo
- * X11:      pkg install x11-repo
- 
