@@ -23,6 +23,7 @@ public class SkySharedPrefActivity extends Activity {
 
                 if (key != null && value != null) {
                     skySharedPref.setKey(key, value);
+                    System.out.println("Saved key: " + key + ", value: " + value);
                     Log.d("SkySharedPrefActivity", "Saved key: " + key + ", value: " + value);
                 }
             } else if ("com.termux.GetReceiver".equals(action)) {
@@ -40,12 +41,11 @@ public class SkySharedPrefActivity extends Activity {
                     responseIntent.putExtra("key", key);
                     responseIntent.putExtra("value", value);
                     sendBroadcast(responseIntent);
-
+                    System.out.println("Retrieved key: " + key + ", value: " + value);
                     Log.d("SkySharedPrefActivity", "Retrieved key: " + key + ", value: " + value);
                 }
             }
         }
-
         // Finish the activity after processing the intent
         finish();
     }
