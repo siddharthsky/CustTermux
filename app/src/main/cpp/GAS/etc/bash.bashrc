@@ -23,6 +23,9 @@ if [ -x /data/data/com.termux/files/usr/libexec/termux/command-not-found ]; then
 	}
 fi
 
+[ -r /data/data/com.termux/files/usr/share/bash-completion/bash_completion ] && . /data/data/com.termux/files/usr/share/bash-completion/bash_completion
+
+
 
 #######################################################
 echo "---------------------------"

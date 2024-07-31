@@ -65,9 +65,9 @@ public class TermuxAppShellEnvironment {
     /** Environment variable for the Termux app process selinux context. */
     public static final String ENV_TERMUX__SE_PROCESS_CONTEXT = TERMUX_ENV__S_TERMUX + "SE_PROCESS_CONTEXT";
     /** Environment variable for the Termux app data files selinux context. */
-    public static final String ENV_TERMUX_APP__SE_FILE_CONTEXT = TERMUX_APP_ENV_PREFIX + "SE_FILE_CONTEXT";
+    public static final String ENV_TERMUX__SE_FILE_CONTEXT  = TERMUX_APP_ENV_PREFIX + "SE_FILE_CONTEXT";
     /** Environment variable for the Termux app seInfo tag found in selinux policy used to set app process and app data files selinux context. */
-    public static final String ENV_TERMUX__SE_FILE_CONTEXT = TERMUX_ENV__S_TERMUX + "SE_FILE_CONTEXT";
+    public static final String ENV_TERMUX__SE_INFO = TERMUX_ENV__S_TERMUX + "SE_INFO";
     /** Environment variable for the Termux app user id. */
     public static final String ENV_TERMUX__USER_ID = TERMUX_ENV__S_TERMUX + "USER_ID";
     /** Environment variable for the Termux app profile owner. */
