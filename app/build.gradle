@@ -9,7 +9,7 @@ ext {
     // Bootstrap of a different variant must not be manually installed by the user after app installation
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
-    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-5" // Default: "apt-android-7"
+    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
 }
 
 android {
@@ -147,6 +147,7 @@ android {
 
 dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"

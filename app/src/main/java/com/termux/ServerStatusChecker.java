@@ -60,6 +60,10 @@ public class ServerStatusChecker {
     private void updateStatus(final String status) {
         serverStatusTextView.post(() -> {
             serverStatusTextView.setText(status);
+
+            SkySharedPref preferenceManager = new SkySharedPref(context);
+            preferenceManager.setKey("isServerRunning", status);
+
             int color;
             if ("Running".equals(status)) {
                 color = ContextCompat.getColor(context, R.color.status_running);

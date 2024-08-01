@@ -50,6 +50,13 @@
 
     </style>
 
+    <style name="AppThemex3" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="android:windowNoTitle">true</item>
+
+    </style>
+
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here -->
         <item name="android:windowBackground">@color/black</item>
@@ -60,6 +67,25 @@
         <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="android:background">@android:color/black</item>
         <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+    <!-- Custom AlertDialog style -->
+    <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:background">#000000</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:buttonBarButtonStyle">@style/CustomAlertDialogButtonx</item>
+    </style>
+
+    <!-- Custom button style for AlertDialog -->
+    <style name="CustomAlertDialogButtonx" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <!-- Custom focused button style -->
+    <style name="CustomAlertDialogButtonFocused" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">#00FF00</item> <!-- Green text for focus -->
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
 

@@ -1,7 +1,5 @@
 package com.termux.app.api.file;
 
-import com.termux.app.api.file.FileReceiverActivity;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

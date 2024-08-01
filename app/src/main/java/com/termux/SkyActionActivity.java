@@ -7,18 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.InputFilter;
-import android.text.InputType;
 import android.util.Log;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.termux.app.TermuxActivity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -271,20 +265,48 @@ public class SkyActionActivity extends AppCompatActivity {
 
     public void loginstatus2() {
 
-        // URL to check
         String url = "http://localhost:5001/live/144.m3u8";
-        // Execute AsyncTask to check status code
-        new SkyActionActivity.CheckStatusTask().execute(url);
 
+        SkySharedPref preferenceManager = new SkySharedPref(SkyActionActivity.this);
+        String loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
 
+        if (loginChecker != null && !loginChecker.isEmpty()) {
+            if (loginChecker.equals("No")) {
+                System.out.println("loginChecker off");
+                runner2x();
+            } else {
+                System.out.println("loginChecker on");
+                new SkyActionActivity.CheckStatusTask().execute(url);
+            }
+        } else {
+            System.out.println("loginChecker Null");
+            new SkyActionActivity.CheckStatusTask().execute(url);
+
+        }
     }
 
 
     public class CheckStatusTask extends AsyncTask<String, Void, Integer> {
 
+        private static final int RETRY_DELAY = 3000; // 3 seconds delay for retrying
+
         @Override
         protected Integer doInBackground(String... urls) {
             String urlString = urls[0];
+            Integer responseCode = checkStatus(urlString);
+            if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
+                // Retry after a delay
+                try {
+                    Thread.sleep(RETRY_DELAY); // Wait before retrying
+                    responseCode = checkStatus(urlString); // Retry the check
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return responseCode;
+        }
+
+        private Integer checkStatus(String urlString) {
             HttpURLConnection connection = null;
             try {
                 URL url = new URL(urlString);
@@ -304,30 +326,23 @@ public class SkyActionActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Integer responseCode) {
-            // Check if the activity is still valid before showing the dialog
-//            if (SkyActionActivity.this.isFinishing() || SkyActionActivity.this.isDestroyed()) {
-//                return;
-//            }
-
             if (responseCode != null) {
-                // Handle the response code
                 switch (responseCode) {
                     case HttpURLConnection.HTTP_OK:
                         System.out.println("SkyActivity: The webpage is accessible.");
-                        //iptvrunner2();
                         runner2x();
-
                         break;
                     case HttpURLConnection.HTTP_NOT_FOUND:
                         System.out.println("SkyActivity: The webpage was not found.");
                         Toast.makeText(SkyActionActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
                         break;
+                    case HttpURLConnection.HTTP_INTERNAL_ERROR:
+                        System.out.println("SkyActivity: Internal server error after retry.");
+                        Intent intent = new Intent(SkyActionActivity.this, LoginErrorActivity.class);
+                        startActivity(intent);
+                        break;
                     default:
                         System.out.println("SkyActivity: Response code: " + responseCode);
-                        if (responseCode == 500) {
-                            Intent intent = new Intent(SkyActionActivity.this, LoginErrorActivity.class);
-                            startActivity(intent);
-                        }
                         break;
                 }
             } else {
@@ -335,6 +350,7 @@ public class SkyActionActivity extends AppCompatActivity {
                 Toast.makeText(SkyActionActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
             }
         }
+
 
         private void showAlert() {
             new AlertDialog.Builder(SkyActionActivity.this)
@@ -389,8 +405,6 @@ public class SkyActionActivity extends AppCompatActivity {
         }
 
 
-
-
         public void wait_special() {
             handler = new Handler();
             runnable = new Runnable() {
@@ -403,7 +417,5 @@ public class SkyActionActivity extends AppCompatActivity {
         }
 
 
-
     }
 }
-

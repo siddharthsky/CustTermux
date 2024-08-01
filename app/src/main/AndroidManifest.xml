@@ -63,6 +63,49 @@
         tools:targetApi="m"
         android:networkSecurityConfig="@xml/network_security_config">
 
+
+        <activity
+            android:name=".KickStart"
+            android:configChanges="orientation|screenSize|smallestScreenSize|density|screenLayout|keyboard|keyboardHidden|navigation"
+            android:exported="true"
+            android:label="@string/application_name"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.TermuxActivity.DayNight.NoActionBar"
+            tools:targetApi="n">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+
+        <activity-alias
+            android:name=".KickStartAlias"
+            android:enabled="false"
+            android:targetActivity=".KickStart"
+            android:icon="@mipmap/ic_launcher_alias2"
+            android:roundIcon="@mipmap/ic_launcher_alias2_round"
+            android:banner="@mipmap/ic_banner_alias">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+
+
         <activity
             android:name=".app.TermuxActivity"
             android:exported="true"
@@ -74,19 +117,19 @@
             tools:targetApi="n">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+<!--                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />-->
             </intent-filter>
 
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+
+
 
         <activity-alias
             android:name=".HomeActivity"
@@ -101,6 +144,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>
+
+
 
         <activity
             android:name=".app.activities.HelpActivity"
@@ -161,7 +206,6 @@
             </intent-filter>
         </activity>
 
-
         <activity
             android:name=".SkySharedPrefActivity"
             android:theme="@style/AppTheme.Transparent"
@@ -178,13 +222,10 @@
 
         <activity android:name=".VideoPlayerActivity"
             android:exported="true"/>
-<!--        android:screenOrientation="landscape"-->
-<!--        android:theme="@style/AppThemex"/>-->
 
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
             android:exported="true">
-<!--            android:screenOrientation="landscape" >-->
             <intent-filter>
                 <action android:name="com.temux.URLPLAYER" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -193,6 +234,12 @@
         </activity>
 
         <activity android:name=".AppSelectorActivity" />
+
+        <activity
+            android:name=".setup_app.SetupActivityApp"
+            android:theme="@style/AppThemex3"
+            android:exported="true">
+        </activity>
 
         <activity
             android:name=".setup.SetupActivity"
@@ -204,7 +251,6 @@
             android:theme="@style/AppTheme.Transparent"
             android:exported="true">
         </activity>
-<!--        <activity android:name=".LoginActivity" />-->
 
         <activity android:name=".LoginActivity"
             android:exported="true">
@@ -213,19 +259,17 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BootReceiver">
+        <receiver android:name=".BootReceiver"
+            android:exported="true">
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
 
-        <activity android:name=".LoginActivity2" />
-
-
-
-
-
-
+        <activity
+            android:name=".LoginActivity2"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
 
         <activity-alias
             android:name=".app.api.file.FileShareReceiverActivity"
