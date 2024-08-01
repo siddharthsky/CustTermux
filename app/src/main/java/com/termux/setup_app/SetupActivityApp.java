@@ -1,6 +1,8 @@
 package com.termux.setup_app;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +25,8 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchAutostart;
     private SwitchCompat switchAutoboot;
     private SwitchCompat switchLoginCheck;
+    private SwitchCompat switchEPG;
+    private SwitchCompat switchBANNER;
     private Button IPTVbtn;
     private Button restartButton;
     private View IPTVbtnlay;
@@ -38,6 +42,8 @@ public class SetupActivityApp extends AppCompatActivity {
         switchAutostart = findViewById(R.id.switchAutostart);
         switchAutoboot = findViewById(R.id.switchAutoboot);
         switchLoginCheck = findViewById(R.id.switchLoginCheck);
+        switchEPG = findViewById(R.id.switchEPG);
+        switchBANNER = findViewById(R.id.switchBANNER);
         restartButton = findViewById(R.id.restartButton);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
@@ -65,12 +71,20 @@ public class SetupActivityApp extends AppCompatActivity {
 
         String serverSetupIsLoginCheck = preferenceManager.getKey("server_setup_isLoginCheck");
         switchLoginCheck.setChecked("Yes".equals(serverSetupIsLoginCheck));
+
+        String serverSetupIsEPG = preferenceManager.getKey("server_setup_isEPG");
+        switchEPG.setChecked("Yes".equals(serverSetupIsEPG));
+
+        String serverSetupIsGenericBanner = preferenceManager.getKey("server_setup_isGenericBanner");
+        switchBANNER.setChecked("Yes".equals(serverSetupIsGenericBanner));
     }
 
     private void savePreferences() {
         preferenceManager.setKey("server_setup_isLocal", switchisLocal.isChecked() ? "No" : "Yes");
         preferenceManager.setKey("server_setup_isAutoboot", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isLoginCheck", switchAutoboot.isChecked() ? "Yes" : "No");
+        preferenceManager.setKey("server_setup_isEPG", switchAutoboot.isChecked() ? "Yes" : "No");
+        preferenceManager.setKey("server_setup_isGenericBanner", switchAutoboot.isChecked() ? "Yes" : "No");
     }
 
     private void setupSwitchListeners() {
@@ -106,7 +120,46 @@ public class SetupActivityApp extends AppCompatActivity {
         switchLoginCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                preferenceManager.setKey("server_setup_isLoginCheck", isChecked ? "Yes" : "No");
+//                preferenceManager.setKey("server_setup_isLoginCheck", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Login check is on"));
+                    preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Login check is off"));
+                    preferenceManager.setKey("server_setup_isLoginCheck", "No");
+                }
+            }
+        });
+
+        switchEPG.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                preferenceManager.setKey("server_setup_isEPG", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("CustTermux will generate EPG at start"));
+                    preferenceManager.setKey("server_setup_isEPG", "Yes");
+                    Utils.sky_epg_on(SetupActivityApp.this);
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("EPG will not be generated"));
+                    preferenceManager.setKey("server_setup_isEPG", "No");
+                    Utils.sky_epg_off(SetupActivityApp.this);
+                }
+            }
+        });
+
+        switchBANNER.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                preferenceManager.setKey("server_setup_isGenericBanner", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Set Generic TV banner successfully"));
+                    preferenceManager.setKey("server_setup_isGenericBanner", "Yes");
+                    Utils.changeIconToSecond(SetupActivityApp.this);
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Set JioTV Go banner successfully"));
+                    preferenceManager.setKey("server_setup_isGenericBanner", "No");
+                    Utils.changeIconTOFirst(SetupActivityApp.this);
+                }
             }
         });
 
@@ -118,7 +171,16 @@ public class SetupActivityApp extends AppCompatActivity {
                 startActivityForResult(intent, 1); // Use startActivityForResult to get the result back
             }
         });
+
+        restartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.showCustomToast(SetupActivityApp.this, "Restarting CustTermux");
+                Utils.sky_rerun(SetupActivityApp.this);
+            }
+        });
     }
+
 
     private void setupFocusListeners() {
         View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
@@ -136,6 +198,8 @@ public class SetupActivityApp extends AppCompatActivity {
         switchAutostart.setOnFocusChangeListener(focusChangeListener);
         switchAutoboot.setOnFocusChangeListener(focusChangeListener);
         switchLoginCheck.setOnFocusChangeListener(focusChangeListener);
+        switchEPG.setOnFocusChangeListener(focusChangeListener);
+        switchBANNER.setOnFocusChangeListener(focusChangeListener);
         IPTVbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
     }

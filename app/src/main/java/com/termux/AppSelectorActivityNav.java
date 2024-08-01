@@ -1,12 +1,13 @@
 package com.termux;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -21,17 +22,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.widget.Toast;
-
-public class AppSelectorActivity extends AppCompatActivity {
+public class AppSelectorActivityNav extends AppCompatActivity {
 
     private ListView listView;
     private PackageManager packageManager;
@@ -171,7 +170,7 @@ public class AppSelectorActivity extends AppCompatActivity {
         private final List<AppInfo> apps;
         private final PackageManager packageManager;
 
-        AppAdapter(AppSelectorActivity context, List<AppInfo> apps) {
+        AppAdapter(AppSelectorActivityNav context, List<AppInfo> apps) {
             super(context, R.layout.app_list_item, apps);
             this.apps = apps;
             this.packageManager = context.getPackageManager();
@@ -190,8 +189,6 @@ public class AppSelectorActivity extends AppCompatActivity {
 
             iconView.setImageDrawable(appInfo.appIcon);
             nameView.setText(appInfo.appName);
-
-            nameView.setTextColor(Color.parseColor("#C0C0C0"));
 
             return convertView;
         }
