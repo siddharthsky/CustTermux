@@ -448,6 +448,8 @@ epg_on() {
  	echo "Generating EPG for the first time."
  	$HOME/.jiotv_go/bin/jiotv_go epg gen
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value Yes
+	sleep 1
+ 	exit 0
 }
 
 epg_off() {
@@ -456,6 +458,8 @@ epg_off() {
 	echo "-----------------------"
  	$HOME/.jiotv_go/bin/jiotv_go epg del
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value No
+	sleep 1
+ 	exit 0
  }
 
 
