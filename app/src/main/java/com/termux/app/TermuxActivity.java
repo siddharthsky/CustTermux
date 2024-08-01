@@ -51,6 +51,7 @@ import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
 import com.termux.TermuxActivityResume;
+import com.termux.Utils;
 import com.termux.app.activities.HelpActivity;
 import com.termux.app.activities.SettingsActivity;
 import com.termux.app.api.file.FileReceiverActivity;
@@ -377,6 +378,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         });
 
 
+//        button2.setOnClickListener(new View.OnClickListener() {
 //        button2.setOnClickListener(new View.OnClickListener() {
 //
 //
@@ -1033,7 +1035,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (intent != null) {
             // Finish current activity
             finish();
-            Log.d("d", "out of the app");
+            Log.d("SkyLog", "Out Of The App");
             // Restart the app
             startActivity(intent);
 
@@ -1052,7 +1054,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        if (intent != null) {
 //            // Finish current activity
 //            finish();
-//            Log.d("d","out of the app");
+//            Log.d("SkyLog", "Out Of The App");
 //            // Restart the app
 //            startActivity(intent);
 //
@@ -1222,11 +1224,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void sky_reinstall() {
+
+        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+        preferenceManager.setKey("isServerSetupDone", null);
+        preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
+        preferenceManager.setKey("server_setup_isAutoboot", "No");
+        preferenceManager.setKey("server_setup_isLocal", "No");
+        preferenceManager.setKey("app_name", "null");
+        preferenceManager.setKey("isExit", "noExit");
+        preferenceManager.setKey("server_setup_isEPG", "Yes");
+        preferenceManager.setKey("server_setup_isGenericBanner", "No");
+
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
         intentC.setAction("com.termux.RUN_COMMAND");
         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"reinstall"});
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"reinstall2"});
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
@@ -1379,18 +1392,31 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             SkySharedPref preferenceManager = new SkySharedPref(this);
             String isLocal = preferenceManager.getKey("server_setup_isLocal");
 
-            if (isLocal != null && !isLocal.isEmpty()) {
-                if (isLocal.equals("Yes")) {
+            // Define the listeners
+            DialogInterface.OnClickListener localListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
                     downloadFile(DOWNLOAD_URL, "local");
-                } else {
+                }
+            };
+
+            DialogInterface.OnClickListener publicListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
                     String wifiIpAddress = getWifiIpAddress();
                     String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
                     downloadFile(downloadUrl, wifiIpAddress);
                 }
+            };
+
+            if (isLocal != null && !isLocal.isEmpty()) {
+                if (isLocal.equals("Yes")) {
+                    downloadFile(DOWNLOAD_URL, "local");
+                } else {
+                    Utils.showAlertbox_playlist(this, localListener, publicListener);
+                }
             } else {
-                String wifiIpAddress = getWifiIpAddress();
-                String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
-                downloadFile(downloadUrl, wifiIpAddress);
+                Utils.showAlertbox_playlist(this, localListener, publicListener);
             }
         } else {
             requestPermission();
@@ -1413,6 +1439,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (serverSetupDone != null && serverSetupDone.equals("Done")) {
             //sky_exit();
         } else {
+            preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
+            preferenceManager.setKey("server_setup_isAutoboot", "No");
+            preferenceManager.setKey("server_setup_isLocal", "No");
+            preferenceManager.setKey("app_name", "null");
+            preferenceManager.setKey("isExit", "noExit");
+            preferenceManager.setKey("server_setup_isEPG", "Yes");
+            preferenceManager.setKey("server_setup_isGenericBanner", "No");
             Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
             startActivity(intent);
         }
@@ -1433,7 +1466,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mPreferences.isTerminalMarginAdjustmentEnabled())
             addTermuxActivityRootViewGlobalLayoutListener();
 
-        
+
         registerTermuxActivityBroadcastReceiver();
     }
 
@@ -1453,9 +1486,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private int openIptvCount = 0;
     private final int maxOpenIptvCalls = 10;
 
+
+
     @Override
     public void onResume() {
         super.onResume();
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
+        if (serverSetupDone != null && serverSetupDone.equals("Done")) {
+            //sky_exit();
+        } else {
+            Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+            startActivity(intent);
+        }
 
         Logger.logVerbose(LOG_TAG, "onResume");
 
