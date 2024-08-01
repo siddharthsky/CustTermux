@@ -441,6 +441,23 @@ exitpath() {
  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key isExit --es value yesExit
 }
 
+epg_on() {
+	echo "-----------------------"
+	echo "EPG Utility"
+	echo "-----------------------"
+ 	echo "Generating EPG for the first time."
+ 	$HOME/.jiotv_go/bin/jiotv_go epg gen
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value Yes
+}
+
+epg_off() {
+	echo "-----------------------"
+	echo "EPG Utility"
+	echo "-----------------------"
+ 	$HOME/.jiotv_go/bin/jiotv_go epg del
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value No
+ }
+
 
 
 
@@ -465,6 +482,10 @@ elif [ "$1" == "reinstall" ]; then
   	  reinstall
 elif [ "$1" == "reinstall2" ]; then
   	reinstall2
+elif [ "$1" == "epg_on" ]; then
+	epg_on
+elif [ "$1" == "epg_off" ]; then
+	epg_off
 elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
