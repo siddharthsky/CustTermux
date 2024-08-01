@@ -161,7 +161,6 @@
             </intent-filter>
         </activity>
 
-
         <activity
             android:name=".SkySharedPrefActivity"
             android:theme="@style/AppTheme.Transparent"
@@ -178,13 +177,10 @@
 
         <activity android:name=".VideoPlayerActivity"
             android:exported="true"/>
-<!--        android:screenOrientation="landscape"-->
-<!--        android:theme="@style/AppThemex"/>-->
 
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
             android:exported="true">
-<!--            android:screenOrientation="landscape" >-->
             <intent-filter>
                 <action android:name="com.temux.URLPLAYER" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -193,6 +189,11 @@
         </activity>
 
         <activity android:name=".AppSelectorActivity" />
+
+        <activity
+            android:name=".setup_app.SetupActivityApp"
+            android:exported="true">
+        </activity>
 
         <activity
             android:name=".setup.SetupActivity"
@@ -204,7 +205,6 @@
             android:theme="@style/AppTheme.Transparent"
             android:exported="true">
         </activity>
-<!--        <activity android:name=".LoginActivity" />-->
 
         <activity android:name=".LoginActivity"
             android:exported="true">
@@ -213,7 +213,8 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BootReceiver">
+        <receiver android:name=".BootReceiver"
+            android:exported="true">
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>

@@ -46,19 +46,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.AppSelectorActivity;
-import com.termux.LoginActivity;
 import com.termux.LoginActivity2;
 import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
 import com.termux.TermuxActivityResume;
+import com.termux.app.activities.HelpActivity;
+import com.termux.app.activities.SettingsActivity;
+import com.termux.app.api.file.FileReceiverActivity;
+import com.termux.app.terminal.TermuxActivityRootView;
+import com.termux.app.terminal.TermuxSessionsListViewController;
+import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
+import com.termux.app.terminal.TermuxTerminalViewClient;
+import com.termux.app.terminal.io.TerminalToolbarViewPager;
+import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
 import com.termux.setup.SetupActivity;
 import com.termux.SkySharedPref;
 import com.termux.WebPlayerActivity;
-import com.termux.app.api.file.FileReceiverActivity;
-import com.termux.app.terminal.TermuxActivityRootView;
-import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
-import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
+import com.termux.setup_app.SetupActivityApp;
 import com.termux.shared.activities.ReportActivity;
 import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.activity.media.AppCompatActivityUtils;
@@ -67,13 +72,8 @@ import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
 import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.TermuxConstants.TERMUX_APP.TERMUX_ACTIVITY;
-import com.termux.app.activities.HelpActivity;
-import com.termux.app.activities.SettingsActivity;
 import com.termux.shared.termux.crash.TermuxCrashUtils;
 import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
-import com.termux.app.terminal.TermuxSessionsListViewController;
-import com.termux.app.terminal.io.TerminalToolbarViewPager;
-import com.termux.app.terminal.TermuxTerminalViewClient;
 import com.termux.shared.termux.extrakeys.ExtraKeysView;
 import com.termux.shared.termux.interact.TextInputDialogUtils;
 import com.termux.shared.logger.Logger;
@@ -653,6 +653,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         preferenceManager.setKey("isExit", "noExit");
 
 
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Load termux shared preferences
         // This will also fail if TermuxConstants.TERMUX_PACKAGE_NAME does not equal applicationId
@@ -721,7 +723,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
     private void sky_config() {
-        Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
+        Intent intent = new Intent(TermuxActivity.this, SetupActivityApp.class);
         startActivity(intent);
     }
 
@@ -1411,13 +1413,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (serverSetupDone != null && serverSetupDone.equals("Done")) {
             //sky_exit();
         } else {
-            //Toast.makeText(TermuxActivity.this, "CustTermux", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
             startActivity(intent);
-
         }
-
-
 
         Logger.logDebug(LOG_TAG, "onStart");
 
@@ -1435,8 +1433,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mPreferences.isTerminalMarginAdjustmentEnabled())
             addTermuxActivityRootViewGlobalLayoutListener();
 
-
-
+        
         registerTermuxActivityBroadcastReceiver();
     }
 

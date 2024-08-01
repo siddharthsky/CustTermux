@@ -4,6 +4,7 @@
     <color name="golden">#FFD700</color>
     <color name="tooltip_background_color">#40000000</color>
     <color name="focused_color">#FFD700</color>
+    <color name="focused_colorx">#6BFFD700</color>
     <color name="transparent">#00000000</color>
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
@@ -16,4 +17,6 @@
     <color name="status_running">#00C853</color>
     <color name="status_error">#FFA500</color>
     <color name="status_stopped">#FF0000</color>
+    <color name="color_green">#3bd391</color>
+    <color name="color_gray">#C0C0C0</color>
 </resources>
