@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.termux"
-    android:installLocation="internalOnly"
-    android:sharedUserId="${TERMUX_PACKAGE_NAME}"
-    android:sharedUserLabel="@string/shared_user_label">
+    android:installLocation="internalOnly">
+<!--    android:sharedUserId="${TERMUX_PACKAGE_NAME}"-->
+<!--    android:sharedUserLabel="@string/shared_user_label">-->
     <!-- android:sharedUserLabel="@string/shared_user_label"
     tools:ignore="LeanbackUsesWifi"> -->
 
