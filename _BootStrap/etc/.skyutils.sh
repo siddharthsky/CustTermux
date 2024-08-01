@@ -200,6 +200,31 @@ reinstall() {
 	
 }
 
+reinstall2() {
+	echo "-----------------------"
+	echo "Reinstall Utility"
+	echo "-----------------------"
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	wait_and_count 3
+
+	reinstaller() {
+		echo "Removing Server Files..."
+		rm -rf "$HOME/.jiotv_go/bin/"
+		rm  "$HOME/.autoscript.sh"
+		rm  "$HOME/.autoscript_x.sh"
+		rm  "$HOME/.autoscript_xm.sh"
+		rm  "$HOME/.skyutils.sh"
+
+  		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
+
+
+	}
+
+  	reinstaller
+	
+}
+
 update() {
 	echo "-----------------------"
 	echo "Update Utility"
@@ -438,6 +463,8 @@ elif [ "$1" == "iptvrunner" ]; then
   	  iptvrunner
 elif [ "$1" == "reinstall" ]; then
   	  reinstall
+elif [ "$1" == "reinstall2" ]; then
+  	reinstall2
 elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
