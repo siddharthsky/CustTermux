@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.os.Environment;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity; s
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
