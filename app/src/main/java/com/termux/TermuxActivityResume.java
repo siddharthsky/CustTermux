@@ -1,5 +1,6 @@
 package com.termux;
 
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -220,13 +221,21 @@ public class TermuxActivityResume {
                 System.out.println("IPTV, webTV!");
             } else {
                 System.out.println("IPTV, found!");
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(appPkg, appClass));
-                context.startActivity(intent);
-                openIptvCount++;
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(appPkg, appClass));
+                    context.startActivity(intent);
+                    openIptvCount++;
+                } catch (ActivityNotFoundException e) {
+                    // Log or handle the exception if needed
+                    // You can print a message or handle the error appropriately
+                    System.out.println("Unable to open the specified app.");
+                    Toast.makeText(context, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
+                }
             }
         } else {
             System.out.println("IPTV, null!");
         }
     }
+
 }

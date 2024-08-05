@@ -2,6 +2,7 @@ package com.termux;
 
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +14,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.termux.app.TermuxActivity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -152,18 +155,33 @@ public class SkyActionActivity extends AppCompatActivity {
                 System.out.println("IPTV, null!");
             } else if (iptvChecker.equals("sky_web_tv")) {
                 System.out.println("IPTV, webTV!");
-                Intent intent = new Intent(SkyActionActivity.this, WebPlayerActivity.class);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(SkyActionActivity.this, WebPlayerActivity.class);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // Log or handle the exception if needed
+                    System.out.println("Unable to start WebPlayerActivity.");
+                }
             } else {
                 System.out.println("IPTV, found!");
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(iptvChecker, appclass));
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(iptvChecker, appclass));
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    // Log or handle the exception if needed
+                    System.out.println("Unable to open the specified app.");
+                    Toast.makeText(SkyActionActivity.this, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    // Handle any other exceptions
+                    System.out.println("Error occurred while starting the activity.");
+                }
             }
         } else {
             System.out.println("IPTV, null!");
         }
     }
+
 
     public void wait_X() {
         handler = new Handler();
