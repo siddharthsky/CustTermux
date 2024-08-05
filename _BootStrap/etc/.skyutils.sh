@@ -467,25 +467,16 @@ epg_off() {
 	echo "SSH Utility"
 	echo "-----------------------"
  	echo "Checking Required Packages"
+  
   	pkg install openssh -y
         pkg install expect -y
 	
-	 setup_ssh() {
-	    # Install OpenSSH and Expect
-	    pkg install -y openssh expect make
-	
-	    # Set up password for sshd
-	    echo "letmein" | passwd --stdin
-	
-	    # Restart SSH service to apply changes
-	    pkill sshd
-	    sshd
-	}
-
- 	
+ 	ssh_passwd
+  
+	pkill sshd
+ 
+	sshd
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
-   
-  	setup_ssh 
    
    	echo "Started SSH"
     	wait_and_count 3
@@ -503,14 +494,16 @@ ssh_off() {
 }
 
 ssh_passwd() {
-	echo "-----------------------"
-	echo "SSH Utility"
-	echo "-----------------------"
-  	pkill sshd
- 	wait_and_count 4
-	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_passwd --es value No
-	echo "Stopped SSH"
- 	wait_and_count 4
+	set password "letmein"
+
+	spawn passwd
+ 
+	expect "New password:"
+	send "$password\r"
+	expect "Retype new password:"
+	send "$password\r"
+ 
+	expect eof
 }
 
 
