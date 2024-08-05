@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -40,6 +41,10 @@ public class LoginActivity2 extends AppCompatActivity {
         setTheme(R.style.DarkActivityTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_setup);
+
+        // Enable the home button as an up button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         EditText inputNumber = findViewById(R.id.input_number);
         EditText inputOtp = findViewById(R.id.input_otp);
@@ -223,5 +228,14 @@ public class LoginActivity2 extends AppCompatActivity {
             }
             finish();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

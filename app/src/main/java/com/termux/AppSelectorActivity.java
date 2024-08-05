@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -41,6 +42,10 @@ public class AppSelectorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setTheme(R.style.DarkActivityTheme);
         setContentView(R.layout.activity_app_selector);
+
+        // Enable the home button as an up button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         getSupportActionBar().setTitle("Select IPTV app to launch");
 
@@ -195,5 +200,14 @@ public class AppSelectorActivity extends AppCompatActivity {
 
             return convertView;
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
