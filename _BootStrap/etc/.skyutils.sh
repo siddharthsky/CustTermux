@@ -468,9 +468,25 @@ epg_off() {
 	echo "-----------------------"
  	echo "Checking Required Packages"
   	pkg install openssh -y
+        pkg install expect -y
+	
+	 setup_ssh() {
+	    # Install OpenSSH and Expect
+	    pkg install -y openssh expect make
+	
+	    # Set up password for sshd
+	    echo "letmein" | passwd --stdin
+	
+	    # Restart SSH service to apply changes
+	    pkill sshd
+	    sshd
+	}
+
  	
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
-  	sshd 
+   
+  	setup_ssh 
+   
    	echo "Started SSH"
     	wait_and_count 3
      	exit 0
@@ -484,6 +500,17 @@ ssh_off() {
  	wait_and_count 1
 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value No
 	echo "Stopped SSH"
+}
+
+ssh_passwd() {
+	echo "-----------------------"
+	echo "SSH Utility"
+	echo "-----------------------"
+  	pkill sshd
+ 	wait_and_count 4
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_passwd --es value No
+	echo "Stopped SSH"
+ 	wait_and_count 4
 }
 
 
@@ -518,6 +545,8 @@ elif [ "$1" == "epg_off" ]; then
 	ssh_on
 elif [ "$1" == "ssh_off" ]; then
 	ssh_off
+ elif [ "$1" == "ssh_passwd" ]; then
+	ssh_passwd
 elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
