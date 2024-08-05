@@ -469,7 +469,9 @@ epg_off() {
  	echo "Checking Required Packages"
   	pkg install openssh
  	wait_and_count 1
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
   	sshd -D
+   	echo "Started SSH"
 }
 
 ssh_on() {
@@ -478,7 +480,8 @@ ssh_on() {
 	echo "-----------------------"
   	pkill sshd
  	wait_and_count 1
-  	sshd -D
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value No
+	echo "Stopped SSH"
 }
 
 
