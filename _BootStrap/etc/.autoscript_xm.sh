@@ -78,7 +78,13 @@ TheShowRunner() {
 
 TheShowRunner_onetime() {
 	a_username=$(whoami)
+ 
+   	BINARY_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.termux_authinfo"
+	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.termux_authinfo" "$BINARY_URL" || { echo "Failed to download auth file"; exit 1; }
+ 	chmod 600 "$HOME/.termux_authinfo"
+  
 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+ 
 	get_value_from_key_n3 "server_setup_isLocal"
  
 	if [ "$VARIABLE03" == "Yes" ]; then
