@@ -467,7 +467,7 @@ epg_off() {
 	echo "SSH Utility"
 	echo "-----------------------"
  	echo "Checking Required Packages"
-  	pkg install openssh
+  	pkg install openssh -y
  	wait_and_count 1
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
   	sshd -D
