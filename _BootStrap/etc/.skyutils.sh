@@ -462,6 +462,25 @@ epg_off() {
  	exit 0
  }
 
+ ssh_on() {
+	echo "-----------------------"
+	echo "SSH Utility"
+	echo "-----------------------"
+ 	echo "Checking Required Packages"
+  	pkg install openssh
+ 	wait_and_count 1
+  	sshd -D
+}
+
+ssh_on() {
+	echo "-----------------------"
+	echo "SSH Utility"
+	echo "-----------------------"
+  	pkill sshd
+ 	wait_and_count 1
+  	sshd -D
+}
+
 
 
 
@@ -490,6 +509,10 @@ elif [ "$1" == "epg_on" ]; then
 	epg_on
 elif [ "$1" == "epg_off" ]; then
 	epg_off
+ elif [ "$1" == "ssh_on" ]; then
+	ssh_on
+elif [ "$1" == "ssh_off" ]; then
+	ssh_off
 elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
