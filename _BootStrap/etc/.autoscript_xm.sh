@@ -77,7 +77,9 @@ TheShowRunner() {
 }
 
 TheShowRunner_onetime() {
+	a_username=$(whoami)
 
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
 
 	get_value_from_key_n3 "server_setup_isLocal"
  
