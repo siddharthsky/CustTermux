@@ -274,6 +274,48 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
 
+                    <Button
+                        android:id="@+id/PORTbtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="5001"
+                        android:textColor="@android:color/white" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/PORTbtn"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Change Port"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textselectedAPP2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Default port is 5001"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchEPG"
                         android:layout_width="wrap_content"
@@ -351,7 +393,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="Display a generic TV banner icon on the home screen [can cause issues]"
+                            android:text="Display a generic TV banner icon on the home screen"
                             android:textColor="@color/color_gray"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -414,25 +456,43 @@
                     android:text="🔄️ Restart App"
                     android:textColor="@android:color/white" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingBottom="0dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@color/text_color_black"
+                        android:paddingEnd="0dp"
+                        android:text="Credits"
+                        android:textColor="@android:color/white"
+                        android:textSize="36sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
 
-                    <com.airbnb.lottie.LottieAnimationView
-                        android:id="@+id/sid"
+                    <ImageView
+                        android:id="@+id/rbx"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        app:lottie_rawRes="@raw/batmanx"
-                        app:lottie_autoPlay="true"
-                        app:lottie_loop="true" />
+                        app:srcCompat="@drawable/go_logo_blue" />
 
                     <LinearLayout
+                        android:id="@+id/rbl"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_toStartOf="@id/sid"
+                        android:layout_toStartOf="@id/rbx"
                         android:orientation="vertical"
                         android:paddingStart="5dp">
 
@@ -440,16 +500,16 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="Rabil RBL"
+                            android:text="RabilRBL"
                             android:textColor="@android:color/white"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/textSSH"
+                            android:id="@+id/texstSSHs"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="for JioTV GO"
+                            android:text="For developing JioTV Go"
                             android:textColor="@color/color_gray"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -460,17 +520,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
 
-                    <com.airbnb.lottie.LottieAnimationView
+                    <ImageView
                         android:id="@+id/sid2"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        app:lottie_rawRes="@raw/batmanx"
-                        app:lottie_autoPlay="true"
-                        app:lottie_loop="true" />
+                        app:srcCompat="@drawable/android_logomark" />
 
                     <LinearLayout
+                        android:id="@+id/sid"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_toStartOf="@id/sid2"
@@ -481,16 +540,16 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="Siddharth Kamble"
+                            android:text="SiddharthSky"
                             android:textColor="@android:color/white"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/textSSH"
+                            android:id="@+id/textSSHww"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="CustTermux App"
+                            android:text="For CustTermux app"
                             android:textColor="@color/color_gray"
                             android:textSize="12sp" />
                     </LinearLayout>

@@ -2,6 +2,7 @@ package com.termux.setup_app;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -10,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.airbnb.lottie.LottieAnimationView;
@@ -36,8 +38,11 @@ public class SetupActivityApp extends AppCompatActivity {
     private TextView textSSH;
     private TextView textselectedAPP;
     private Button IPTVbtn;
+    private Button PORTbtn;
     private Button restartButton;
     private View IPTVbtnlay;
+    private LinearLayout rbl;
+    private LinearLayout sid;
     private SkySharedPref preferenceManager;
     private LottieAnimationView lottieAnimationView;
     private int[] animationResources = {
@@ -71,6 +76,7 @@ public class SetupActivityApp extends AppCompatActivity {
         textSSH = findViewById(R.id.textSSH);
         textselectedAPP = findViewById(R.id.textselectedAPP);
         restartButton = findViewById(R.id.restartButton);
+        PORTbtn = findViewById(R.id.PORTbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
 
@@ -79,6 +85,26 @@ public class SetupActivityApp extends AppCompatActivity {
         setRandomAnimationBasedOnWeight();
 
         preferenceManager = new SkySharedPref(this);
+
+        rbl = findViewById(R.id.rbl);
+        rbl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/rabilrbl"));
+                startActivity(browserIntent);
+            }
+        });
+
+        sid = findViewById(R.id.sid);
+        sid.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky"));
+                startActivity(browserIntent);
+            }
+        });
+
+
 
         loadPreferences();
         setupSwitchListeners();
@@ -275,6 +301,23 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        PORTbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.sky_changeport(SetupActivityApp.this, new OnPortChangeListener() {
+                    @Override
+                    public void onPortChanged(String newPort) {
+                        // Update the button text with the new port number
+                        PORTbtn.setText(newPort);
+                        // Optionally, show a toast message
+                        // Utils.showCustomToast(SetupActivityApp.this, "Changed port to " + newPort);
+                        Utils.showCustomToast(SetupActivityApp.this, "Restarting CustTermux to apply changes");
+                    }
+                });
+            }
+        });
+
+
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -284,6 +327,9 @@ public class SetupActivityApp extends AppCompatActivity {
         });
     }
 
+    public interface OnPortChangeListener {
+        void onPortChanged(String newPort);
+    }
 
     private void setupFocusListeners() {
         View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
@@ -305,6 +351,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchBANNER.setOnFocusChangeListener(focusChangeListener);
         switchSSH.setOnFocusChangeListener(focusChangeListener);
         IPTVbtn.setOnFocusChangeListener(focusChangeListener);
+        PORTbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
     }
 
@@ -335,5 +382,8 @@ public class SetupActivityApp extends AppCompatActivity {
         String app_namex = preferenceManager.getKey("app_name_x");
         String c_app_namex = "Selected App: " + app_namex;
         textselectedAPP.setText(c_app_namex);
+        String portid = preferenceManager.getKey("isLocalPORTonly");
+        PORTbtn.setText(portid);
     }
+
 }
