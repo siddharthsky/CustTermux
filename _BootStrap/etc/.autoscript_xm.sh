@@ -73,6 +73,7 @@ TheShowRunner() {
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go bg run
     else
+    	echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go bg run -a -p "$port_to_use"
     fi
