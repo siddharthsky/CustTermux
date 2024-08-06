@@ -22,7 +22,7 @@ public class WebPlayerActivity extends AppCompatActivity {
     private ProgressBar loadingSpinner;
     private List<String> channelNumbers;
     private String url;
-    private static final String DEFAULT_URL = "http://localhost:5001/";
+//    private static final String DEFAULT_URL = "http://localhost:5001/";
     private static final String TAG = "WebPlayerActivity";
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -30,6 +30,10 @@ public class WebPlayerActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_player);
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String DEFAULT_URL = preferenceManager.getKey("isLocalPORT");
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 

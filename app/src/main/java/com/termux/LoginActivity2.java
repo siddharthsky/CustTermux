@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,8 +33,11 @@ import java.util.Map;
 
 public class LoginActivity2 extends AppCompatActivity {
 
+    private SkySharedPref preferenceManager;
+    private String BASE_URL;
     private static final String TAG = "LoginActivity2";
-    private static final String BASE_URL = "http://localhost:5001/";
+
+
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -45,6 +49,10 @@ public class LoginActivity2 extends AppCompatActivity {
         // Enable the home button as an up button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        // Initialize SkySharedPref and other member variables
+        preferenceManager = new SkySharedPref(this);
+        BASE_URL = preferenceManager.getKey("isLocalPORT");
 
         EditText inputNumber = findViewById(R.id.input_number);
         EditText inputOtp = findViewById(R.id.input_otp);
@@ -167,14 +175,37 @@ public class LoginActivity2 extends AppCompatActivity {
             if (result != null) {
                 Utils.showCustomToast(LoginActivity2.this, "OTP Sent: " + result);
                 EditText inputOtp = findViewById(R.id.input_otp);
+                Button verifyOtpButton = findViewById(R.id.button_verify_otp);
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputOtp.requestFocus();
                 imm.showSoftInput(inputOtp, InputMethodManager.SHOW_IMPLICIT);
+
+                // Scroll to the OTP input box to make it visible
+                inputOtp.post(() -> {
+                    ScrollView scrollView = findViewById(R.id.scroll_view);
+                    scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+                });
+
             } else {
                 Utils.showCustomToast(LoginActivity2.this, "Failed to send OTP");
             }
         }
     }
+
+
+//    @Override
+//        protected void onPostExecute(String result) {
+//            if (result != null) {
+//                Utils.showCustomToast(LoginActivity2.this, "OTP Sent: " + result);
+//                EditText inputOtp = findViewById(R.id.input_otp);
+//                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                inputOtp.requestFocus();
+//                imm.showSoftInput(inputOtp, InputMethodManager.SHOW_IMPLICIT);
+//            } else {
+//                Utils.showCustomToast(LoginActivity2.this, "Failed to send OTP");
+//            }
+//        }
+//    }
 
     private class VerifyOtpTask extends AsyncTask<String, Void, String> {
         @Override

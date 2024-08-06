@@ -30,6 +30,8 @@ public class SkyActionActivity extends AppCompatActivity {
 
     private String phoneNumber;
 
+    private String url;
+
     private String otp;
 
     @Override
@@ -260,8 +262,12 @@ public class SkyActionActivity extends AppCompatActivity {
 
         wait_X();
 
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String urlString = preferenceManager.getKey("isLocalPORT");
+        String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
         // URL to check
-        String url = "http://localhost:5001/live/144.m3u8";
+        String url = urlString+urlchannel;
 
         // Execute AsyncTask to check status code
         new SkyActionActivity.CheckStatusTask().execute(url);
@@ -282,11 +288,14 @@ public class SkyActionActivity extends AppCompatActivity {
 
 
     public void loginstatus2() {
-
-        String url = "http://localhost:5001/live/144.m3u8";
-
         SkySharedPref preferenceManager = new SkySharedPref(SkyActionActivity.this);
         String loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
+        String urlString = preferenceManager.getKey("isLocalPORT");
+        String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
+        url = urlString+urlchannel;
+        Log.d("StyleP","dw "+url);
+
 
         if (loginChecker != null && !loginChecker.isEmpty()) {
             if (loginChecker.equals("No")) {

@@ -10,17 +10,24 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.pm.PackageManager;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.termux.app.TermuxActivity;
+import com.termux.setup_app.SetupActivityApp;
 import com.termux.view.TerminalView;
 
 import org.json.JSONObject;
@@ -122,10 +129,14 @@ public class Utils {
     public static void sky_reinstall(Context context) {
         SkySharedPref preferenceManager = new SkySharedPref(context);
         preferenceManager.setKey("isServerSetupDone", null);
+        preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
+        preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
+        preferenceManager.setKey("isLocalPORTonly", "5001");
         preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
         preferenceManager.setKey("server_setup_isAutoboot", "No");
         preferenceManager.setKey("server_setup_isLocal", "No");
         preferenceManager.setKey("app_name", "null");
+        preferenceManager.setKey("app_launchactivity", "null");
         preferenceManager.setKey("isExit", "noExit");
         preferenceManager.setKey("server_setup_isEPG", "Yes");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
@@ -259,6 +270,98 @@ public class Utils {
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux-JioTVGo/releases"));
         context.startActivity(browserIntent);
     }
+
+    public static void sky_changeport(final Context context, final SetupActivityApp.OnPortChangeListener listener) {
+
+        // Create an EditText for input
+        final EditText input = new EditText(context);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+
+        // Set the text color
+        input.setTextColor(ContextCompat.getColor(context, R.color.text_color_white));
+        input.setBackgroundColor(ContextCompat.getColor(context, R.color.text_color_black));
+
+        // Restrict input to 4 digits
+        input.setFilters(new InputFilter[] {
+            new InputFilter.LengthFilter(4), // Limit to 4 characters
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                    // Allow only digits
+                    if (TextUtils.isEmpty(source)) {
+                        return null; // Let empty input pass through
+                    }
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return ""; // Reject non-digit characters
+                        }
+                    }
+                    return null; // Accept digits
+                }
+            }
+        });
+
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+            .setTitle("Enter Port Number")
+            .setMessage("Please enter a 4-digit port number:")
+            .setView(input)
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String portStr = input.getText().toString();
+
+                    if (portStr.matches("\\d{4}")) {
+                        int port = Integer.parseInt(portStr);
+
+                        preferenceManager.setKey("isLocalPORTonly", String.valueOf(port));
+                        String c_port = "http://localhost:"+port+"/";
+                        preferenceManager.setKey("isLocalPORT", c_port);
+
+                        Intent intentC = new Intent();
+                        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+                        intentC.setAction("com.termux.RUN_COMMAND");
+                        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+                        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"write_port",String.valueOf(port)});
+                        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+                        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+                        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+                        context.startService(intentC);
+
+                        Utils.showCustomToast(context, "Port number updated to: " + port);
+                        // Notify the listener about the port change
+                        if (listener != null) {
+                            listener.onPortChanged(portStr);
+                        }
+                    } else {
+                        Utils.showCustomToast(context, "Please enter a valid 4-digit port number.");
+                    }
+                }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                // Request focus for the EditText
+                input.requestFocus();
+                // Optionally, show the keyboard automatically
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+
+        dialog.show();
+    }
+
 }
 
 

@@ -8,6 +8,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import java.net.URL;
 public class TermuxActivityResume {
 
     private Context context;
+    private String urlx;
     private int openIptvCount = 0;
     private final int maxOpenIptvCalls = 10;
     private final Handler taskHandler = new Handler(Looper.getMainLooper());
@@ -61,8 +63,13 @@ public class TermuxActivityResume {
             @Override
             public void run() {
                 if (openIptvCount < maxOpenIptvCalls) {
-                    String url = "http://localhost:5001/live/144.m3u8";
-                    new CheckStatusTask().execute(url);
+                    SkySharedPref preferenceManager = new SkySharedPref(context);
+                    String urlStrings = preferenceManager.getKey("isLocalPORT");
+                    String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
+                    urlx = urlStrings+urlchannel;
+//                    String url = "http://localhost:5001/live/144.m3u8";
+                    new CheckStatusTask().execute(urlx);
                 }
             }
         };
@@ -72,7 +79,11 @@ public class TermuxActivityResume {
     private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
         @Override
         protected Integer doInBackground(String... urls) {
-            String urlString = urls[0];
+            SkySharedPref preferenceManager = new SkySharedPref(context);
+            String urlStrings = preferenceManager.getKey("isLocalPORT");
+            String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+            urlx = urlStrings+urlchannel;
+            String urlString = urlx;
             HttpURLConnection connection = null;
             try {
                 URL url = new URL(urlString);
