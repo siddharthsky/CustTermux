@@ -45,36 +45,42 @@ Server_Runner() {
 }
 
 TheShowRunner() {
+    retrieve_first_line() {
+        file="$1"
+        if [ -f "$file" ]; then
+            head -n 1 "$file"
+        else
+            echo ""
+        fi
+    }
 
-	#get_value_from_key_n1 "app_name"
-	
-	# # Check if the app name is "null"
-	# if [ "$VARIABLE01" == "null" ]; then
-	# 	get_value_from_key_n3 "server_setup_isLocal"
-	# elif [ "$VARIABLE01" == "sky_web_tv" ]; then
-	# 	get_value_from_key_n3 "server_setup_isLocal"
-	# 	am start --user 0 -n com.termux/.WebPlayerActivity
-	# else	
-	# 	get_value_from_key_n2 "app_launchactivity"
-	# 	get_value_from_key_n3 "server_setup_isLocal"
-	# 	am start --user 0 -n "$VARIABLE01/$VARIABLE02"
-	# fi
+    default_port=5001
 
-	get_value_from_key_n3 "server_setup_isLocal"
- 
-	if [ "$VARIABLE03" == "Yes" ]; then
- 		echo -e "\e[32mRunning Server Locally\e[0m"
-   		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run
-	else
- 		termux-wake-lock
-		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
-	fi
+    # Retrieve the port from the file
+    retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
 
-	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+    # Validate if retrieved_port is a 4-digit number
+    if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
+        port_to_use=$retrieved_port
+    else
+        port_to_use=$default_port
+    fi
 
-  
+    get_value_from_key_n3 "server_setup_isLocal"
+
+    if [ "$VARIABLE03" == "Yes" ]; then
+        echo -e "\e[32mRunning Server Locally\e[0m"
+        termux-wake-lock
+        $HOME/.jiotv_go/bin/jiotv_go bg run
+    else
+        termux-wake-lock
+        $HOME/.jiotv_go/bin/jiotv_go bg run -a -p "$port_to_use"
+    fi
+
+    am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 }
+
+
 
 TheShowRunner_onetime() {
 	a_username=$(whoami)
@@ -145,6 +151,7 @@ TheShowRunner_onetime() {
 # 	#Debug
 # 	echo "Captured value: $VARIABLE03"
 # }
+
 
 get_value_from_key_n0() {
     local KEY="$1"
