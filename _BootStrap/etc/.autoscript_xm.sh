@@ -63,6 +63,10 @@ TheShowRunner() {
     if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
         port_to_use=$retrieved_port
     else
+    	file="$HOME/.jiotv_go/bin/server_port.cfg"
+   	touch "$file"
+        chmod 755 "$file"
+        echo "5001" > "$file"
         port_to_use=$default_port
     fi
 
