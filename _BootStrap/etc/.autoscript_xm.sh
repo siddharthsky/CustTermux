@@ -63,8 +63,8 @@ TheShowRunner() {
     if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
         port_to_use=$retrieved_port
     else
-    	file="$HOME/.jiotv_go/bin/server_port.cfg"
-   	touch "$file"
+        file="$HOME/.jiotv_go/bin/server_port.cfg"
+        touch "$file"
         chmod 755 "$file"
         echo "5001" > "$file"
         port_to_use=$default_port
@@ -77,10 +77,9 @@ TheShowRunner() {
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go bg run
     else
-    	echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port "$port_to_use" --public"
-	--args "--port 8080
+        $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
     fi
 
     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
