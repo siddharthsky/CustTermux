@@ -253,7 +253,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private ImageView downloadIcon;
 
     private static final int PERMISSION_REQUEST_CODE = 1;
-    private static final String DOWNLOAD_URL = "http://localhost:5001/playlist.m3u";
+    private static String DOWNLOAD_URL;
 
     private TextView ipAddressTextView;
     private TextView serverStatusTextView;
@@ -276,6 +276,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
         mIsOnResumeAfterOnCreate = true;
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String DOWNLOAD_URL = preferenceManager.getKey("isLocalPORT");
+
+
 
         if (savedInstanceState != null)
             mIsActivityRecreated = savedInstanceState.getBoolean(ARG_ACTIVITY_RECREATED, false);
@@ -607,7 +613,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //                }
 //                isWebViewVisible = !isWebViewVisible;
 
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(DOWNLOAD_URL));
                 startActivity(browserIntent);
             }
         });
@@ -628,7 +634,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        TextView serverStatusTextView = findViewById(R.id.server_status);
 //        TextView loginStatusTextView = findViewById(R.id.login_status);
 
-        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+//        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
         String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
 
         if (Objects.equals(isLOCAL, "Yes")) {
@@ -1408,7 +1414,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             DialogInterface.OnClickListener localListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    downloadFile(DOWNLOAD_URL, "local");
+                    String urlport = preferenceManager.getKey("isLocalPORT");
+                    String downloadUrl = urlport+"playlist.m3u";
+                    downloadFile(downloadUrl, "local");
                 }
             };
 
@@ -1416,14 +1424,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     String wifiIpAddress = getWifiIpAddress();
-                    String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
+                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                    String urlportonly = preferenceManager.getKey("isLocalPORTonly");
+                    String downloadUrl = "http://" + wifiIpAddress + ":"+urlportonly+"/playlist.m3u";
                     downloadFile(downloadUrl, wifiIpAddress);
                 }
             };
 
             if (isLocal != null && !isLocal.isEmpty()) {
                 if (isLocal.equals("Yes")) {
-                    downloadFile(DOWNLOAD_URL, "local");
+                    String urlport = preferenceManager.getKey("isLocalPORT");
+                    String downloadUrl = urlport+"playlist.m3u";
+                    downloadFile(downloadUrl, "local");
                 } else {
                     Utils.showAlertbox_playlist(this, localListener, publicListener);
                 }
@@ -1450,6 +1462,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (serverSetupDone != null && serverSetupDone.equals("Done")) {
             //sky_exit();
         } else {
+            preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
+            preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
+            preferenceManager.setKey("isLocalPORTonly", "5001");
             preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
             preferenceManager.setKey("server_setup_isAutoboot", "No");
             preferenceManager.setKey("server_setup_isLocal", "No");
