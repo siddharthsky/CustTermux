@@ -506,6 +506,15 @@ ssh_passwd() {
 	expect eof
 }
 
+write_port() {
+    port_num=$1
+    file="$HOME/.jiotv_go/bin/server_port.cfg"
+    touch "$file"
+    chmod 755 "$file"
+    echo "$port_num" > "$file"
+}
+
+
 
 
 
@@ -540,6 +549,8 @@ elif [ "$1" == "ssh_off" ]; then
 	ssh_off
  elif [ "$1" == "ssh_passwd" ]; then
 	ssh_passwd
+ elif [ "$1" == "write_port" ]; then
+  	write_port "$2"
 elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
