@@ -79,7 +79,7 @@ TheShowRunner() {
     else
     	echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go bg run -a -p "$port_to_use" -P
+        $HOME/.jiotv_go/bin/jiotv_go bg run -a --port "$port_to_use" --public
     fi
 
     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
