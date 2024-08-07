@@ -470,9 +470,8 @@ epg_off() {
   
   	pkg install openssh -y
         pkg install expect -y
+	# pkg install make -y
 	
- 	./.set_password.exp
-  
 	pkill sshd
  
 	sshd
