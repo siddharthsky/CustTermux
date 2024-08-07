@@ -406,13 +406,17 @@ public final class ExtraKeysView extends GridLayout {
                     button = createSpecialButton(buttonInfo.getKey(), true);
                     if (button == null) return;
                 } else {
-                    button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+//                    button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+                    button = new MaterialButton(getContext());
+                    button.setBackgroundResource(R.drawable.textview_border);
                 }
 
                 button.setText(buttonInfo.getDisplay());
                 button.setTextColor(mButtonTextColor);
                 button.setAllCaps(mButtonTextAllCaps);
                 button.setPadding(0, 0, 0, 0);
+                button.setFocusable(true);
+                button.setFocusableInTouchMode(true);
 
                 button.setOnClickListener(view -> {
                     performExtraKeyButtonHapticFeedback(view, buttonInfo, button);
@@ -594,7 +598,9 @@ public final class ExtraKeysView extends GridLayout {
             button = createSpecialButton(extraButton.getKey(), false);
             if (button == null) return;
         } else {
-            button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+//            button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+            button = new MaterialButton(getContext());
+            button.setBackgroundResource(R.drawable.textview_border);
             button.setTextColor(mButtonTextColor);
         }
         button.setText(extraButton.getDisplay());
@@ -658,7 +664,9 @@ public final class ExtraKeysView extends GridLayout {
         SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonKey));
         if (state == null) return null;
         state.setIsCreated(true);
-        MaterialButton button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+//        MaterialButton button = new MaterialButton(getContext(), null, android.R.attr.buttonBarButtonStyle);
+        MaterialButton button = new MaterialButton(getContext());
+        button.setBackgroundResource(R.drawable.textview_border);
         button.setTextColor(state.isActive ? mButtonActiveTextColor : mButtonTextColor);
         if (needUpdate) {
             state.buttons.add(button);
