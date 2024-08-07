@@ -254,6 +254,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
 
     private ImageView downloadIcon;
+    private ImageView copyIcon;
 
     private static final int PERMISSION_REQUEST_CODE = 1;
     private static String DOWNLOAD_URL;
@@ -333,6 +334,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button7 = findViewById(R.id.button7);
         Button button8 = findViewById(R.id.button8);
         ImageView downloadIconx = findViewById(R.id.ic_download);
+        ImageView copyIcon = findViewById(R.id.ic_copycat);
 
         button1.requestFocus();
 
@@ -357,7 +359,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button7.setOnFocusChangeListener(tooltipFocusListener);
         button8.setOnFocusChangeListener(tooltipFocusListener);
         downloadIconx.setOnFocusChangeListener(tooltipFocusListener);
-
+        copyIcon.setOnFocusChangeListener(tooltipFocusListener);
 
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -648,7 +650,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
             String ipport = preferenceManager.getKey("isLocalPORTonly");
             String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist: "+a_playlink;
+            String b_playlink = "Playlist url: "+a_playlink;
             textplay.setBackgroundResource(R.drawable.border);
             textplay.setText(b_playlink);
             preferenceManager.setKey("temp_playlist",a_playlink);
@@ -662,7 +664,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
             String ipport = preferenceManager.getKey("isLocalPORTonly");
             String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist: "+a_playlink;
+            String b_playlink = "Playlist url: "+a_playlink;
             textplay.setBackgroundResource(R.drawable.border);
             textplay.setText(b_playlink);
             preferenceManager.setKey("temp_playlist",a_playlink);
@@ -692,11 +694,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         ipAddressTextView = findViewById(R.id.ip_address);
         downloadIcon = findViewById(R.id.ic_download);
+        copyIcon = findViewById(R.id.ic_copycat);
 
         downloadIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDownloadButtonClick();
+            }
+        });
+
+        copyIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startCOPY();
             }
         });
 
@@ -770,6 +780,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
+
 
     private void startFlashingEffect(TextView textView) {
         ObjectAnimator animator = ObjectAnimator.ofInt(textView, "textColor", Color.WHITE, Color.RED);
