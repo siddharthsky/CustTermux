@@ -1,4 +1,4 @@
-package com.termux;
+package com.termux.setup_login;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,15 +11,14 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
-import com.termux.setup.SetupActivity;
+import com.termux.R;
+import com.termux.SkySharedPref;
+import com.termux.Utils;
 
 import org.json.JSONObject;
 
@@ -180,11 +179,11 @@ public class LoginActivity2 extends AppCompatActivity {
                 inputOtp.requestFocus();
                 imm.showSoftInput(inputOtp, InputMethodManager.SHOW_IMPLICIT);
 
-                // Scroll to the OTP input box to make it visible
-                inputOtp.post(() -> {
-                    ScrollView scrollView = findViewById(R.id.scroll_view);
-                    scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
-                });
+//                // Scroll to the OTP input box to make it visible
+//                inputOtp.post(() -> {
+//                    ScrollView scrollView = findViewById(R.id.scroll_view);
+//                    scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+//                });
 
             } else {
                 Utils.showCustomToast(LoginActivity2.this, "Failed to send OTP");

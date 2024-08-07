@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.termux.app.TermuxActivity;
+import com.termux.setup_login.LoginActivity;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

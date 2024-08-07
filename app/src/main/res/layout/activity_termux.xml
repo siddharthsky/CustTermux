@@ -158,6 +158,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:background="@color/text_color_black"
         android:padding="0dp">
 
         <!-- Server Status -->
@@ -261,6 +262,26 @@
             android:tooltipText="Download Playlist"
             app:tint="#FFFFFF" />
     </LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="0dp">
+
+        <TextView
+            android:id="@+id/textplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:background="@color/text_color_black"
+            android:textColor="@android:color/white"
+            android:text="Playlist url: http://localhost:5001/playlist.m3u" />
+    </LinearLayout>
+
 
 
 
@@ -380,7 +401,8 @@
         android:id="@+id/activity_termux_bottom_space_view"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@android:color/transparent" />
+        android:background="@android:color/transparent"/>
+<!--        android:visibility="gone" />-->
 
 
 

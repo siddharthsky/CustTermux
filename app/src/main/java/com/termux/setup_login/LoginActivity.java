@@ -1,7 +1,6 @@
-package com.termux;
+package com.termux.setup_login;
 
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -14,8 +13,11 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.annotation.Nullable;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.termux.R;
+import com.termux.SkySharedPref;
 
 public class LoginActivity extends AppCompatActivity {
 

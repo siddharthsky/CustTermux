@@ -49,6 +49,14 @@
             android:importantForAccessibility="yes"
             android:accessibilityLiveRegion="polite" />
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/network_device_option"
+            android:text="* Set up a Static IP address, if you want to use on other devices." />
+
+
         <RadioButton
             android:id="@+id/device_only_option"
             android:layout_width="wrap_content"
@@ -61,6 +69,18 @@
             android:importantForAccessibility="yes"
             android:accessibilityLiveRegion="polite" />
     </RadioGroup>
+<!--    <com.airbnb.lottie.LottieAnimationView-->
+<!--        android:id="@+id/lottie_animation_view1z"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        app:lottie_autoPlay="true"-->
+<!--        app:lottie_loop="true"-->
+<!--        app:lottie_rawRes="@raw/gemini"-->
+<!--        android:background="@color/transparent"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginTop="0dp"-->
+<!--        android:layout_marginEnd="0dp" />-->
 
 <!--    &lt;!&ndash; Lottie Animation View &ndash;&gt;-->
 <!--    <com.airbnb.lottie.LottieAnimationView-->

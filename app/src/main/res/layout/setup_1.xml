@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp">
+    android:padding="12dp">
 
     <!-- Step One Title -->
     <TextView
@@ -41,6 +41,15 @@
             android:textSize="20sp"
             android:text="Other device in network (Default mode)" />
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/text_color_black"
+            android:textColor="@android:color/white"
+            android:layout_below="@id/network_device_option"
+            android:text="* Set up a Static IP address, if you want to use on other devices." />
+
         <RadioButton
             android:id="@+id/device_only_option"
             android:layout_width="wrap_content"
@@ -48,18 +57,25 @@
             android:layout_marginTop="16dp"
             android:textSize="020sp"
             android:text="This device only (Local access)" />
+
+
     </RadioGroup>
 
-    <!-- Lottie Animation View -->
+
 <!--    <com.airbnb.lottie.LottieAnimationView-->
-<!--        android:id="@+id/lottie_animation_view1"-->
+<!--        android:id="@+id/lottie_animation_view1z"-->
 <!--        android:layout_width="64dp"-->
 <!--        android:layout_height="64dp"-->
 <!--        app:lottie_autoPlay="true"-->
 <!--        app:lottie_loop="true"-->
-<!--        app:lottie_rawRes="@raw/gem_moving"-->
+<!--        app:lottie_rawRes="@raw/gemini"-->
+<!--        android:background="@color/transparent"-->
 <!--        android:layout_alignParentTop="true"-->
 <!--        android:layout_alignParentEnd="true"-->
 <!--        android:layout_marginTop="0dp"-->
 <!--        android:layout_marginEnd="0dp" />-->
+
+
+
+
 </RelativeLayout>

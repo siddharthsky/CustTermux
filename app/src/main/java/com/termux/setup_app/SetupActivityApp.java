@@ -275,10 +275,10 @@ public class SetupActivityApp extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 //                preferenceManager.setKey("server_setup_isGenericBanner", isChecked ? "Yes" : "No");
                 if (isChecked) {
-                    Utils.showCustomToast(SetupActivityApp.this, ("Enabled SSH"));
                     preferenceManager.setKey("server_setup_isSSH", "Yes");
                     Utils.sky_ssh_on(SetupActivityApp.this);
-                    finish();
+                    Utils.showCustomToast(SetupActivityApp.this, ("Enabled SSH"));
+//                    finish();
 
                 } else {
                     Utils.showCustomToast(SetupActivityApp.this, ("Disabled SSH"));

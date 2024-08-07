@@ -1,10 +1,13 @@
 package com.termux.app;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -46,11 +50,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.AppSelectorActivity;
-import com.termux.LoginActivity2;
+import com.termux.setup_login.LoginActivity2;
 import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
-import com.termux.SkyActionActivity;
 import com.termux.TermuxActivityResume;
 import com.termux.Utils;
 import com.termux.app.activities.HelpActivity;
@@ -256,6 +259,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static String DOWNLOAD_URL;
 
     private TextView ipAddressTextView;
+    private TextView textplay;
     private TextView serverStatusTextView;
     private ServerStatusChecker serverStatusChecker;
     private LoginStatusChecker loginStatusChecker;
@@ -631,6 +635,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
         ipAddressTextView = findViewById(R.id.ip_address);
+        textplay = findViewById(R.id.textplay);
 //        TextView serverStatusTextView = findViewById(R.id.server_status);
 //        TextView loginStatusTextView = findViewById(R.id.login_status);
 
@@ -640,12 +645,39 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (Objects.equals(isLOCAL, "Yes")) {
             Log.d("d", "Server is Local!");
             ipAddressTextView.setText("localhost");
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
+
         } else {
             // Get and display Wi-Fi IP address
             String wifiIpAddress = getWifiIpAddress(this);
             preferenceManager.setKey("server_setup_wifiip",wifiIpAddress);
             ipAddressTextView.setText(wifiIpAddress);
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
         }
+
+        textplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startCOPY();
+            }
+        });
+
+
+
 
 
 //        // Start checking server status
@@ -737,6 +769,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Send the {@link TermuxConstants#BROADCAST_TERMUX_OPENED} broadcast to notify apps that Termux
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
+    }
+
+    private void startFlashingEffect(TextView textView) {
+        ObjectAnimator animator = ObjectAnimator.ofInt(textView, "textColor", Color.WHITE, Color.RED);
+        animator.setDuration(750);
+        animator.setEvaluator(new android.animation.ArgbEvaluator());
+        animator.setRepeatCount(ObjectAnimator.INFINITE);
+        animator.setRepeatMode(ObjectAnimator.REVERSE);
+        animator.start();
+    }
+
+    private void startCOPY() {
+        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+        String copy_text = preferenceManager.getKey("temp_playlist");
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("playlist_link", copy_text);
+        clipboard.setPrimaryClip(clip);
+
+        // Show a toast message
+        Toast.makeText(getApplicationContext(), "Playlist link copied to clipboard", Toast.LENGTH_SHORT).show();
+
+
     }
 
 
@@ -1368,6 +1422,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                     if (extraString != null && !extraString.isEmpty()) {
                         fileName += "_" + extraString;
                     }
+                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                    String ipport = preferenceManager.getKey("isLocalPORTonly");
+                    fileName += "_" + ipport;
                     fileName += ".m3u";
 
 
@@ -1474,10 +1531,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("server_setup_isEPG", "Yes");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
-            //Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
+
+
+//            Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
             startActivity(intent);
         }
+       // Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
 
         Logger.logDebug(LOG_TAG, "onStart");
 

@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,7 @@ import android.content.pm.PackageManager;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.viewpager.widget.ViewPager;
 
 import com.termux.app.TermuxActivity;
 import com.termux.setup_app.SetupActivityApp;
@@ -36,8 +39,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Utils {
@@ -185,10 +192,16 @@ public class Utils {
 
     private static void sky_terminal(Context context) {
         TerminalView terminalView = ((Activity) context).findViewById(R.id.terminal_view);
+//        View terminalKeyView = ((Activity) context).findViewById(R.id.activity_termux_bottom_space_view);
+//        ViewPager terminalViewPager = ((Activity) context).findViewById(R.id.terminal_toolbar_view_pager);
 
         // Change focusable properties
         terminalView.setFocusableInTouchMode(true);
         terminalView.setFocusable(true);
+
+//        // Change focusable properties
+//        terminalKeyView.setVisibility(View.VISIBLE);
+//        terminalViewPager.setVisibility(View.VISIBLE);
     }
 
 
@@ -251,6 +264,16 @@ public class Utils {
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         context.startService(intentC);
+
+//        Intent intentX = new Intent();
+//        intentX.setClassName("com.termux", "com.termux.app.RunCommandService");
+//        intentX.setAction("com.termux.RUN_COMMAND");
+//        intentX.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.set_password.exp");
+//        intentX.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{});
+//        intentX.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+//        intentX.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+//        intentX.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+//        context.startService(intentX);
     }
 
     public static void sky_ssh_off(Context context) {
@@ -279,10 +302,11 @@ public class Utils {
 
         // Set the text color
         input.setTextColor(ContextCompat.getColor(context, R.color.text_color_white));
-        input.setBackgroundColor(ContextCompat.getColor(context, R.color.text_color_black));
+//        input.setBackgroundColor(ContextCompat.getColor(context, R.color.text_color_black));
+        input.setBackground(ContextCompat.getDrawable(context, R.drawable.edittext_underline_green));
 
         // Restrict input to 4 digits
-        input.setFilters(new InputFilter[] {
+        input.setFilters(new InputFilter[]{
             new InputFilter.LengthFilter(4), // Limit to 4 characters
             new InputFilter() {
                 @Override
@@ -316,14 +340,14 @@ public class Utils {
                         int port = Integer.parseInt(portStr);
 
                         preferenceManager.setKey("isLocalPORTonly", String.valueOf(port));
-                        String c_port = "http://localhost:"+port+"/";
+                        String c_port = "http://localhost:" + port + "/";
                         preferenceManager.setKey("isLocalPORT", c_port);
 
                         Intent intentC = new Intent();
                         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
                         intentC.setAction("com.termux.RUN_COMMAND");
                         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-                        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"write_port",String.valueOf(port)});
+                        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"write_port", String.valueOf(port)});
                         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
                         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
                         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
@@ -353,14 +377,30 @@ public class Utils {
             public void onShow(DialogInterface dialog) {
                 // Request focus for the EditText
                 input.requestFocus();
-                // Optionally, show the keyboard automatically
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                // Show the keyboard automatically
+                input.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                }, 200); // Delay to ensure the keyboard shows up
             }
         });
 
         dialog.show();
     }
+
+//    public static void showLoginDialog(Context context) {
+//        LayoutInflater inflater = LayoutInflater.from(context);
+//        View dialogView = inflater.inflate(R.layout.activity_login_setup_dialog, null);
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+//        builder.setView(dialogView);
+//
+//        AlertDialog dialog = builder.create();
+//        dialog.show();
+//    }
 
 }
 
