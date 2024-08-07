@@ -73,7 +73,7 @@ TheShowRunner() {
     get_value_from_key_n3 "server_setup_isLocal"
 
     if [ "$VARIABLE03" == "Yes" ]; then
-        echo -e "\e[32mRunning Server Locally\e[0m"
+        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go bg run
     else
