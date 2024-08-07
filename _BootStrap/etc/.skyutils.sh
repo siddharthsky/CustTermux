@@ -471,6 +471,8 @@ epg_off() {
   	pkg install openssh -y
         pkg install expect -y
 	# pkg install make -y
+
+	ssh_passwd_intent
 	
 	pkill sshd
  
@@ -503,6 +505,16 @@ ssh_passwd() {
 	send "$password\r"
  
 	expect eof
+}
+
+ssh_passwd_intent() {
+	am startservice \
+    -n com.termux/com.termux.app.RunCommandService \
+    -a com.termux.RUN_COMMAND \
+    --es "com.termux.RUN_COMMAND_PATH" "/data/data/com.termux/files/home/.set_password.exp" \
+    --ez "com.termux.RUN_COMMAND_BACKGROUND" true \
+    --ei "com.termux.RUN_COMMAND_SESSION_ACTION" 0 \
+    --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
 }
 
 write_port() {
