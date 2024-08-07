@@ -393,7 +393,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:padding="3dp"
-                            android:text="Display a generic TV banner icon on the home screen"
+                            android:text="Display a generic TV banner icon on the home screen. [can cause issues]"
                             android:textColor="@color/color_gray"
                             android:textSize="12sp" />
                     </LinearLayout>
