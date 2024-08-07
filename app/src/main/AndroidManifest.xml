@@ -89,7 +89,7 @@
 
         <activity-alias
             android:name=".KickStartAlias"
-            android:enabled="false"
+            android:exported="true"
             android:targetActivity=".KickStart"
             android:icon="@mipmap/ic_launcher_alias2"
             android:roundIcon="@mipmap/ic_launcher_alias2_round"
