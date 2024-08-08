@@ -30,6 +30,8 @@ public class TermuxActivityResume {
 
     private Context context;
     private String urlx;
+    private String urlStrings;
+    private String urlchannel;
     private int openIptvCount = 0;
     private final int maxOpenIptvCalls = 10;
     private final Handler taskHandler = new Handler(Looper.getMainLooper());
@@ -64,8 +66,8 @@ public class TermuxActivityResume {
             public void run() {
                 if (openIptvCount < maxOpenIptvCalls) {
                     SkySharedPref preferenceManager = new SkySharedPref(context);
-                    String urlStrings = preferenceManager.getKey("isLocalPORT");
-                    String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+                    urlStrings = preferenceManager.getKey("isLocalPORT");
+                    urlchannel = preferenceManager.getKey("isLocalPORTchannel");
 
                     urlx = urlStrings+urlchannel;
 //                    String url = "http://localhost:5001/live/144.m3u8";
@@ -80,8 +82,8 @@ public class TermuxActivityResume {
         @Override
         protected Integer doInBackground(String... urls) {
             SkySharedPref preferenceManager = new SkySharedPref(context);
-            String urlStrings = preferenceManager.getKey("isLocalPORT");
-            String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+            urlStrings = preferenceManager.getKey("isLocalPORT");
+            urlchannel = preferenceManager.getKey("isLocalPORTchannel");
             urlx = urlStrings+urlchannel;
             String urlString = urlx;
             HttpURLConnection connection = null;

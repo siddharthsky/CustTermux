@@ -32,7 +32,11 @@ public class SkyActionActivity extends AppCompatActivity {
 
     private String url;
 
-    private String otp;
+    private String loginChecker;
+
+    private String urlString;
+
+    private String urlchannel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -263,8 +267,8 @@ public class SkyActionActivity extends AppCompatActivity {
         wait_X();
 
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        String urlString = preferenceManager.getKey("isLocalPORT");
-        String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+        urlString = preferenceManager.getKey("isLocalPORT");
+        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
 
         // URL to check
         String url = urlString+urlchannel;
@@ -289,9 +293,9 @@ public class SkyActionActivity extends AppCompatActivity {
 
     public void loginstatus2() {
         SkySharedPref preferenceManager = new SkySharedPref(SkyActionActivity.this);
-        String loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
-        String urlString = preferenceManager.getKey("isLocalPORT");
-        String urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+        loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
+        urlString = preferenceManager.getKey("isLocalPORT");
+        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
 
         url = urlString+urlchannel;
         Log.d("StyleP","dw "+url);

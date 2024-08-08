@@ -25,6 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView loadingMessage;
     private ProgressBar loadingSpinner;
     private String url;
+    private String isLocalPORT;
     //    private static final String DEFAULT_URL = "http://localhost:5001/";
 
     @Override
@@ -39,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize SkySharedPref and other member variables
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        String isLocalPORT = preferenceManager.getKey("isLocalPORT");
+        isLocalPORT = preferenceManager.getKey("isLocalPORT");
 
         // Create a LinearLayout to hold the WebView, ProgressBar, and TextViews
         LinearLayout layout = new LinearLayout(this);

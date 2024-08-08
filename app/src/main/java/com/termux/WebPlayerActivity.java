@@ -24,6 +24,7 @@ public class WebPlayerActivity extends AppCompatActivity {
     private String url;
 //    private static final String DEFAULT_URL = "http://localhost:5001/";
     private static final String TAG = "WebPlayerActivity";
+    private String DEFAULT_URL;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -33,7 +34,7 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         // Initialize SkySharedPref and other member variables
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        String DEFAULT_URL = preferenceManager.getKey("isLocalPORT");
+        DEFAULT_URL = preferenceManager.getKey("isLocalPORT");
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 

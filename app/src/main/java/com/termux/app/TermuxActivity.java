@@ -276,6 +276,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TermuxActivityResume termuxActivityResume;
 
     private Runnable stopRunnable;
+    private String urlport;
+    private String urlportonly;
+    private String downloadUrl;
+    private String copy_text;
+    private String ipport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -284,7 +289,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Initialize SkySharedPref and other member variables
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        String DOWNLOAD_URL = preferenceManager.getKey("isLocalPORT");
+        DOWNLOAD_URL = preferenceManager.getKey("isLocalPORT");
 
 
 
@@ -793,7 +798,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void startCOPY() {
         SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-        String copy_text = preferenceManager.getKey("temp_playlist");
+        copy_text = preferenceManager.getKey("temp_playlist");
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("playlist_link", copy_text);
         clipboard.setPrimaryClip(clip);
@@ -1434,7 +1439,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                         fileName += "_" + extraString;
                     }
                     SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                    String ipport = preferenceManager.getKey("isLocalPORTonly");
+                    ipport = preferenceManager.getKey("isLocalPORTonly");
                     fileName += "_" + ipport;
                     fileName += ".m3u";
 
@@ -1482,8 +1487,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             DialogInterface.OnClickListener localListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    String urlport = preferenceManager.getKey("isLocalPORT");
-                    String downloadUrl = urlport+"playlist.m3u";
+                    urlport = preferenceManager.getKey("isLocalPORT");
+                    downloadUrl = urlport+"playlist.m3u";
                     downloadFile(downloadUrl, "local");
                 }
             };
@@ -1493,16 +1498,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 public void onClick(DialogInterface dialog, int which) {
                     String wifiIpAddress = getWifiIpAddress();
                     SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                    String urlportonly = preferenceManager.getKey("isLocalPORTonly");
-                    String downloadUrl = "http://" + wifiIpAddress + ":"+urlportonly+"/playlist.m3u";
+                    urlportonly = preferenceManager.getKey("isLocalPORTonly");
+                    downloadUrl = "http://" + wifiIpAddress + ":"+urlportonly+"/playlist.m3u";
                     downloadFile(downloadUrl, wifiIpAddress);
                 }
             };
 
             if (isLocal != null && !isLocal.isEmpty()) {
                 if (isLocal.equals("Yes")) {
-                    String urlport = preferenceManager.getKey("isLocalPORT");
-                    String downloadUrl = urlport+"playlist.m3u";
+                    urlport = preferenceManager.getKey("isLocalPORT");
+                    downloadUrl = urlport+"playlist.m3u";
                     downloadFile(downloadUrl, "local");
                 } else {
                     Utils.showAlertbox_playlist(this, localListener, publicListener);
