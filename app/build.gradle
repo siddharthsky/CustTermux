@@ -10,6 +10,7 @@ ext {
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
     packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
+    versionCust = "4.0"
 }
 
 android {
@@ -131,17 +132,40 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            if (variant.buildType.name == "debug") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
-            } else if (variant.buildType.name == "release") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
-            }
+//    applicationVariants.all { variant ->
+//        variant.outputs.all { output ->
+//            if (variant.buildType.name == "debug") {
+//                def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
+//            } else if (variant.buildType.name == "release") {
+//                def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
+//            }
+//        }
+//    }
+
+    def getCustomVariantName = { variantName ->
+        switch (variantName) {
+            case "apt-android-7":
+                return ""
+            case "apt-android-5":
+                return "android_5"
+            default:
+                return variantName
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def customVariantName = getCustomVariantName(project.ext.packageVariant)
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            def versionCust = project.ext.versionCust
+            def buildTypeName = variant.buildType.name
+
+            outputFileName = "CustTermux_${versionCust}_${customVariantName}_${abi ? abi : 'universal'}.apk"
+        }
+    }
+
 
 }
 
