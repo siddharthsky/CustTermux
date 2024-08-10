@@ -70,7 +70,7 @@ TheShowRunner() {
         port_to_use=$default_port
     fi
 
-    get_value_from_key_n3 "server_setup_isLocal"
+    get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
     if [ "$VARIABLE03" == "Yes" ]; then
         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
@@ -92,7 +92,7 @@ TheShowRunner_onetime() {
 
 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
 
-	get_value_from_key_n3 "server_setup_isLocal"
+	get_value_from_key "server_setup_isLocal" "VARIABLE03"
  
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
@@ -157,9 +157,81 @@ TheShowRunner_onetime() {
 # 	echo "Captured value: $VARIABLE03"
 # }
 
+#################################################################################################################
+# get_value_from_key_n0() {
+#     local KEY="$1"
+#     logcat -c
+#     sleep 0
+#     am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+#     sleep 0
+#     local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    
+#     if [ -z "$VALUE" ]; then
+#         VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+#     fi
+    
+#     VARIABLE00=$VALUE
+#     # Debug
+#     echo "Captured value: $VARIABLE00"
+# }
 
-get_value_from_key_n0() {
+
+# get_value_from_key_n1() {
+#     local KEY="$1"
+#     logcat -c
+#     sleep 0
+#     am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+#     sleep 0
+#     local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    
+#     if [ -z "$VALUE" ]; then
+#         VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+#     fi
+    
+#     VARIABLE01=$VALUE
+#     # Debug
+#     echo "Captured value: $VARIABLE01"
+# }
+
+# get_value_from_key_n2() {
+#     local KEY="$1"
+#     logcat -c
+#     sleep 0
+#     am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+#     sleep 0
+#     local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    
+#     if [ -z "$VALUE" ]; then
+#         VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+#     fi
+    
+#     VARIABLE02=$VALUE
+#     # Debug
+#     echo "Captured value: $VARIABLE02"
+# }
+
+# get_value_from_key_n3() {
+#     local KEY="$1"
+#     logcat -c
+#     sleep 0
+#     am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+#     sleep 0
+#     local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    
+#     if [ -z "$VALUE" ]; then
+#         VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+#     fi
+    
+#     VARIABLE03=$VALUE
+#     # Debug
+#     echo "Captured value: $VARIABLE03"
+# }
+
+#################################################################################################################
+
+get_value_from_key() {
     local KEY="$1"
+    local VAR_NAME="$2"
     logcat -c
     sleep 0
     am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
@@ -170,62 +242,10 @@ get_value_from_key_n0() {
         VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
     fi
     
-    VARIABLE00=$VALUE
+    eval "$VAR_NAME='$VALUE'"
     # Debug
-    echo "Captured value: $VARIABLE00"
-}
+    echo "Captured value: $(eval echo \$$VAR_NAME)"
 
-
-get_value_from_key_n1() {
-    local KEY="$1"
-    logcat -c
-    sleep 0
-    am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
-    sleep 0
-    local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    
-    if [ -z "$VALUE" ]; then
-        VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    fi
-    
-    VARIABLE01=$VALUE
-    # Debug
-    echo "Captured value: $VARIABLE01"
-}
-
-get_value_from_key_n2() {
-    local KEY="$1"
-    logcat -c
-    sleep 0
-    am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
-    sleep 0
-    local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    
-    if [ -z "$VALUE" ]; then
-        VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    fi
-    
-    VARIABLE02=$VALUE
-    # Debug
-    echo "Captured value: $VARIABLE02"
-}
-
-get_value_from_key_n3() {
-    local KEY="$1"
-    logcat -c
-    sleep 0
-    am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
-    sleep 0
-    local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    
-    if [ -z "$VALUE" ]; then
-        VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
-    fi
-    
-    VARIABLE03=$VALUE
-    # Debug
-    echo "Captured value: $VARIABLE03"
-}
 
 
 
@@ -356,7 +376,7 @@ FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 if [ ! -f "$FILE_PATH" ]; then
 	 # Loop until the setup is complete
 	while true; do
-	    get_value_from_key_n0 "isServerSetupDone"
+ 	    get_value_from_key "isServerSetupDone" "VARIABLE00"
 	    if [ "$VARIABLE00" == "Done" ]; then
 	        echo "Initial setup is complete."
 	        break
