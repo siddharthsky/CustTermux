@@ -244,7 +244,8 @@ get_value_from_key() {
     
     eval "$VAR_NAME='$VALUE'"
     # Debug
-    echo "Captured value: $(eval echo \$$VAR_NAME)"
+    echo "Captured value: $(eval echo \$$VAR_NAME)"    
+}
 
 
 
