@@ -322,10 +322,10 @@ Default_Installation() {
         OS="linux"
     fi
 
-    # OSx=$OSTYPE
-    if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
-        OS="linux"
-    fi
+    # # OSx=$OSTYPE
+    # if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+    #     OS="linux"
+    # fi
 
     # Set binary URL
     BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.6.0/jiotv_go-$OS-$ARCH"
