@@ -3,12 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.termux"
     android:installLocation="internalOnly">
+
 <!--    android:sharedUserId="${TERMUX_PACKAGE_NAME}"-->
 <!--    android:sharedUserLabel="@string/shared_user_label">-->
-    <!-- android:sharedUserLabel="@string/shared_user_label"
-    tools:ignore="LeanbackUsesWifi"> -->
-
-<!--    android:hardwareAccelerated="true"-->
+<!--    android:sharedUserLabel="@string/shared_user_label"-->
+<!--    tools:ignore="LeanbackUsesWifi"-->
+<!--    android:hardwareAccelerated="true">-->
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -44,7 +44,8 @@
     <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"
+        tools:ignore="LeanbackUsesWifi" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
         tools:ignore="LeanbackUsesWifi" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove" tools:ignore="QueryAllPackagesPermission" />
@@ -270,6 +271,8 @@
             android:name=".setup_login.LoginActivity2"
             android:windowSoftInputMode="adjustResize">
         </activity>
+
+
 
         <activity-alias
             android:name=".app.api.file.FileShareReceiverActivity"

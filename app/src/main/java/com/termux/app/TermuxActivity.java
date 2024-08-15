@@ -1345,6 +1345,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         startService(intentC);
     }
 
+
+
     private void sky_exit() {
         // Finish current activity
         finish();

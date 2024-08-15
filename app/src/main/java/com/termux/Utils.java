@@ -212,7 +212,7 @@ public class Utils {
         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
         intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"epg_on"});
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         context.startService(intentC);
     }

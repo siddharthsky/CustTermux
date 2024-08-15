@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/text_color_black"
     android:fitsSystemWindows="true">
 
 
@@ -13,6 +14,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/text_color_black"
         android:orientation="horizontal">
 
         <ImageView
@@ -34,6 +36,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@color/text_color_black"
             android:orientation="horizontal"
             android:gravity="center">
 
@@ -238,7 +241,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:background="@color/text_color_black"
-                android:text="Login Status:"
+                android:text="Login:"
                 android:textStyle="bold" />
 
             <TextView
@@ -293,7 +296,6 @@
             android:textColor="@android:color/white"
             android:text="Playlist url: http://localhost:5001/playlist.m3u" />
     </LinearLayout>
-
 
 
 
@@ -397,6 +399,8 @@
 
         </androidx.drawerlayout.widget.DrawerLayout>
 
+
+
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/terminal_toolbar_view_pager"
             android:visibility="gone"
@@ -404,6 +408,11 @@
             android:layout_height="37.5dp"
             android:background="@color/black"
             android:layout_alignParentBottom="true" />
+
+
+
+
+
 
     </RelativeLayout>
 
@@ -415,6 +424,7 @@
         android:layout_height="1dp"
         android:background="@android:color/transparent"/>
 <!--        android:visibility="gone" />-->
+
 
 
 

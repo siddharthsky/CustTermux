@@ -2,6 +2,7 @@ package com.termux.setup_app;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -43,6 +46,16 @@ public class SetupActivityApp extends AppCompatActivity {
     private View IPTVbtnlay;
     private LinearLayout rbl;
     private LinearLayout sid;
+
+    private ImageView sid2;
+    private ImageView extraIconSKY;
+
+    private ImageView rbx;
+    private ImageView extraIconRBL;
+
+
+
+
     private SkySharedPref preferenceManager;
     private LottieAnimationView lottieAnimationView;
     private int[] animationResources = {
@@ -79,6 +92,40 @@ public class SetupActivityApp extends AppCompatActivity {
         PORTbtn = findViewById(R.id.PORTbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
+
+        sid2 = findViewById(R.id.sid2);
+        sid2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky"));
+                startActivity(browserIntent);
+            }
+        });
+        extraIconSKY = findViewById(R.id.extraIconSKY);
+        extraIconSKY.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/sponsors/siddharthsky"));
+                startActivity(browserIntent);
+            }
+        });
+        rbx = findViewById(R.id.rbx);
+        rbx.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/rabilrbl"));
+                startActivity(browserIntent);
+            }
+        });
+        extraIconRBL = findViewById(R.id.extraIconRBL);
+        extraIconRBL.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/sponsors/rabilrbl"));
+                startActivity(browserIntent);
+            }
+        });
+
 
         lottieAnimationView = findViewById(R.id.settingsani);
 

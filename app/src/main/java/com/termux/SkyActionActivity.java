@@ -20,6 +20,9 @@ import com.termux.setup_login.LoginActivity;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 
 public class SkyActionActivity extends AppCompatActivity {
@@ -38,10 +41,15 @@ public class SkyActionActivity extends AppCompatActivity {
 
     private String urlchannel;
 
+    private ExecutorService executorService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_receiver);
+
+        // Initialize ExecutorService with a single thread pool
+        executorService = Executors.newSingleThreadExecutor();
 
         // Get the Intent that started this activity
         Intent intent = getIntent();
@@ -271,10 +279,10 @@ public class SkyActionActivity extends AppCompatActivity {
         urlchannel = preferenceManager.getKey("isLocalPORTchannel");
 
         // URL to check
-        String url = urlString+urlchannel;
+        url = urlString+urlchannel;
 
         // Execute AsyncTask to check status code
-        new SkyActionActivity.CheckStatusTask().execute(url);
+        executorService.execute(new CheckStatusTask(urlString + urlchannel));
 
         wait_X();
 
@@ -307,34 +315,39 @@ public class SkyActionActivity extends AppCompatActivity {
                 runner2x();
             } else {
                 System.out.println("loginChecker on");
-                new SkyActionActivity.CheckStatusTask().execute(url);
+                executorService.execute(new CheckStatusTask(urlString + urlchannel));
+                executorService.execute(new CheckStatusTask(urlString + urlchannel));
             }
         } else {
             System.out.println("loginChecker Null");
-            new SkyActionActivity.CheckStatusTask().execute(url);
+            executorService.execute(new CheckStatusTask(urlString + urlchannel));
 
         }
     }
 
 
-    public class CheckStatusTask extends AsyncTask<String, Void, Integer> {
+    private class CheckStatusTask implements Runnable {
+        private static final int RETRY_DELAY = 3000;
+        private final String urlString;
 
-        private static final int RETRY_DELAY = 3000; // 3 seconds delay for retrying
+        public CheckStatusTask(String urlString) {
+            this.urlString = urlString;
+        }
 
         @Override
-        protected Integer doInBackground(String... urls) {
-            String urlString = urls[0];
+        public void run() {
             Integer responseCode = checkStatus(urlString);
-            if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
-                // Retry after a delay
+            if (responseCode != null && responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
                 try {
-                    Thread.sleep(RETRY_DELAY); // Wait before retrying
-                    responseCode = checkStatus(urlString); // Retry the check
+                    Thread.sleep(RETRY_DELAY);
+                    responseCode = checkStatus(urlString);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            return responseCode;
+
+            final Integer finalResponseCode = responseCode;
+            runOnUiThread(() -> onPostExecute(finalResponseCode));
         }
 
         private Integer checkStatus(String urlString) {
@@ -355,8 +368,7 @@ public class SkyActionActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        protected void onPostExecute(Integer responseCode) {
+        private void onPostExecute(Integer responseCode) {
             if (responseCode != null) {
                 switch (responseCode) {
                     case HttpURLConnection.HTTP_OK:
@@ -381,9 +393,18 @@ public class SkyActionActivity extends AppCompatActivity {
                 Toast.makeText(SkyActionActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
             }
         }
+    }
 
 
-        private void showAlert() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Shutdown the executor service to avoid memory leaks
+        executorService.shutdown();
+    }
+
+
+    private void showAlert() {
             new AlertDialog.Builder(SkyActionActivity.this)
                 .setTitle("Server Error")
                 .setMessage("An error occurred on the server. Do you want to log in again?")
@@ -448,5 +469,6 @@ public class SkyActionActivity extends AppCompatActivity {
         }
 
 
-    }
 }
+
+
