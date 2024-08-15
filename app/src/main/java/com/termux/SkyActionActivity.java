@@ -2,6 +2,7 @@ package com.termux;
 
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,9 +15,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.termux.setup_login.LoginActivity;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 
 public class SkyActionActivity extends AppCompatActivity {
@@ -27,12 +33,23 @@ public class SkyActionActivity extends AppCompatActivity {
 
     private String phoneNumber;
 
-    private String otp;
+    private String url;
+
+    private String loginChecker;
+
+    private String urlString;
+
+    private String urlchannel;
+
+    private ExecutorService executorService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_receiver);
+
+        // Initialize ExecutorService with a single thread pool
+        executorService = Executors.newSingleThreadExecutor();
 
         // Get the Intent that started this activity
         Intent intent = getIntent();
@@ -152,18 +169,33 @@ public class SkyActionActivity extends AppCompatActivity {
                 System.out.println("IPTV, null!");
             } else if (iptvChecker.equals("sky_web_tv")) {
                 System.out.println("IPTV, webTV!");
-                Intent intent = new Intent(SkyActionActivity.this, WebPlayerActivity.class);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(SkyActionActivity.this, WebPlayerActivity.class);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // Log or handle the exception if needed
+                    System.out.println("Unable to start WebPlayerActivity.");
+                }
             } else {
                 System.out.println("IPTV, found!");
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(iptvChecker, appclass));
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(iptvChecker, appclass));
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    // Log or handle the exception if needed
+                    System.out.println("Unable to open the specified app.");
+                    Toast.makeText(SkyActionActivity.this, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    // Handle any other exceptions
+                    System.out.println("Error occurred while starting the activity.");
+                }
             }
         } else {
             System.out.println("IPTV, null!");
         }
     }
+
 
     public void wait_X() {
         handler = new Handler();
@@ -242,11 +274,15 @@ public class SkyActionActivity extends AppCompatActivity {
 
         wait_X();
 
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        urlString = preferenceManager.getKey("isLocalPORT");
+        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
         // URL to check
-        String url = "http://localhost:5001/live/144.m3u8";
+        url = urlString+urlchannel;
 
         // Execute AsyncTask to check status code
-        new SkyActionActivity.CheckStatusTask().execute(url);
+        executorService.execute(new CheckStatusTask(urlString + urlchannel));
 
         wait_X();
 
@@ -264,11 +300,14 @@ public class SkyActionActivity extends AppCompatActivity {
 
 
     public void loginstatus2() {
-
-        String url = "http://localhost:5001/live/144.m3u8";
-
         SkySharedPref preferenceManager = new SkySharedPref(SkyActionActivity.this);
-        String loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
+        loginChecker = preferenceManager.getKey("server_setup_isLoginCheck");
+        urlString = preferenceManager.getKey("isLocalPORT");
+        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
+        url = urlString+urlchannel;
+        Log.d("StyleP","dw "+url);
+
 
         if (loginChecker != null && !loginChecker.isEmpty()) {
             if (loginChecker.equals("No")) {
@@ -276,34 +315,39 @@ public class SkyActionActivity extends AppCompatActivity {
                 runner2x();
             } else {
                 System.out.println("loginChecker on");
-                new SkyActionActivity.CheckStatusTask().execute(url);
+                executorService.execute(new CheckStatusTask(urlString + urlchannel));
+                executorService.execute(new CheckStatusTask(urlString + urlchannel));
             }
         } else {
             System.out.println("loginChecker Null");
-            new SkyActionActivity.CheckStatusTask().execute(url);
+            executorService.execute(new CheckStatusTask(urlString + urlchannel));
 
         }
     }
 
 
-    public class CheckStatusTask extends AsyncTask<String, Void, Integer> {
+    private class CheckStatusTask implements Runnable {
+        private static final int RETRY_DELAY = 3000;
+        private final String urlString;
 
-        private static final int RETRY_DELAY = 3000; // 3 seconds delay for retrying
+        public CheckStatusTask(String urlString) {
+            this.urlString = urlString;
+        }
 
         @Override
-        protected Integer doInBackground(String... urls) {
-            String urlString = urls[0];
+        public void run() {
             Integer responseCode = checkStatus(urlString);
-            if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
-                // Retry after a delay
+            if (responseCode != null && responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
                 try {
-                    Thread.sleep(RETRY_DELAY); // Wait before retrying
-                    responseCode = checkStatus(urlString); // Retry the check
+                    Thread.sleep(RETRY_DELAY);
+                    responseCode = checkStatus(urlString);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            return responseCode;
+
+            final Integer finalResponseCode = responseCode;
+            runOnUiThread(() -> onPostExecute(finalResponseCode));
         }
 
         private Integer checkStatus(String urlString) {
@@ -324,8 +368,7 @@ public class SkyActionActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        protected void onPostExecute(Integer responseCode) {
+        private void onPostExecute(Integer responseCode) {
             if (responseCode != null) {
                 switch (responseCode) {
                     case HttpURLConnection.HTTP_OK:
@@ -350,9 +393,18 @@ public class SkyActionActivity extends AppCompatActivity {
                 Toast.makeText(SkyActionActivity.this, "Login Service Error.", Toast.LENGTH_SHORT).show();
             }
         }
+    }
 
 
-        private void showAlert() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Shutdown the executor service to avoid memory leaks
+        executorService.shutdown();
+    }
+
+
+    private void showAlert() {
             new AlertDialog.Builder(SkyActionActivity.this)
                 .setTitle("Server Error")
                 .setMessage("An error occurred on the server. Do you want to log in again?")
@@ -417,5 +469,6 @@ public class SkyActionActivity extends AppCompatActivity {
         }
 
 
-    }
 }
+
+

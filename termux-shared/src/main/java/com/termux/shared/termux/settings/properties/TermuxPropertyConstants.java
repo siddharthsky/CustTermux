@@ -326,7 +326,17 @@ public final class TermuxPropertyConstants {
     /** Defines the key for extra keys */
     public static final String KEY_EXTRA_KEYS =  "extra-keys"; // Default: "extra-keys"
     //public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[ESC, TAB, CTRL, ALT, {key: '-', popup: '|'}, DOWN, UP]]"; // Single row
-    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]"; // Double row
+    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[{key: 'c', popup: '|'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]"; // Double row
+
+    //public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]"; // Double row
+    //public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[{key: 'c', popup: '|'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], [{key: 'x'},'CTRL','g','LEFT',{key: 't', popup: '|'},'G','PGDN'],[{key: 'c', popup: '|'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'],['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]";
+//    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[\n" +
+//        "  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],\n" +
+//        "  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'TAB'],\n" +
+//        "  ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'END', 'UP', ''],\n" +
+//        "  ['CTRL', 'SHIFT', 'ALT', 'PGUP','END','END','PGDN', 'LEFT', 'DOWN', 'RIGHT']\n" +
+//        "]\n";
+
 
     /** Defines the key for extra keys style */
     public static final String KEY_EXTRA_KEYS_STYLE =  "extra-keys-style"; // Default: "extra-keys-style"

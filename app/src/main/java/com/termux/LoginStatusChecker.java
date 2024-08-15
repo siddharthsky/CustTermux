@@ -13,6 +13,9 @@ import androidx.core.content.ContextCompat;
 
 public class LoginStatusChecker {
 
+    private static String URL_LINK ;
+    private static String urlString;
+    private static String urlchannel;
     private Handler handler;
     private Runnable runnable;
     private TextView loginStatusTextView;
@@ -40,9 +43,16 @@ public class LoginStatusChecker {
     }
 
     private void checkServerStatus() {
+        // Initialize SkySharedPref and get the port from preferences
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+        urlString = preferenceManager.getKey("isLocalPORT");
+        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
+
         new Thread(() -> {
+            URL_LINK = urlString+urlchannel;
             try {
-                URL url = new URL("http://localhost:5001/live/144.m3u8");
+                URL url = new URL(URL_LINK);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setConnectTimeout(3000); // 3 seconds timeout
                 urlConnection.connect();

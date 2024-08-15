@@ -1,10 +1,13 @@
 package com.termux.app;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -46,7 +50,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.AppSelectorActivity;
-import com.termux.LoginActivity2;
+import com.termux.app.sky.SkyTVz;
+import com.termux.setup_login.LoginActivity2;
 import com.termux.LoginStatusChecker;
 import com.termux.R;
 import com.termux.ServerStatusChecker;
@@ -250,11 +255,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
 
     private ImageView downloadIcon;
+    private ImageView copyIcon;
 
     private static final int PERMISSION_REQUEST_CODE = 1;
-    private static final String DOWNLOAD_URL = "http://localhost:5001/playlist.m3u";
+    private static String DOWNLOAD_URL;
 
     private TextView ipAddressTextView;
+    private TextView textplay;
     private TextView serverStatusTextView;
     private ServerStatusChecker serverStatusChecker;
     private LoginStatusChecker loginStatusChecker;
@@ -270,11 +277,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TermuxActivityResume termuxActivityResume;
 
     private Runnable stopRunnable;
+    private String urlport;
+    private String urlportonly;
+    private String downloadUrl;
+    private String copy_text;
+    private String ipport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
         mIsOnResumeAfterOnCreate = true;
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        DOWNLOAD_URL = preferenceManager.getKey("isLocalPORT");
+
+
 
         if (savedInstanceState != null)
             mIsActivityRecreated = savedInstanceState.getBoolean(ARG_ACTIVITY_RECREATED, false);
@@ -322,6 +340,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button7 = findViewById(R.id.button7);
         Button button8 = findViewById(R.id.button8);
         ImageView downloadIconx = findViewById(R.id.ic_download);
+        ImageView copyIcon = findViewById(R.id.ic_copycat);
 
         button1.requestFocus();
 
@@ -346,7 +365,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button7.setOnFocusChangeListener(tooltipFocusListener);
         button8.setOnFocusChangeListener(tooltipFocusListener);
         downloadIconx.setOnFocusChangeListener(tooltipFocusListener);
-
+        copyIcon.setOnFocusChangeListener(tooltipFocusListener);
 
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -436,21 +455,30 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 String appclass = preferenceManager.getKey("app_launchactivity");
 
                 if (apppkg != null && !apppkg.isEmpty()) {
-                    if (apppkg.equals("null")) {
-                        Toast.makeText(TermuxActivity.this, "IPTV is not set up. Please setup.", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
-                        startActivity(intent);
-                    } else if (apppkg.equals("sky_web_tv")) {
-                        Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
-                        startActivity(intent);
-                    } else {
-                        Intent intent = new Intent();
-                        intent.setComponent(new ComponentName(apppkg, appclass));
-                        startActivity(intent);
+                    try {
+                        if (apppkg.equals("null")) {
+                            System.out.println("A11");
+                            Toast.makeText(TermuxActivity.this, "IPTV is not set up. Please setup.", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
+                            startActivity(intent);
+                        } else if (apppkg.equals("sky_web_tv")) {
+                            System.out.println("A12");
+                            Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
+                            startActivity(intent);
+                        } else {
+                            System.out.println("A13");
+                            Intent intent = new Intent();
+                            intent.setComponent(new ComponentName(apppkg, appclass));
+                            startActivity(intent);
+                        }
+                    } catch (ActivityNotFoundException e) {
+                        System.out.println("Unable to open the specified app.");
+                        Toast.makeText(TermuxActivity.this, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         });
+
 
         button3.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -482,76 +510,76 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //            }
 //        });
 
+        ButtonClick6ListenerUtil.setButtonClickListener(TermuxActivity.this, button6);
+
 //        button6.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-//                 Handle button5 click
-//                sky_net();
-//                sky_runcode();
+//                ButtonClick6ListenerUtil.setButtonClickListener(TermuxActivity.this, button6);
 //            }
 //        });
 
 
-        button6.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Create an AlertDialog Builder with the custom style
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext(), R.style.CustomAlertDialogTheme);
-
-                // Set the dialog title
-                builder.setTitle("Choose an option");
-
-                // Add a radio button list
-                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
-                final int[] selectedOption = {-1}; // Store the selected option
-
-                builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Store the selected option
-                        selectedOption[0] = which;
-                    }
-                });
-
-                // Add OK and Cancel buttons
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // User clicked OK button
-                        // Handle the selected option
-                        switch (selectedOption[0]) {
-                            case 0:
-                                // Option 1 selected
-                                sky_update();
-                                break;
-                            case 1:
-                                // Option 2 selected
-                                sky_reinstall();
-                                break;
-                            case 2:
-                                // Option 4 selected
-                                lake_alert_confirmation(v.getContext());
-                                break;
-                            default:
-                                // No option selected or invalid
-                                break;
-                        }
-                    }
-                });
-
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // User cancelled the dialog
-                        dialog.dismiss();
-                    }
-                });
-
-                // Create and show the AlertDialog
-                AlertDialog dialog = builder.create();
-                dialog.show();
-            }
-        });
+//        button6.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Create an AlertDialog Builder with the custom style
+//                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext(), R.style.CustomAlertDialogTheme);
+//
+//                // Set the dialog title
+//                builder.setTitle("Choose an option");
+//
+//                // Add a radio button list
+//                String[] options = {"Update JioTV Go", "Reinstall", "Switch to Terminal"};
+//                final int[] selectedOption = {-1}; // Store the selected option
+//
+//                builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // Store the selected option
+//                        selectedOption[0] = which;
+//                    }
+//                });
+//
+//                // Add OK and Cancel buttons
+//                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // User clicked OK button
+//                        // Handle the selected option
+//                        switch (selectedOption[0]) {
+//                            case 0:
+//                                // Option 1 selected
+//                                sky_update();
+//                                break;
+//                            case 1:
+//                                // Option 2 selected
+//                                sky_reinstall();
+//                                break;
+//                            case 2:
+//                                // Option 4 selected
+//                                lake_alert_confirmation(v.getContext());
+//                                break;
+//                            default:
+//                                // No option selected or invalid
+//                                break;
+//                        }
+//                    }
+//                });
+//
+//                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // User cancelled the dialog
+//                        dialog.dismiss();
+//                    }
+//                });
+//
+//                // Create and show the AlertDialog
+//                AlertDialog dialog = builder.create();
+//                dialog.show();
+//            }
+//        });
 
 
         button7.setOnClickListener(new View.OnClickListener() {
@@ -597,7 +625,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //                }
 //                isWebViewVisible = !isWebViewVisible;
 
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://localhost:5001/"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(DOWNLOAD_URL));
                 startActivity(browserIntent);
             }
         });
@@ -615,20 +643,49 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
         ipAddressTextView = findViewById(R.id.ip_address);
+        textplay = findViewById(R.id.textplay);
 //        TextView serverStatusTextView = findViewById(R.id.server_status);
 //        TextView loginStatusTextView = findViewById(R.id.login_status);
 
-        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+//        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
         String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
 
         if (Objects.equals(isLOCAL, "Yes")) {
             Log.d("d", "Server is Local!");
             ipAddressTextView.setText("localhost");
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist url: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
+
         } else {
             // Get and display Wi-Fi IP address
             String wifiIpAddress = getWifiIpAddress(this);
+            preferenceManager.setKey("server_setup_wifiip",wifiIpAddress);
             ipAddressTextView.setText(wifiIpAddress);
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist url: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
         }
+
+        textplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startCOPY();
+            }
+        });
+
+
+
 
 
 //        // Start checking server status
@@ -643,11 +700,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         ipAddressTextView = findViewById(R.id.ip_address);
         downloadIcon = findViewById(R.id.ic_download);
+        copyIcon = findViewById(R.id.ic_copycat);
 
         downloadIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDownloadButtonClick();
+            }
+        });
+
+        copyIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startCOPY();
             }
         });
 
@@ -722,6 +787,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
 
+
+    private void startFlashingEffect(TextView textView) {
+        ObjectAnimator animator = ObjectAnimator.ofInt(textView, "textColor", Color.WHITE, Color.RED);
+        animator.setDuration(750);
+        animator.setEvaluator(new android.animation.ArgbEvaluator());
+        animator.setRepeatCount(ObjectAnimator.INFINITE);
+        animator.setRepeatMode(ObjectAnimator.REVERSE);
+        animator.start();
+    }
+
+    private void startCOPY() {
+        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+        copy_text = preferenceManager.getKey("temp_playlist");
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("playlist_link", copy_text);
+        clipboard.setPrimaryClip(clip);
+
+        // Show a toast message
+        Toast.makeText(getApplicationContext(), "Playlist link copied to clipboard", Toast.LENGTH_SHORT).show();
+
+
+    }
 
 
     private void sky_config() {
@@ -1234,6 +1321,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         preferenceManager.setKey("isExit", "noExit");
         preferenceManager.setKey("server_setup_isEPG", "Yes");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
+        preferenceManager.setKey("server_setup_isSSH", "No");
 
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -1258,7 +1346,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         startService(intentC);
     }
 
+
+
     private void sky_exit() {
+        Intent intent = new Intent(TermuxActivity.this, SkyTVz.class);
+        startActivity(intent);
+        Utils.showCustomToast(this,"KRYPTONITE");
+    }
+
+    private void sky_exit_alt() {
         // Finish current activity
         finish();
 
@@ -1268,6 +1364,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Official killer
         XStopTermux();
+        System.exit(0);
     }
 
     private void sky_getter(){
@@ -1302,7 +1399,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
-    private void sky_terminal() {
+    public void sky_terminal() {
         TerminalView terminalView = findViewById(R.id.terminal_view);
 
         // Change focusable properties
@@ -1350,6 +1447,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                     if (extraString != null && !extraString.isEmpty()) {
                         fileName += "_" + extraString;
                     }
+                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                    ipport = preferenceManager.getKey("isLocalPORTonly");
+                    fileName += "_" + ipport;
                     fileName += ".m3u";
 
 
@@ -1396,7 +1496,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             DialogInterface.OnClickListener localListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    downloadFile(DOWNLOAD_URL, "local");
+                    urlport = preferenceManager.getKey("isLocalPORT");
+                    downloadUrl = urlport+"playlist.m3u";
+                    downloadFile(downloadUrl, "local");
                 }
             };
 
@@ -1404,14 +1506,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     String wifiIpAddress = getWifiIpAddress();
-                    String downloadUrl = "http://" + wifiIpAddress + ":5001/playlist.m3u";
+                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
+                    urlportonly = preferenceManager.getKey("isLocalPORTonly");
+                    downloadUrl = "http://" + wifiIpAddress + ":"+urlportonly+"/playlist.m3u";
                     downloadFile(downloadUrl, wifiIpAddress);
                 }
             };
 
             if (isLocal != null && !isLocal.isEmpty()) {
                 if (isLocal.equals("Yes")) {
-                    downloadFile(DOWNLOAD_URL, "local");
+                    urlport = preferenceManager.getKey("isLocalPORT");
+                    downloadUrl = urlport+"playlist.m3u";
+                    downloadFile(downloadUrl, "local");
                 } else {
                     Utils.showAlertbox_playlist(this, localListener, publicListener);
                 }
@@ -1432,23 +1538,31 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onStart() {
         super.onStart();
-
         SkySharedPref preferenceManager = new SkySharedPref(this);
         String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
 
         if (serverSetupDone != null && serverSetupDone.equals("Done")) {
             //sky_exit();
         } else {
+            preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
+            preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
+            preferenceManager.setKey("isLocalPORTonly", "5001");
             preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
             preferenceManager.setKey("server_setup_isAutoboot", "No");
             preferenceManager.setKey("server_setup_isLocal", "No");
             preferenceManager.setKey("app_name", "null");
+            preferenceManager.setKey("app_launchactivity", "null");
             preferenceManager.setKey("isExit", "noExit");
             preferenceManager.setKey("server_setup_isEPG", "Yes");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
+            preferenceManager.setKey("server_setup_isSSH", "No");
+
+
+//            Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
             startActivity(intent);
         }
+       // Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
 
         Logger.logDebug(LOG_TAG, "onStart");
 

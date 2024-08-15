@@ -12,18 +12,23 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.termux.R;
+import com.termux.SkySharedPref;
 
 public class WebPlayerActivity_bck extends AppCompatActivity {
 
     private WebView webView;
     private int urlIndex = 1;
-    private static final String BASE_URL = "http://localhost:5001/player/143";
+    private static String BASE_URL;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_player);
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        BASE_URL = preferenceManager.getKey("isLocalPORT");
 
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
