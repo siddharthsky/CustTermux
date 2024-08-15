@@ -50,6 +50,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.AppSelectorActivity;
+import com.termux.app.sky.SkyTVz;
 import com.termux.setup_login.LoginActivity2;
 import com.termux.LoginStatusChecker;
 import com.termux.R;
@@ -1348,6 +1349,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
     private void sky_exit() {
+        Intent intent = new Intent(TermuxActivity.this, SkyTVz.class);
+        startActivity(intent);
+        Utils.showCustomToast(this,"KRYPTONITE");
+    }
+
+    private void sky_exit_alt() {
         // Finish current activity
         finish();
 
