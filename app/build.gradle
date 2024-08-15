@@ -42,20 +42,7 @@ android {
         implementation project(":termux-shared")
     }
 
-    dependencies {
-        def leanback_version = "1.2.0-alpha04"
 
-        implementation "androidx.leanback:leanback:$leanback_version"
-
-        // leanback-preference is an add-on that provides a settings UI for TV apps.
-        implementation "androidx.leanback:leanback-preference:$leanback_version"
-
-        // leanback-paging is an add-on that simplifies adding paging support to a RecyclerView Adapter.
-        implementation "androidx.leanback:leanback-paging:1.1.0-alpha11"
-
-        // leanback-tab is an add-on that provides customized TabLayout to be used as the top navigation bar.
-        implementation "androidx.leanback:leanback-tab:1.1.0-beta01"
-    }
 
 
     defaultConfig {
