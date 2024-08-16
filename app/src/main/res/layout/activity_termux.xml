@@ -54,6 +54,18 @@
                 android:textSize="14sp"
                 android:tooltipText="ReRun CustTermux" />
 
+            <Button
+                android:id="@+id/button6_5"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector_fancy"
+                android:contentDescription="Stop"
+                android:text="ℹ️ UPDATE"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Update Available" />
+
 
             <Button
                 android:id="@+id/button1_5"
@@ -141,6 +153,8 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:tooltipText="Extra Utilities" />
+
+
 
             <Button
                 android:id="@+id/button7"
