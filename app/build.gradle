@@ -36,6 +36,8 @@ android {
 
         implementation "com.airbnb.android:lottie:5.0.1"
 
+//        implementation "com.google.android.exoplayer:exoplayer:2.16.0"
+
 
 
         implementation project(":terminal-view")

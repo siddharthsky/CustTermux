@@ -130,6 +130,17 @@
         </activity>
 
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+
 
         <activity-alias
             android:name=".HomeActivity"
@@ -236,6 +247,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+        </activity>
+
+        <activity android:name=".VideoActivity"
+            android:theme="@style/AppThemex"
+            android:exported="true">
         </activity>
 
         <activity android:name=".AppSelectorActivity" />
