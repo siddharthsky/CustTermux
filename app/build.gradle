@@ -175,9 +175,12 @@ android {
 dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'com.google.android.gms:play-services-maps:19.0.0'
+    implementation 'org.jetbrains:annotations:15.0'
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
 }
 
 task versionName {
