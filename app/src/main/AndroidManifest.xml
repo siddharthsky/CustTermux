@@ -69,7 +69,6 @@
             android:name=".KickStart"
             android:configChanges="orientation|screenSize|smallestScreenSize|density|screenLayout|keyboard|keyboardHidden|navigation"
             android:exported="true"
-            android:label="@string/application_name"
             android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:theme="@style/Theme.TermuxActivity.DayNight.NoActionBar"
@@ -129,6 +128,17 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
 
 
@@ -224,6 +234,11 @@
         <activity android:name=".VideoPlayerActivity"
             android:exported="true"/>
 
+        <activity android:name=".tv_ui.TVPlayer"
+            android:exported="true"/>
+        <activity android:name=".tv_ui.PlaybackActivity"
+            android:exported="true"/>
+
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
             android:exported="true">
@@ -232,6 +247,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+        </activity>
+
+        <activity android:name=".VideoActivity"
+            android:theme="@style/AppThemex"
+            android:exported="true">
         </activity>
 
         <activity android:name=".AppSelectorActivity" />

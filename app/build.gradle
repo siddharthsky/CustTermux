@@ -36,26 +36,15 @@ android {
 
         implementation "com.airbnb.android:lottie:5.0.1"
 
+//        implementation "com.google.android.exoplayer:exoplayer:2.16.0"
+
 
 
         implementation project(":terminal-view")
         implementation project(":termux-shared")
     }
 
-    dependencies {
-        def leanback_version = "1.2.0-alpha04"
 
-        implementation "androidx.leanback:leanback:$leanback_version"
-
-        // leanback-preference is an add-on that provides a settings UI for TV apps.
-        implementation "androidx.leanback:leanback-preference:$leanback_version"
-
-        // leanback-paging is an add-on that simplifies adding paging support to a RecyclerView Adapter.
-        implementation "androidx.leanback:leanback-paging:1.1.0-alpha11"
-
-        // leanback-tab is an add-on that provides customized TabLayout to be used as the top navigation bar.
-        implementation "androidx.leanback:leanback-tab:1.1.0-beta01"
-    }
 
 
     defaultConfig {
@@ -188,9 +177,14 @@ android {
 dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'com.google.android.gms:play-services-maps:19.0.0'
+    implementation 'org.jetbrains:annotations:15.0'
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+
 }
 
 task versionName {

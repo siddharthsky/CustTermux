@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -136,6 +137,7 @@ public class Utils {
     public static void sky_reinstall(Context context) {
         SkySharedPref preferenceManager = new SkySharedPref(context);
         preferenceManager.setKey("isServerSetupDone", null);
+
         preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
         preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
         preferenceManager.setKey("isLocalPORTonly", "5001");
@@ -148,6 +150,7 @@ public class Utils {
         preferenceManager.setKey("server_setup_isEPG", "Yes");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
+
 
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -391,16 +394,16 @@ public class Utils {
         dialog.show();
     }
 
-//    public static void showLoginDialog(Context context) {
-//        LayoutInflater inflater = LayoutInflater.from(context);
-//        View dialogView = inflater.inflate(R.layout.activity_login_setup_dialog, null);
-//
-//        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-//        builder.setView(dialogView);
-//
-//        AlertDialog dialog = builder.create();
-//        dialog.show();
-//    }
+
+    public static String getCurrentVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return "0.0.0"; // Default version if not found
+    }
 
 }
 
