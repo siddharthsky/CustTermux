@@ -12,7 +12,7 @@ import android.widget.TextView;
 import androidx.leanback.widget.Presenter;
 
 import com.termux.R;
-import com.termux.app.sky.VideoItem;
+import com.termux.tv_ui.VideoItemsTV;
 
 public class CardPresenter extends Presenter {
 
@@ -25,7 +25,7 @@ public class CardPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        VideoItem videoItem = (VideoItem) item;
+        VideoItemsTV videoItem = (VideoItemsTV) item;
 
         TextView title = viewHolder.view.findViewById(R.id.video_title);
         ImageView thumbnail = viewHolder.view.findViewById(R.id.video_thumbnail);

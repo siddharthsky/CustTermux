@@ -90,6 +90,7 @@ import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
+import com.termux.tv_ui.TVPlayer;
 import com.termux.view.TerminalView;
 import com.termux.view.TerminalViewClient;
 
@@ -1349,7 +1350,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
     private void sky_exit() {
-        Intent intent = new Intent(TermuxActivity.this, SkyTVz.class);
+        Intent intent = new Intent(TermuxActivity.this, TVPlayer.class);
         startActivity(intent);
         Utils.showCustomToast(this,"KRYPTONITE");
     }

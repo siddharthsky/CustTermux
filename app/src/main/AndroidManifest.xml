@@ -223,6 +223,11 @@
         <activity android:name=".VideoPlayerActivity"
             android:exported="true"/>
 
+        <activity android:name=".tv_ui.TVPlayer"
+            android:exported="true"/>
+        <activity android:name=".tv_ui.PlaybackActivity"
+            android:exported="true"/>
+
         <activity android:name=".WebPlayerActivity"
             android:theme="@style/AppThemex"
             android:exported="true">
