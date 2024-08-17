@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Detect the shell
