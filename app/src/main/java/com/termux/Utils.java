@@ -150,6 +150,7 @@ public class Utils {
         preferenceManager.setKey("server_setup_isEPG", "Yes");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
+        preferenceManager.setKey("isDelayTime", "5");
 
         File downloadDir = Utils.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");

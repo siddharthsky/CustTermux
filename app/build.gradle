@@ -154,7 +154,7 @@ android {
             case "apt-android-7":
                 return ""
             case "apt-android-5":
-                return "android_5"
+                return "_android_5"
             default:
                 return variantName
         }
@@ -167,7 +167,7 @@ android {
             def versionCust = project.ext.versionCust
             def buildTypeName = variant.buildType.name
 
-            outputFileName = "CustTermux_${versionCust}_${customVariantName}_${abi ? abi : 'universal'}.apk"
+            outputFileName = "CustTermux_${versionCust}${customVariantName}_${abi ? abi : 'universal'}.apk"
         }
     }
 

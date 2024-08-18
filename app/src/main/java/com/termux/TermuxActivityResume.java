@@ -190,7 +190,13 @@ public class TermuxActivityResume {
         iptvNameTextView.setText("Opening " + appName);
 
         TextView countdownTextView = dialogView.findViewById(R.id.countdown_timer);
-        final int countdownDuration = 6000; // 5 seconds
+
+        String isDelayTime = preferenceManager.getKey("isDelayTime");
+        int delayTime = Integer.parseInt(isDelayTime);
+
+        final int countdownDuration = delayTime * 1000;
+        Log.d("DIX-time", String.valueOf(countdownDuration));
+//        final int countdownDuration = 6000; // 6 seconds (1sec lost during login check)
         countdownTextView.setText((countdownDuration / 1000) + "s");
 
         iptvAlertDialog = builder.create();

@@ -1153,6 +1153,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("server_setup_isEPG", "Yes");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
+            preferenceManager.setKey("isDelayTime", "5");
 
 
             Utils.changeIconTOFirst(this);
