@@ -316,7 +316,7 @@ public class SkyActionActivity extends AppCompatActivity {
             } else {
                 System.out.println("loginChecker on");
                 executorService.execute(new CheckStatusTask(urlString + urlchannel));
-                executorService.execute(new CheckStatusTask(urlString + urlchannel));
+                //executorService.execute(new CheckStatusTask(urlString + urlchannel));
             }
         } else {
             System.out.println("loginChecker Null");

@@ -41,9 +41,11 @@ public class SetupActivityApp extends AppCompatActivity {
     private TextView textSSH;
     private TextView textselectedAPP;
     private Button IPTVbtn;
+    private Button IPTVtim;
     private Button PORTbtn;
     private Button restartButton;
     private View IPTVbtnlay;
+    private View IPTVtimlay;
     private LinearLayout rbl;
     private LinearLayout sid;
 
@@ -92,6 +94,8 @@ public class SetupActivityApp extends AppCompatActivity {
         PORTbtn = findViewById(R.id.PORTbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
+        IPTVtim = findViewById(R.id.IPTVtim);
+        IPTVtimlay = findViewById(R.id.IPTVtimlay);
 
         sid2 = findViewById(R.id.sid2);
         sid2.setOnClickListener(new View.OnClickListener() {
@@ -194,12 +198,17 @@ public class SetupActivityApp extends AppCompatActivity {
         switchAutostart.setChecked(autostartAppName != null && !"null".equals(autostartAppName));
         if (!switchAutostart.isChecked()) {
             IPTVbtnlay.setVisibility(View.GONE);
+            IPTVtimlay.setVisibility(View.GONE);
         }else {
             String app_namex = preferenceManager.getKey("app_name_x");
+            String isDelayTime = preferenceManager.getKey("isDelayTime");
             if (app_namex == null || app_namex.isEmpty()) {
                 textselectedAPP.setText("Selected App: empty");
+                IPTVtim.setText("5 Sec");
             } else {
                 String c_app_namex = "Selected App: " + app_namex;
+                String isDelayTimestr = isDelayTime+" Sec";
+                IPTVtim.setText(isDelayTimestr);
                 textselectedAPP.setText(c_app_namex);
             }
         }
@@ -255,10 +264,14 @@ public class SetupActivityApp extends AppCompatActivity {
                 Utils.showCustomToast(SetupActivityApp.this, "Autostart IPTV: " + (isChecked ? "On" : "No"));
                 if (isChecked) {
                     IPTVbtnlay.setVisibility(View.VISIBLE);
+                    IPTVtimlay.setVisibility(View.VISIBLE);
                 } else {
                     IPTVbtnlay.setVisibility(View.GONE);
+                    IPTVtimlay.setVisibility(View.GONE);
                     preferenceManager.setKey("app_name", "null");
                     preferenceManager.setKey("app_name_x", "null");
+                    preferenceManager.setKey("isDelayTime", "5");
+                    IPTVtim.setText("5 Sec");
                 }
             }
         });
@@ -348,6 +361,22 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        IPTVtim.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.sky_changedelay(SetupActivityApp.this, new OnTimeChangeListener() {
+                    @Override
+                    public void OnTimeChanged(String newTime) {
+                        // Update the button text with the new port number
+                        IPTVtim.setText(newTime+" Sec");
+                        // Optionally, show a toast message
+                        // Utils.showCustomToast(SetupActivityApp.this, "Changed port to " + newPort);
+                        Utils.showCustomToast(SetupActivityApp.this, "Restarting CustTermux to apply changes");
+                    }
+                });
+            }
+        });
+
         PORTbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -378,6 +407,10 @@ public class SetupActivityApp extends AppCompatActivity {
         void onPortChanged(String newPort);
     }
 
+    public interface OnTimeChangeListener {
+        void OnTimeChanged(String newTime);
+    }
+
     private void setupFocusListeners() {
         View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
             @Override
@@ -398,6 +431,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchBANNER.setOnFocusChangeListener(focusChangeListener);
         switchSSH.setOnFocusChangeListener(focusChangeListener);
         IPTVbtn.setOnFocusChangeListener(focusChangeListener);
+        IPTVtim.setOnFocusChangeListener(focusChangeListener);
         PORTbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
     }

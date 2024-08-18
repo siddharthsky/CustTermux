@@ -151,6 +151,9 @@ public class Utils {
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
 
+        File downloadDir = Utils.getDownloadDirectory(context);
+        File file = new File(downloadDir, "update.apk");
+        boolean isDeleted = Utils.deleteFile(file);
 
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -292,9 +295,26 @@ public class Utils {
     }
 
 
+//    public static void updateCustTermux(Context context) {
+//        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux-JioTVGo/releases"));
+//        context.startActivity(browserIntent);
+//    }
+
     public static void updateCustTermux(Context context) {
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux-JioTVGo/releases"));
-        context.startActivity(browserIntent);
+        File downloadDir = Utils.getDownloadDirectory(context);
+        File file = new File(downloadDir, "update.apk");
+        boolean isDeleted = Utils.deleteFile(file);
+        Toast.makeText(context, "Applying Fix", Toast.LENGTH_SHORT).show();
+
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+        if (intent != null) {
+            if (context instanceof Activity) {
+                ((Activity) context).finish();
+            }
+            Log.d("SkyLog", "Out Of The App");
+            context.startActivity(intent);
+            System.exit(0);
+        }
     }
 
     public static void sky_changeport(final Context context, final SetupActivityApp.OnPortChangeListener listener) {
@@ -394,6 +414,96 @@ public class Utils {
         dialog.show();
     }
 
+    public static void sky_changedelay(final Context context, final SetupActivityApp.OnTimeChangeListener listener) {
+
+        // Create an EditText for input
+        final EditText input = new EditText(context);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+
+        // Set the text color
+        input.setTextColor(ContextCompat.getColor(context, R.color.text_color_white));
+        input.setBackground(ContextCompat.getDrawable(context, R.drawable.edittext_underline_green));
+
+        // Restrict input to 1 digit
+        input.setFilters(new InputFilter[]{
+            new InputFilter.LengthFilter(1), // Limit to 1 character
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                    // Allow only digits
+                    if (TextUtils.isEmpty(source)) {
+                        return null; // Let empty input pass through
+                    }
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return ""; // Reject non-digit characters
+                        }
+                    }
+                    return null; // Accept digits
+                }
+            }
+        });
+
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+            .setTitle("Enter Delay Time to Redirect to IPTV")
+            .setMessage("Please enter Delay time:")
+            .setView(input)
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String portStr = input.getText().toString();
+
+                    if (portStr.matches("\\d{1}")) {
+                        int timeD = Integer.parseInt(portStr);
+
+                        if (timeD < 2) {
+                            preferenceManager.setKey("isDelayTime", String.valueOf(2));
+                            Utils.showCustomToast(context, "Time cannot be set below 2 seconds.");
+                            Utils.showCustomToast(context, "Delay time updated to: 2 Sec");
+                        } else {
+                            preferenceManager.setKey("isDelayTime", String.valueOf(timeD));
+                            Utils.showCustomToast(context, "Delay time updated to: " + timeD + " Sec");
+
+                            // Notify the listener about the time change
+                            if (listener != null) {
+                                listener.OnTimeChanged(portStr);
+                            }
+                        }
+                    } else {
+                        Utils.showCustomToast(context, "Please enter a valid time.");
+                    }
+                }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                input.requestFocus();
+                // Show the keyboard automatically
+                input.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                }, 200);
+            }
+        });
+
+        dialog.show();
+    }
+
+
 
     public static String getCurrentVersion(Context context) {
         try {
@@ -403,6 +513,35 @@ public class Utils {
             e.printStackTrace();
         }
         return "0.0.0"; // Default version if not found
+    }
+
+    public static boolean deleteFile(File file) {
+        if (file != null && file.exists()) {
+            boolean deleted = file.delete();
+            if (deleted) {
+                Log.d("Update Cleaner", "File deleted successfully: " + file.getAbsolutePath());
+            } else {
+                Log.e("Update Cleaner", "Failed to delete file: " + file.getAbsolutePath());
+            }
+            return deleted;
+        } else {
+            Log.e("Update Cleaner", "File not found or null: " + (file != null ? file.getAbsolutePath() : "null"));
+            return false;
+        }
+    }
+
+
+    public static File getDownloadDirectory(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // For Android 11 (API level 30) and above, use the MediaStore API
+            return new File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "");
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // For Android 10 (API level 29), use getExternalFilesDir
+            return context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        } else {
+            // For Android 9 (API level 28) and below
+            return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        }
     }
 
 }
