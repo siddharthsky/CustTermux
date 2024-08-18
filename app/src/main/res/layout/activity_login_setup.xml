@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="32dp"
     android:id="@+id/scroll_view"
     android:background="@color/transparent">
@@ -45,11 +46,60 @@
         <!--            android:background="@color/text_color_black"-->
         <!--            android:padding="5dp" />-->
 
-        <!-- Grid Layout for Inputs and Buttons -->
-        <GridLayout
+        <RelativeLayout
+            android:id="@+id/RLONE"
+            android:layout_below="@id/server_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/server_status"
+            android:layout_marginTop="10dp">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchLOGIN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:checked="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:thumb="@drawable/sw_thumb"
+                app:track="@drawable/sw_track" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/switchLOGIN"
+                android:orientation="vertical"
+                android:paddingStart="0dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="3dp"
+                    android:textColor="@android:color/white"
+                    android:background="@color/text_color_black"
+                    android:text="Login via OTP"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/subtextLOGIN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="3dp"
+                    android:textColor="@color/color_gray"
+                    android:background="@color/text_color_black"
+                    android:text="Currently logging in via OTP"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Grid Layout for Inputs and Buttons -->
+        <GridLayout
+            android:id="@+id/GRID1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/RLONE"
             android:layout_marginTop="5dp"
             android:columnCount="2"
             android:rowCount="3">
@@ -150,6 +200,97 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
         </GridLayout>
+
+        <!-- Grid Layout for Inputs and Buttons -->
+        <GridLayout
+            android:id="@+id/GRID2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/GRID1"
+            android:layout_marginTop="5dp"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:visibility="gone"
+            >
+
+            <TextView
+                android:id="@+id/step_one_title2xpass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_row="0"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_marginTop="10dp"
+                android:text="Enter Phone No."
+                android:textSize="18sp"
+                android:textColor="@android:color/white"
+                android:background="@color/text_color_black"
+                android:padding="5dp" />
+
+            <TextView
+                android:id="@+id/step_one_title2xxpass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_row="0"
+                android:layout_column="1"
+                android:layout_columnWeight="1"
+                android:layout_marginTop="10dp"
+                android:text="Enter Password"
+                android:textSize="18sp"
+                android:textColor="@android:color/white"
+                android:background="@color/text_color_black"
+                android:padding="5dp" />
+
+
+
+            <!-- Phone Number Input Field -->
+            <EditText
+                android:id="@+id/input_numberpass"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_row="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:hint="987654321"
+                android:inputType="phone"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+            <!-- OTP Input Field -->
+            <EditText
+                android:id="@+id/input_otppass"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_row="1"
+                android:layout_column="1"
+                android:layout_columnWeight="1"
+                android:layout_marginStart="10dp"
+                android:hint="password"
+                android:inputType="textPassword"
+                android:textSize="20sp"
+                android:padding="10dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </GridLayout>
+
+        <!-- Verify OTP Button -->
+        <Button
+            android:id="@+id/button_login_password"
+            android:layout_below="@id/GRID2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="0dp"
+            android:text="Login"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/button_background_selector"
+            android:textSize="15sp"
+            android:padding="0dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:visibility="gone"/>
 
     </RelativeLayout>
 
