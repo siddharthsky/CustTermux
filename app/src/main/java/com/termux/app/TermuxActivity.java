@@ -1,6 +1,7 @@
 package com.termux.app;
 
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.Manifest;
@@ -38,6 +39,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
 import android.view.autofill.AutofillManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -634,6 +636,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         animator.start();
     }
 
+
+
     private void startCOPY() {
         SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
         copy_text = preferenceManager.getKey("temp_playlist");
@@ -927,7 +931,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void LMN() {
         // Your logic for function LMN()
-        Toast.makeText(this, "Restarting after 5 reruns", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Restarting after 2 reruns", Toast.LENGTH_SHORT).show();
         Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
         if (intent != null) {
             // Finish current activity
@@ -1149,6 +1153,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("server_setup_isEPG", "Yes");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
+
+
+            Utils.changeIconTOFirst(this);
 
 
 //            Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
