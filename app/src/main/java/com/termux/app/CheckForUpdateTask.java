@@ -1,15 +1,18 @@
 package com.termux.app;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 
 import androidx.core.app.ActivityCompat;
@@ -33,6 +36,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.termux.BuildConfig;
+
 
 public class CheckForUpdateTask {
 
@@ -94,7 +99,10 @@ public class CheckForUpdateTask {
         ((Activity) context).runOnUiThread(() -> {
             updateButton = ((Activity) context).findViewById(R.id.button6_5);
             if (updateButton != null) {
+
+                startFlashAnimation(updateButton);
                 updateButton.setVisibility(View.VISIBLE);
+
                 updateButton.setOnClickListener(v -> {
                     File file = new File(getDownloadDirectory(), "update.apk");
                     if (file.exists()) {
@@ -142,12 +150,23 @@ public class CheckForUpdateTask {
             for (int i = 0; i < assets.length(); i++) {
                 JSONObject asset = assets.getJSONObject(i);
                 String assetName = asset.getString("name");
+                String packageVariant = BuildConfig.TERMUX_PACKAGE_VARIANT;
 
                 if (assetName.contains(arch)) {
-                    downloadUrl = asset.getString("browser_download_url");
-                    downloadFileSize = asset.getLong("size");
-                    Log.d("DL_link", downloadUrl);
-                    return tagName;
+                    // Separate if condition for 'apt-android-5' variant
+                    if (packageVariant.contains("apt-android-5")) {
+                        // Case where assetName contains both arch and "apt-android-5"
+                        downloadUrl = asset.getString("browser_download_url");
+                        downloadFileSize = asset.getLong("size");
+                        Log.d("DL_link", downloadUrl);
+                        return tagName;
+                    } else {
+                        // Case where assetName contains only arch
+                        downloadUrl = asset.getString("browser_download_url");
+                        downloadFileSize = asset.getLong("size");
+                        Log.d("DL_link", downloadUrl);
+                        return tagName;
+                    }
                 }
             }
 
@@ -169,8 +188,8 @@ public class CheckForUpdateTask {
 
     private boolean isNewerVersion(String currentVersion, String latestVersion) {
         // Example comparison logic
-        String LTX = "x0.125.3";
-        String latestVersionPart = LTX.replaceFirst("^x0\\.", "");
+        //tring LTX = "x0.125.3";
+        String latestVersionPart = latestVersion.replaceFirst("^x0\\.", "");
         String currentVersionPart = currentVersion.replaceFirst("^0\\.", "");
         Log.d("DIX1lat", latestVersionPart);
         Log.d("DIX2var", currentVersionPart);
@@ -180,6 +199,17 @@ public class CheckForUpdateTask {
     private String getSystemArchitecture() {
         String arch = "universal"; // Fallback
 
+        // Access the BuildConfig fields
+        String packageVariant = BuildConfig.TERMUX_PACKAGE_VARIANT;
+
+        // Check for the "apt-android-5" variant
+        if ("apt-android-5".equals(packageVariant)) {
+            // Log the variant-specific architecture
+            Log.d("DIX-ARCH", arch +" :: "+packageVariant);
+            return arch;
+        }
+
+        // Otherwise, determine the architecture based on supported ABIs
         if (Build.SUPPORTED_ABIS.length > 0) {
             String firstAbi = Build.SUPPORTED_ABIS[0];
             if (firstAbi.equals("x86_64")) {
@@ -192,9 +222,12 @@ public class CheckForUpdateTask {
                 arch = "arm64-v8a";
             }
         }
-        Log.d("DIX-ARCH", arch);
+
+        // Log the final architecture
+        Log.d("DIX-ARCH", arch +" :: "+packageVariant);
         return arch;
     }
+
 
     private File getDownloadDirectory() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -251,7 +284,7 @@ public class CheckForUpdateTask {
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 BufferedOutputStream outputStream = new BufferedOutputStream(fileOutputStream);
 
-                byte[] buffer = new byte[8192];
+                byte[] buffer = new byte[2097152];
                 int len;
                 long totalBytesRead = 0;
                 while ((len = inputStream.read(buffer)) != -1) {
@@ -290,5 +323,21 @@ public class CheckForUpdateTask {
 
     private interface DownloadCallback {
         void onDownloadComplete(File file);
+    }
+
+
+    private void startFlashAnimation(final Button button) {
+        ValueAnimator colorAnimation = ValueAnimator.ofArgb(Color.parseColor("#FFD700"), Color.parseColor("#DAA520"));
+        colorAnimation.setDuration(1000); // Duration in milliseconds
+        colorAnimation.setInterpolator(new LinearInterpolator());
+        colorAnimation.setRepeatCount(ValueAnimator.INFINITE);
+        colorAnimation.setRepeatMode(ValueAnimator.REVERSE);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                button.setBackgroundColor((int) animator.getAnimatedValue());
+            }
+        });
+        colorAnimation.start();
     }
 }
