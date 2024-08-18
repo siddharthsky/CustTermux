@@ -22,7 +22,7 @@ public class ButtonClick6ListenerUtil {
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Update CustTermux","Reinstall","Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Fix CustTermux Update","Reinstall","Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
