@@ -188,7 +188,7 @@ public class CheckForUpdateTask {
 
     private boolean isNewerVersion(String currentVersion, String latestVersion) {
         // Example comparison logic
-        //tring LTX = "x0.125.3";
+        //String LTX = "x0.125.3";
         String latestVersionPart = latestVersion.replaceFirst("^x0\\.", "");
         String currentVersionPart = currentVersion.replaceFirst("^0\\.", "");
         Log.d("DIX1lat", latestVersionPart);
