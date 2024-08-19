@@ -6,6 +6,7 @@ import android.content.pm.ResolveInfo;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -39,17 +41,21 @@ public class AppSelectorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTheme(R.style.DarkActivityTheme);
-        setContentView(R.layout.activity_app_selector); // Ensure this matches your layout file
+        setContentView(R.layout.activity_app_selector);
+
+        // Enable the home button as an up button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         getSupportActionBar().setTitle("Select IPTV app to launch");
 
-        listView = findViewById(R.id.app_list_view); // This ID should match the ListView ID in your layout file
+        listView = findViewById(R.id.app_list_view);
         packageManager = getPackageManager();
 
         List<AppInfo> appInfoList = new ArrayList<>();
 
         // Add the "WEB TV" option as the first entry
-        Drawable webTvIcon = getResources().getDrawable(R.mipmap.ic_banner2); // Replace with your actual drawable resource
+        Drawable webTvIcon = getResources().getDrawable(R.mipmap.ic_launcher2);
         appInfoList.add(new AppInfo("WEB TV - for standalone use (No IPTV player needed)", "sky_web_tv", webTvIcon));
 
         Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -95,7 +101,6 @@ public class AppSelectorActivity extends AppCompatActivity {
                 editor.putString("app_name_x", selectedApp.appName); // Save app name in app_name_x
                 editor.apply();
 
-                // Show custom Toast
                 LayoutInflater inflater = getLayoutInflater();
                 View toastLayout = inflater.inflate(R.layout.custom_toast, null);
 
@@ -191,7 +196,18 @@ public class AppSelectorActivity extends AppCompatActivity {
             iconView.setImageDrawable(appInfo.appIcon);
             nameView.setText(appInfo.appName);
 
+            nameView.setTextColor(Color.parseColor("#C0C0C0"));
+
             return convertView;
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

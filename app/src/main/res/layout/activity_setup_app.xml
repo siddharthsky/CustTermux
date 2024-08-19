@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/text_color_black"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@color/text_color_black"
+                        android:paddingEnd="8dp"
+                        android:text="Settings"
+                        android:textColor="@android:color/white"
+                        android:textSize="36sp"
+                        android:textStyle="bold" />
+
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/settingsani"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentTop="true"
+                        app:lottie_rawRes="@raw/batmanx"
+                        app:lottie_autoPlay="true"
+                        app:lottie_loop="true" />
+
+                </LinearLayout>
+
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchisLocal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:track="@drawable/sw_track" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchisLocal"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Use Server Publicly"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Enable access to the server from other devices"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchAutoboot"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:track="@drawable/sw_track" />
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchAutoboot"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Auto-Start on Boot"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Launch app automatically when device starts up"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchLoginCheck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:track="@drawable/sw_track" />
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchLoginCheck"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Login Check on Start"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Check for login on start"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchAutostart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:track="@drawable/sw_track" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchAutostart"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Auto-Start IPTV"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Automatically launch IPTV when the app starts"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+
+                <RelativeLayout
+                    android:id="@+id/IPTVbtnlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/IPTVbtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="Select"
+                        android:textColor="@android:color/white" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/IPTVbtn"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="IPTV App Selection"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textselectedAPP"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Select app here"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/IPTVtimlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/IPTVtim"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="5 Sec"
+                        android:textColor="@android:color/white" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/IPTVtim"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="IPTV redirect delay"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textselectedAPP4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Default redirect delay is 5 sec"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <Button
+                        android:id="@+id/PORTbtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="5001"
+                        android:textColor="@android:color/white" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/PORTbtn"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Change Port"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textselectedAPP2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Default port is 5001"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchEPG"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:track="@drawable/sw_track" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchEPG"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="EPG Generation"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Electronic program guide generation"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchBANNER"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:track="@drawable/sw_track" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchBANNER"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Display Generic TV Banner"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Display a generic TV banner icon on the home screen. [can cause issues]"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchSSH"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true"
+                        android:thumb="@drawable/sw_thumb"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:track="@drawable/sw_track" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/switchSSH"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="SSH Access"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textSSH"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="Remote access terminal from other device"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+
+
+                <Button
+                    android:id="@+id/restartButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_margin="10dp"
+                    android:padding="10dp"
+                    android:text="🔄️ Save and Restart"
+                    android:textColor="@android:color/white" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingBottom="0dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@color/text_color_black"
+                        android:paddingEnd="0dp"
+                        android:text="Credits"
+                        android:textColor="@android:color/white"
+                        android:textSize="36sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <ImageView
+                        android:id="@+id/sid2"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        app:srcCompat="@drawable/android_logomark_gray" />
+
+                    <ImageView
+                        android:id="@+id/extraIconSKY"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_toStartOf="@id/sid2"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="8dp"
+                        app:srcCompat="@drawable/ic_spwn3" />
+
+                    <LinearLayout
+                        android:id="@+id/sid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/extraIconSKY"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="SiddharthSky"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/textSSHww"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="For CustTermux app"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <ImageView
+                        android:id="@+id/rbx"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        app:srcCompat="@drawable/go_logo_blue" />
+
+                    <ImageView
+                        android:id="@+id/extraIconRBL"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_toStartOf="@id/rbx"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="8dp"
+                        app:srcCompat="@drawable/ic_spwn3" />
+
+                    <LinearLayout
+                        android:id="@+id/rbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toStartOf="@id/extraIconRBL"
+                        android:orientation="vertical"
+                        android:paddingStart="5dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="RabilRBL"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/texstSSHs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="3dp"
+                            android:text="For JioTV Go"
+                            android:textColor="@color/color_gray"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</FrameLayout>

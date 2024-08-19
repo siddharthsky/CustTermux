@@ -1,0 +1,114 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/scroll_view"
+    android:background="@color/text_color_black"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/step_one_titles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Make sure server is running before logging in."
+            android:textSize="15sp"
+            android:textColor="@android:color/white"
+            android:background="@color/text_color_black"
+            android:padding="2dp" />
+
+        <TextView
+            android:id="@+id/server_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/step_one_titles"
+            android:text="Server Status"
+            android:textSize="15sp"
+            android:textColor="@android:color/white"
+            android:background="@color/text_color_black"
+            android:padding="2dp" />
+
+        <TextView
+            android:id="@+id/step_one_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/server_status"
+            android:layout_marginTop="8dp"
+            android:text="Login"
+            android:background="@color/text_color_black"
+            android:textSize="36sp"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/step_one_title2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/step_one_title"
+            android:layout_marginTop="8dp"
+            android:background="@color/text_color_black"
+            android:text="Enter your phone number to login"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/input_number"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/step_one_title2"
+            android:layout_marginTop="8dp"
+            android:hint="987654321"
+            android:inputType="phone"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
+
+        <Button
+            android:id="@+id/button_send_otp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/input_number"
+            android:layout_marginTop="16dp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/button_background_selector"
+            android:text="Send OTP"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
+
+        <TextView
+            android:id="@+id/step_one_title2x"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/button_send_otp"
+            android:layout_marginTop="16dp"
+            android:background="@color/text_color_black"
+            android:text="Enter OTP"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/input_otp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/step_one_title2x"
+            android:layout_marginTop="8dp"
+            android:hint="123456"
+            android:inputType="number"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
+
+        <Button
+            android:id="@+id/button_verify_otp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/input_otp"
+            android:layout_marginTop="16dp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/button_background_selector"
+            android:text="Verify OTP"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
+
+    </RelativeLayout>
+
+</ScrollView>

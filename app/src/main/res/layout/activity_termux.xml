@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/text_color_black"
     android:fitsSystemWindows="true">
 
 
@@ -13,6 +14,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/text_color_black"
         android:orientation="horizontal">
 
         <ImageView
@@ -34,6 +36,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@color/text_color_black"
             android:orientation="horizontal"
             android:gravity="center">
 
@@ -50,6 +53,18 @@
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:tooltipText="ReRun CustTermux" />
+
+            <Button
+                android:id="@+id/button6_5"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/button_background_selector_fancy"
+                android:contentDescription="Stop"
+                android:text="ℹ️ UPDATE"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:tooltipText="Update Available" />
 
 
             <Button
@@ -139,6 +154,8 @@
                 android:textSize="14sp"
                 android:tooltipText="Extra Utilities" />
 
+
+
             <Button
                 android:id="@+id/button7"
                 android:layout_width="100dp"
@@ -158,6 +175,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:background="@color/text_color_black"
         android:padding="0dp">
 
         <!-- Server Status -->
@@ -237,7 +255,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:background="@color/text_color_black"
-                android:text="Login Status:"
+                android:text="Login:"
                 android:textStyle="bold" />
 
             <TextView
@@ -251,15 +269,46 @@
 
         </LinearLayout>
 
+
+
+        <ImageView
+            android:id="@+id/ic_copycat"
+            android:layout_width="22dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_copycat"
+            android:tooltipText="Copy Playlist URL"
+            app:tint="#FFFFFF" />
+
         <ImageView
             android:id="@+id/ic_download"
-            android:layout_width="30dp"
+            android:layout_width="22dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginEnd="8dp"
             android:src="@drawable/ic_download"
             android:tooltipText="Download Playlist"
             app:tint="#FFFFFF" />
+    </LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="0dp">
+
+        <TextView
+            android:id="@+id/textplay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:background="@color/text_color_black"
+            android:textColor="@android:color/white"
+            android:text="Playlist url: http://localhost:5001/playlist.m3u" />
     </LinearLayout>
 
 
@@ -364,6 +413,8 @@
 
         </androidx.drawerlayout.widget.DrawerLayout>
 
+
+
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/terminal_toolbar_view_pager"
             android:visibility="gone"
@@ -371,6 +422,11 @@
             android:layout_height="37.5dp"
             android:background="@color/black"
             android:layout_alignParentBottom="true" />
+
+
+
+
+
 
     </RelativeLayout>
 
@@ -380,7 +436,9 @@
         android:id="@+id/activity_termux_bottom_space_view"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@android:color/transparent" />
+        android:background="@android:color/transparent"/>
+<!--        android:visibility="gone" />-->
+
 
 
 

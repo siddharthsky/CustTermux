@@ -1,7 +1,6 @@
-package com.termux;
+package com.termux.setup_login;
 
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -14,8 +13,11 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.annotation.Nullable;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.termux.R;
+import com.termux.SkySharedPref;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -23,7 +25,8 @@ public class LoginActivity extends AppCompatActivity {
     private TextView loadingMessage;
     private ProgressBar loadingSpinner;
     private String url;
-    private static final String DEFAULT_URL = "http://localhost:5001/";
+    private String isLocalPORT;
+    //    private static final String DEFAULT_URL = "http://localhost:5001/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +37,10 @@ public class LoginActivity extends AppCompatActivity {
         // Enable the home button as an up button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        isLocalPORT = preferenceManager.getKey("isLocalPORT");
 
         // Create a LinearLayout to hold the WebView, ProgressBar, and TextViews
         LinearLayout layout = new LinearLayout(this);
@@ -100,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
         // Start the flashing effect
         startFlashingEffect(instructionMessage);
 
-        url = DEFAULT_URL;
+        url = isLocalPORT;
         // Load the initial URL
         loadUrl();
     }

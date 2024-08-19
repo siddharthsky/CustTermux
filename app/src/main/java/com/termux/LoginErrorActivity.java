@@ -1,12 +1,13 @@
 package com.termux;
 
-import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
+
+import com.termux.setup_login.LoginActivity2;
 
 public class LoginErrorActivity extends AppCompatActivity {
     @Override
@@ -25,6 +26,7 @@ public class LoginErrorActivity extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
+                    //Utils.showCustomDialog(LoginErrorActivity.this);
                     sky_login();
                     finish();
                 }

@@ -56,39 +56,82 @@ case "$SHELL_NAME" in
 esac
 
 autoscript_skyutils() {
-	# Check if script exists
-	if [[ -f "$HOME/.skyutils.sh" ]]; then
-		return 0
-	else
-		pkg install termux-am -y
-		#pkg install jq -y
-		#pkg install termux-api -y
-		echo "[#] Downloading Script - I"
-		URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.skyutils.sh"
-		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.skyutils.sh" "$URL1" || { echo "Failed to download, Clear app data"; exit 1; }
-		chmod 755 "$HOME/.skyutils.sh"
-	fi
+    URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.skyutils.sh"
+    
+    get_remote_md5() {
+        curl -sL "$1" | md5sum | awk '{print $1}'
+    }
+
+    get_local_md5() {
+        md5sum "$1" | awk '{print $1}'
+    }
+
+    if [[ -f "$HOME/.skyutils.sh" ]]; then
+        local_md5_skyutils=$(get_local_md5 "$HOME/.skyutils.sh")
+        remote_md5_skyutils=$(get_remote_md5 "$URL1")
+
+        if [[ "$local_md5_skyutils" != "$remote_md5_skyutils" ]]; then
+            echo "[#] Updating .skyutils.sh to latest version"
+            curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.skyutils.sh" "$URL1" || { echo "Failed to download .skyutils.sh, Clear app data"; exit 1; }
+            chmod 755 "$HOME/.skyutils.sh"
+			clear
+        fi
+    else
+        pkg install termux-am -y
+        echo "[#] Downloading Script - I"
+        curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.skyutils.sh" "$URL1" || { echo "Failed to download, Clear app data"; exit 1; }
+        chmod 755 "$HOME/.skyutils.sh"
+    fi
 }
 
 
-autoscript_xm() {
-	# Check if script exists
-	if [[ -f "$HOME/.autoscript_xm.sh" ]]; then
-		./.autoscript_xm.sh
-		return 0
-	else
-		echo "[#] Downloading Script - II"
-		URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.autoscript_xm.sh"
-		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.autoscript_xm.sh" "$URL3" || { echo "Failed to download, Clear app data"; exit 1; }
-		chmod 755 "$HOME/.autoscript_xm.sh"
-   ./.autoscript_xm.sh
-	fi
+
+update_file() {
+    local local_file="$1"
+    local url="$2"
+	local printer="$3"
+
+    get_remote_md5() {
+        curl -sL "$url" | md5sum | awk '{print $1}'
+    }
+
+    get_local_md5() {
+        md5sum "$local_file" | awk '{print $1}'
+    }
+
+    if [[ -f "$local_file" ]]; then
+        local_md5=$(get_local_md5)
+        remote_md5=$(get_remote_md5)
+
+        if [[ "$local_md5" != "$remote_md5" ]]; then
+            echo "[#] Updating $local_file to latest version"
+            curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$local_file" "$url" || { echo "Failed to download $local_file, Clear app data"; exit 1; }
+            chmod 755 "$local_file"
+        fi
+    else
+        echo "$printer"
+        curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$local_file" "$url" || { echo "Failed to download $local_file, Clear app data"; exit 1; }
+        chmod 755 "$local_file"
+    fi
 }
+
+autoscript_xz() {
+    URL2="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.termux_updates.sh"
+    URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.autoscript_xz.sh"
+	
+    update_file "$HOME/.termux_updates.sh" "$URL2" "[#] Downloading Script - II"
+    update_file "$HOME/.autoscript_xz.sh" "$URL3" " "
+
+    ./.termux_updates.sh
+    ./.autoscript_xz.sh
+}
+
+
 
 
 autoscript_skyutils
 
-autoscript_xm
+autoscript_xz
 
 
 

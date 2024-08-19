@@ -9,7 +9,8 @@ ext {
     // Bootstrap of a different variant must not be manually installed by the user after app installation
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
-    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-5" // Default: "apt-android-7"
+    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
+    versionCust = "4.0"
 }
 
 android {
@@ -35,11 +36,16 @@ android {
 
         implementation "com.airbnb.android:lottie:5.0.1"
 
+//        implementation "com.google.android.exoplayer:exoplayer:2.16.0"
+
 
 
         implementation project(":terminal-view")
         implementation project(":termux-shared")
     }
+
+
+
 
     defaultConfig {
         applicationId "com.termux"
@@ -131,25 +137,54 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            if (variant.buildType.name == "debug") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
-            } else if (variant.buildType.name == "release") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
-            }
+//    applicationVariants.all { variant ->
+//        variant.outputs.all { output ->
+//            if (variant.buildType.name == "debug") {
+//                def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
+//            } else if (variant.buildType.name == "release") {
+//                def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//                outputFileName = new File("termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
+//            }
+//        }
+//    }
+
+    def getCustomVariantName = { variantName ->
+        switch (variantName) {
+            case "apt-android-7":
+                return ""
+            case "apt-android-5":
+                return "_android_5"
+            default:
+                return variantName
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def customVariantName = getCustomVariantName(project.ext.packageVariant)
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            def versionCust = project.ext.versionCust
+            def buildTypeName = variant.buildType.name
+
+            outputFileName = "CustTermux_${versionCust}${customVariantName}_${abi ? abi : 'universal'}.apk"
+        }
+    }
+
 
 }
 
 dependencies {
     implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
+    implementation 'org.jetbrains:annotations:15.0'
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+
 }
 
 task versionName {

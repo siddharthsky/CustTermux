@@ -12,6 +12,8 @@ import java.net.URL;
 
 public class ServerStatusChecker {
 
+    private static String URL_LINK ;
+    private static String urlString ;
     private Handler handler;
     private Runnable runnable;
     private TextView serverStatusTextView;
@@ -39,9 +41,13 @@ public class ServerStatusChecker {
     }
 
     private void checkServerStatus() {
+        // Initialize SkySharedPref and get the port from preferences
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+        urlString = preferenceManager.getKey("isLocalPORT");
         new Thread(() -> {
+            URL_LINK = urlString;
             try {
-                URL url = new URL("http://localhost:5001");
+                URL url = new URL(URL_LINK);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setConnectTimeout(3000); // 3 seconds timeout
                 urlConnection.connect();
@@ -60,6 +66,10 @@ public class ServerStatusChecker {
     private void updateStatus(final String status) {
         serverStatusTextView.post(() -> {
             serverStatusTextView.setText(status);
+
+            SkySharedPref preferenceManager = new SkySharedPref(context);
+            preferenceManager.setKey("isServerRunning", status);
+
             int color;
             if ("Running".equals(status)) {
                 color = ContextCompat.getColor(context, R.color.status_running);

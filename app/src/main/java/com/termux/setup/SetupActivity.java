@@ -74,7 +74,6 @@ public class SetupActivity extends AppCompatActivity {
             } else {
                 // Handle completion or final step
                 Utils.showCustomToast(SetupActivity.this, "Finished setup");
-                //Toast.makeText(SetupActivity.this, "Finished setup", Toast.LENGTH_SHORT).show();
                 SkySharedPref preferenceManager = new SkySharedPref(this);
                 preferenceManager.setKey("isServerSetupDone", "Done");
 
@@ -82,25 +81,46 @@ public class SetupActivity extends AppCompatActivity {
                 setupCompletionHandler.postDelayed(() -> {
                     Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
                     if (intent != null) {
-                        // Finish current activity
                         finish();
-                        Log.d("d", "out of the app");
-                        // Restart the app
-                        startActivity(intent);
 
-                        // Exit the app
+                        Log.d("SkyLog", "Out Of The App");
+                        startActivity(intent);
                         System.exit(0);
                     }
                 }, DELAY_MILLIS);
             }
         });
 
-        // Set focus to the next button at the start
-        nextButton.requestFocus();
+        setupFocusListeners();
+
+        // Set focus to nextButton at start
+        viewPager.post(() -> {
+            nextButton.requestFocus();
+            nextButton.setFocusable(true);
+            nextButton.setFocusableInTouchMode(true);
+        });
+    }
+
+
+    private void setupFocusListeners() {
+        View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    view.setBackgroundColor(Color.YELLOW); // Highlight the focused button
+                } else {
+                    view.setBackgroundColor(Color.TRANSPARENT); // Reset to default when focus is lost
+                }
+            }
+        };
+
+        previousButton.setOnFocusChangeListener(focusChangeListener);
+        nextButton.setOnFocusChangeListener(focusChangeListener);
     }
 
     private void updateButtons(int position) {
         if (position == 0) {
+            nextButton.requestFocus();
             previousButton.setVisibility(View.GONE);
         } else {
             previousButton.setVisibility(View.VISIBLE);

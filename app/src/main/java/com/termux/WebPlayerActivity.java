@@ -1,6 +1,7 @@
 package com.termux;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,14 +23,19 @@ public class WebPlayerActivity extends AppCompatActivity {
     private ProgressBar loadingSpinner;
     private List<String> channelNumbers;
     private String url;
-    private static final String DEFAULT_URL = "http://localhost:5001/";
+//    private static final String DEFAULT_URL = "http://localhost:5001/";
     private static final String TAG = "WebPlayerActivity";
+    private String DEFAULT_URL;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_player);
+
+        // Initialize SkySharedPref and other member variables
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        DEFAULT_URL = preferenceManager.getKey("isLocalPORT");
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
@@ -182,6 +188,9 @@ public class WebPlayerActivity extends AppCompatActivity {
                 // Clear previous channel numbers only if not already on a /player/ page
                 String newUrl = url.replace("/play/", "/player/");
                 webView.loadUrl(newUrl);
+//                Intent intent = new Intent(WebPlayerActivity.this, VideoActivity.class);
+//                intent.putExtra("videoUrl", newUrl);
+//                startActivity(intent);
                 return true; // URL has been overridden
             }
             return false; // URL has not been overridden

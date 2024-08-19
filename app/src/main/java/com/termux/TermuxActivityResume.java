@@ -1,12 +1,13 @@
 package com.termux;
 
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
@@ -23,16 +24,26 @@ import android.content.pm.PackageManager;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class TermuxActivityResume {
 
     private Context context;
+    private String urlx;
+    private String urlStrings;
+    private String urlchannel;
     private int openIptvCount = 0;
     private final int maxOpenIptvCalls = 10;
     private final Handler taskHandler = new Handler(Looper.getMainLooper());
     private Runnable iptvCheckTask;
     private AlertDialog iptvAlertDialog;
     private CountDownTimer countdownTimer;
+
+    // Create a single-threaded executor to run the task
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private Future<Integer> checkStatusFuture;
 
     public TermuxActivityResume(Context context) {
         this.context = context;
@@ -53,6 +64,11 @@ public class TermuxActivityResume {
         if (countdownTimer != null) {
             countdownTimer.cancel();
         }
+
+        // Cancel the future task if it's still running
+        if (checkStatusFuture != null && !checkStatusFuture.isDone()) {
+            checkStatusFuture.cancel(true);
+        }
     }
 
     private void scheduleIptvCheckTask(final int delayMillis) {
@@ -60,42 +76,51 @@ public class TermuxActivityResume {
             @Override
             public void run() {
                 if (openIptvCount < maxOpenIptvCalls) {
-                    String url = "http://localhost:5001/live/144.m3u8";
-                    new CheckStatusTask().execute(url);
+                    SkySharedPref preferenceManager = new SkySharedPref(context);
+                    urlStrings = preferenceManager.getKey("isLocalPORT");
+                    urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+
+                    urlx = urlStrings + urlchannel;
+
+                    // Submit the task to the executor service
+                    checkStatusFuture = executorService.submit(() -> {
+                        return checkUrlStatus(urlx);
+                    });
+
+                    // Handle the response on the main thread
+                    taskHandler.post(() -> {
+                        try {
+                            Integer responseCode = checkStatusFuture.get();
+                            if (responseCode != null) {
+                                handleResponse(responseCode);
+                            } else {
+                                System.out.println("TermuxActivity: Error occurred while checking status code.");
+                                Toast.makeText(context, "Checking Server Status", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
             }
         };
         taskHandler.postDelayed(iptvCheckTask, delayMillis);
     }
 
-    private class CheckStatusTask extends AsyncTask<String, Void, Integer> {
-        @Override
-        protected Integer doInBackground(String... urls) {
-            String urlString = urls[0];
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.connect();
-                return connection.getResponseCode();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Integer responseCode) {
-            if (responseCode != null) {
-                handleResponse(responseCode);
-            } else {
-                System.out.println("TermuxActivity: Error occurred while checking status code.");
-                Toast.makeText(context, "Checking Server Status", Toast.LENGTH_SHORT).show();
+    private Integer checkUrlStatus(String urlString) {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(urlString);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            return connection.getResponseCode();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
             }
         }
     }
@@ -117,6 +142,7 @@ public class TermuxActivityResume {
                 break;
         }
     }
+
 
     private void checkIptvStatus() {
         SkySharedPref preferenceManager = new SkySharedPref(context);
@@ -164,7 +190,13 @@ public class TermuxActivityResume {
         iptvNameTextView.setText("Opening " + appName);
 
         TextView countdownTextView = dialogView.findViewById(R.id.countdown_timer);
-        final int countdownDuration = 6000; // 5 seconds
+
+        String isDelayTime = preferenceManager.getKey("isDelayTime");
+        int delayTime = Integer.parseInt(isDelayTime);
+
+        final int countdownDuration = delayTime * 1000;
+        Log.d("DIX-time", String.valueOf(countdownDuration));
+//        final int countdownDuration = 6000; // 6 seconds (1sec lost during login check)
         countdownTextView.setText((countdownDuration / 1000) + "s");
 
         iptvAlertDialog = builder.create();
@@ -220,10 +252,17 @@ public class TermuxActivityResume {
                 System.out.println("IPTV, webTV!");
             } else {
                 System.out.println("IPTV, found!");
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(appPkg, appClass));
-                context.startActivity(intent);
-                openIptvCount++;
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(appPkg, appClass));
+                    context.startActivity(intent);
+                    openIptvCount++;
+                } catch (ActivityNotFoundException e) {
+                    // Log or handle the exception if needed
+                    // You can print a message or handle the error appropriately
+                    System.out.println("Unable to open the specified app.");
+                    Toast.makeText(context, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
+                }
             }
         } else {
             System.out.println("IPTV, null!");
