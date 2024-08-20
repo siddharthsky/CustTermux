@@ -528,7 +528,12 @@ write_port() {
 custominstall() {
 	ARCH=$1
 	OS=$2
+ 	echo "-----------------------"
+	echo "Custom Install Utility"
+	echo "-----------------------"
+ 
  	rm -rf "$HOME/.jiotv_go/bin/jiotv_go"
+  
  	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH" 
      	mkdir -p "$HOME/.jiotv_go/bin"
    	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
