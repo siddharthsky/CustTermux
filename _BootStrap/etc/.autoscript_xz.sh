@@ -198,9 +198,9 @@ Default_Installation() {
     mkdir -p "$HOME/.jiotv_go/bin"
     echo "Step 3: Created \$HOME/.jiotv_go/bin"
 
-    if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
-        OS="linux"
-    fi
+    # if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
+    #     OS="linux"
+    # fi
 
     # # OSx=$OSTYPE
     # if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
