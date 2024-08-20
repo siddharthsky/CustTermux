@@ -1,5 +1,6 @@
 package com.termux;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -253,6 +254,14 @@ public class TermuxActivityResume {
             } else {
                 System.out.println("IPTV, found!");
                 try {
+                    String isMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                    //String isMINI = "Yes"; //debug
+                    Log.d("DIX-MINI",isMINI);
+                    if ("Yes".equalsIgnoreCase(isMINI)) {
+                        Log.d("DIX-MINIin",isMINI);
+                        ((Activity) context).moveTaskToBack(true);
+                    }
+
                     Intent intent = new Intent();
                     intent.setComponent(new ComponentName(appPkg, appClass));
                     context.startActivity(intent);
