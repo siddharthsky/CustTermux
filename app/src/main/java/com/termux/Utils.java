@@ -138,6 +138,7 @@ public class Utils {
         SkySharedPref preferenceManager = new SkySharedPref(context);
         preferenceManager.setKey("isServerSetupDone", null);
 
+        preferenceManager.setKey("isLocalNOPORT", "http://localhost:");
         preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
         preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
         preferenceManager.setKey("isLocalPORTonly", "5001");
@@ -151,6 +152,7 @@ public class Utils {
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
         preferenceManager.setKey("isDelayTime", "5");
+        preferenceManager.setKey("permissionRequestCount", "0");
 
         File downloadDir = Utils.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
@@ -305,6 +307,9 @@ public class Utils {
         File downloadDir = Utils.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
         boolean isDeleted = Utils.deleteFile(file);
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+        preferenceManager.setKey("permissionRequestCount", "0");
+
         Toast.makeText(context, "Applying Fix", Toast.LENGTH_SHORT).show();
 
         Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());

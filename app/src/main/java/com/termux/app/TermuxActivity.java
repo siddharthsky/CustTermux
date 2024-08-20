@@ -483,13 +483,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
-        // Check and request MANAGE_OVERLAY_PERMISSION
+        String permissionRequestCountStr = preferenceManager.getKey("permissionRequestCount");
+
+        int permissionRequestCount = 0;
+        if (permissionRequestCountStr != null && !permissionRequestCountStr.isEmpty()) {
+            permissionRequestCount = Integer.parseInt(permissionRequestCountStr);
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
-                overapp_confirmation(this);
-
+                if (permissionRequestCount < 2) {
+                    overapp_confirmation(this);
+                    permissionRequestCount++;
+                    preferenceManager.setKey("permissionRequestCount", String.valueOf(permissionRequestCount));
+                } else {
+                    Toast.makeText(this, "Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "To show permission dialog, Extra > Fix CustTermux", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                // Permission already granted, proceed with the app logic
+                // Permission already granted, reset the count and proceed with the app logic
+                preferenceManager.setKey("permissionRequestCount", "0");
                 proceedWithAppLogic();
             }
         }
@@ -1141,6 +1154,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         } else {
             preferenceManager.setKey("tag_name", "0.121x");
 
+            preferenceManager.setKey("isLocalNOPORT", "http://localhost:");
             preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
             preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
             preferenceManager.setKey("isLocalPORTonly", "5001");
@@ -1154,6 +1168,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
             preferenceManager.setKey("isDelayTime", "5");
+            preferenceManager.setKey("permissionRequestCount", "0");
 
 
             Utils.changeIconTOFirst(this);
