@@ -536,6 +536,7 @@ custominstall() {
   
  	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH" 
      	mkdir -p "$HOME/.jiotv_go/bin"
+      	echo "[#] Downloading JioTV GO -os $OS -arch $ARCH"
    	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
    	chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
     	echo "Installed JioTV GO - $OS - $ARCH"
