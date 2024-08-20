@@ -525,6 +525,17 @@ write_port() {
     echo "$port_num" > "$file"
 }
 
+custominstall() {
+	ARCH=$1
+	OS=$2
+ 	rm -rf "$HOME/.jiotv_go/bin/jiotv_go"
+ 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH" 
+     	mkdir -p "$HOME/.jiotv_go/bin"
+   	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+   	chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+    	echo "Installed JioTV GO - $OS - $ARCH"
+}
+
 
 
 
@@ -566,6 +577,8 @@ elif [ "$1" == "update" ]; then
    	 update
 elif [ "$1" == "runcode" ]; then
     	runcode 
+elif [ "$1" == "custominstall" ]; then
+	custominstall "$2" "$3"
 elif [ "$1" == "exitpath" ]; then
 	exitpath 
 else
