@@ -19,8 +19,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.pm.PackageManager;
@@ -153,6 +155,7 @@ public class Utils {
         preferenceManager.setKey("server_setup_isSSH", "No");
         preferenceManager.setKey("isDelayTime", "5");
         preferenceManager.setKey("permissionRequestCount", "0");
+        preferenceManager.setKey("isFlagSetForMinimize", "No");
 
         File downloadDir = Utils.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
@@ -549,6 +552,99 @@ public class Utils {
             return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         }
     }
+
+    public static void lake_alert_DiffARCH(Context context) {
+        LayoutInflater inflater = LayoutInflater.from(context);
+        android.view.View customView = inflater.inflate(R.layout.dialog_select_options, null);
+
+        Spinner spinnerOS = customView.findViewById(R.id.spinner_os);
+        Spinner spinnerArch = customView.findViewById(R.id.spinner_arch);
+
+        String[] osOptions = {"Android", "Linux"};
+        String[] archOptions = {"ARM", "ARM8", "x86", "x86_64"};
+
+        ArrayAdapter<String> osAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, osOptions);
+        osAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerOS.setAdapter(osAdapter);
+
+        ArrayAdapter<String> archAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, archOptions);
+        archAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerArch.setAdapter(archAdapter);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Select Options");
+        builder.setView(customView);
+
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String selectedOS = spinnerOS.getSelectedItem().toString();
+            String selectedArch = spinnerArch.getSelectedItem().toString();
+
+            Toast.makeText(context, "Selected OS: " + selectedOS + "\nSelected Arch: " + selectedArch, Toast.LENGTH_SHORT).show();
+            Utils.sky_custom_TV(context, selectedOS, selectedArch);
+        });
+
+        // Set cancel button
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        // Show the dialog
+        builder.create().show();
+    }
+
+    private static void sky_custom_TV(Context context, String selectedOS, String selectedArch) {
+        // Map OS
+        String os;
+        if ("Android".equals(selectedOS)) {
+            os = "android";
+        } else if ("Linux".equals(selectedOS)) {
+            os = "linux";
+        } else {
+            os = "android";
+        }
+
+        // Map Architecture
+        String arch;
+        switch (selectedArch) {
+            case "x86_64":
+                arch = "amd64";
+                break;
+            case "ARM8":
+                arch = "arm64";
+                break;
+            case "ARM":
+                arch = "arm";
+                break;
+            case "x86":
+                arch = "386";
+                break;
+            default:
+                arch = "arm";
+                break;
+        }
+
+        if ("android".equals(os) && "386".equals(arch)) {
+            os = "linux";
+        }
+
+        Log.d("DIX-OS",os+"--"+arch);
+
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"custominstall", String.valueOf(arch), String.valueOf(os)});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+
+
+
+
+
+
+    }
+
 
 }
 

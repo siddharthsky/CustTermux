@@ -22,7 +22,7 @@ public class ButtonClick6ListenerUtil {
                 builder.setTitle("Choose an option");
 
                 // Add a radio button list
-                String[] options = {"Update JioTV Go", "Fix CustTermux Update","Reinstall","Switch to Terminal"};
+                String[] options = {"Update JioTV Go", "Try Different JioTV Go binary" ,"Fix CustTermux Update","Reinstall","Switch to Terminal"};
                 final int[] selectedOption = {-1}; // Store the selected option
 
                 builder.setSingleChoiceItems(options, selectedOption[0], new DialogInterface.OnClickListener() {
@@ -46,14 +46,18 @@ public class ButtonClick6ListenerUtil {
                                 break;
                             case 1:
                                 // Option 2 selected
-                                Utils.updateCustTermux(context);
+                                Utils.lake_alert_DiffARCH(context);
                                 break;
                             case 2:
                                 // Option 3 selected
-                                Utils.sky_reinstall(context);
+                                Utils.updateCustTermux(context);
                                 break;
                             case 3:
                                 // Option 4 selected
+                                Utils.sky_reinstall(context);
+                                break;
+                            case 4:
+                                // Option 5 selected
                                 Utils.lake_alert_confirmation(context);
                                 break;
 
