@@ -25,6 +25,8 @@ public class WebPlayerActivity extends AppCompatActivity {
     private String url;
 //    private static final String DEFAULT_URL = "http://localhost:5001/";
     private static final String TAG = "WebPlayerActivity";
+    private String BASE_URL;
+    private String CONFIGPART_URL;
     private String DEFAULT_URL;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -35,7 +37,13 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         // Initialize SkySharedPref and other member variables
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        DEFAULT_URL = preferenceManager.getKey("isLocalPORT");
+        BASE_URL = preferenceManager.getKey("isLocalPORT");
+
+        CONFIGPART_URL = preferenceManager.getKey("isWEBTVconfig");
+
+        DEFAULT_URL = BASE_URL+CONFIGPART_URL;
+
+        Log.d("DIX-WEBTV","URL: " + DEFAULT_URL);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 

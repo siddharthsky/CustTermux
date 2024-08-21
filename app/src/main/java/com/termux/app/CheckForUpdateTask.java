@@ -155,17 +155,19 @@ public class CheckForUpdateTask {
                 if (assetName.contains(arch)) {
                     // Separate if condition for 'apt-android-5' variant
                     if (packageVariant.contains("apt-android-5")) {
-                        // Case where assetName contains both arch and "apt-android-5"
-                        downloadUrl = asset.getString("browser_download_url");
-                        downloadFileSize = asset.getLong("size");
-                        Log.d("DL_link", downloadUrl);
-                        return tagName;
+                        if (assetName.contains("android_5")) {
+                            downloadUrl = asset.getString("browser_download_url");
+                            downloadFileSize = asset.getLong("size");
+                            Log.d("DL_link", downloadUrl);
+                            return tagName;
+                        }
                     } else {
-                        // Case where assetName contains only arch
-                        downloadUrl = asset.getString("browser_download_url");
-                        downloadFileSize = asset.getLong("size");
-                        Log.d("DL_link", downloadUrl);
-                        return tagName;
+                        if (!assetName.contains("android_5")) {
+                            downloadUrl = asset.getString("browser_download_url");
+                            downloadFileSize = asset.getLong("size");
+                            Log.d("DL_link", downloadUrl);
+                            return tagName;
+                        }
                     }
                 }
             }
@@ -188,7 +190,7 @@ public class CheckForUpdateTask {
 
     private boolean isNewerVersion(String currentVersion, String latestVersion) {
         // Example comparison logic
-        //String LTX = "x0.125.3";
+        //String LTX = "x0.123.6";
         String latestVersionPart = latestVersion.replaceFirst("^x0\\.", "");
         String currentVersionPart = currentVersion.replaceFirst("^0\\.", "");
         Log.d("DIX1lat", latestVersionPart);
@@ -202,12 +204,12 @@ public class CheckForUpdateTask {
         // Access the BuildConfig fields
         String packageVariant = BuildConfig.TERMUX_PACKAGE_VARIANT;
 
-        // Check for the "apt-android-5" variant
-        if ("apt-android-5".equals(packageVariant)) {
-            // Log the variant-specific architecture
-            Log.d("DIX-ARCH", arch +" :: "+packageVariant);
-            return arch;
-        }
+//        // Check for the "apt-android-5" variant
+//        if ("apt-android-5".equals(packageVariant)) {
+//            // Log the variant-specific architecture
+//            Log.d("DIX-ARCH", arch +" :: "+packageVariant);
+//            return arch;
+//        }
 
         // Otherwise, determine the architecture based on supported ABIs
         if (Build.SUPPORTED_ABIS.length > 0) {

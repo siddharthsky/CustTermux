@@ -30,7 +30,7 @@ public class ServerStatusChecker {
             @Override
             public void run() {
                 checkServerStatus();
-                handler.postDelayed(this, 7000); // Check every 5 seconds
+                handler.postDelayed(this, 7000); // Check every 7 seconds
             }
         };
         handler.post(runnable);
@@ -53,11 +53,13 @@ public class ServerStatusChecker {
                 urlConnection.connect();
                 if (urlConnection.getResponseCode() == 200) {
                     updateStatus("Running");
+                } else if (urlConnection.getResponseCode() == 500) {
+                    updateStatus("Stopped");
                 } else {
                     updateStatus("Stopped");
                 }
             } catch (IOException e) {
-                updateStatus("Stopped");
+                updateStatus("Error");
             }
         }).start();
         Log.d("TAG","Checked Server");

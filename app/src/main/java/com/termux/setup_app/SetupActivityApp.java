@@ -43,11 +43,15 @@ public class SetupActivityApp extends AppCompatActivity {
     private Button IPTVbtn;
     private Button IPTVtim;
     private Button PORTbtn;
+    private Button WEBbtn;
     private Button restartButton;
     private View IPTVbtnlay;
     private View IPTVtimlay;
     private LinearLayout rbl;
     private LinearLayout sid;
+
+    private SwitchCompat switchMINI;
+    private View IPTVminilay;
 
     private ImageView sid2;
     private ImageView extraIconSKY;
@@ -92,10 +96,15 @@ public class SetupActivityApp extends AppCompatActivity {
         textselectedAPP = findViewById(R.id.textselectedAPP);
         restartButton = findViewById(R.id.restartButton);
         PORTbtn = findViewById(R.id.PORTbtn);
+        WEBbtn = findViewById(R.id.WEBbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
         IPTVtim = findViewById(R.id.IPTVtim);
         IPTVtimlay = findViewById(R.id.IPTVtimlay);
+        switchMINI = findViewById(R.id.switchMINI);
+        IPTVminilay = findViewById(R.id.IPTVminilay);
+
+
 
         sid2 = findViewById(R.id.sid2);
         sid2.setOnClickListener(new View.OnClickListener() {
@@ -194,22 +203,29 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsLocal = preferenceManager.getKey("server_setup_isLocal");
         switchisLocal.setChecked("No".equals(serverSetupIsLocal));
 
+
+
         String autostartAppName = preferenceManager.getKey("app_name");
         switchAutostart.setChecked(autostartAppName != null && !"null".equals(autostartAppName));
         if (!switchAutostart.isChecked()) {
             IPTVbtnlay.setVisibility(View.GONE);
             IPTVtimlay.setVisibility(View.GONE);
+            IPTVminilay.setVisibility(View.GONE);
         }else {
             String app_namex = preferenceManager.getKey("app_name_x");
             String isDelayTime = preferenceManager.getKey("isDelayTime");
             if (app_namex == null || app_namex.isEmpty()) {
                 textselectedAPP.setText("Selected App: empty");
                 IPTVtim.setText("5 Sec");
+                String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
             } else {
                 String c_app_namex = "Selected App: " + app_namex;
                 String isDelayTimestr = isDelayTime+" Sec";
                 IPTVtim.setText(isDelayTimestr);
                 textselectedAPP.setText(c_app_namex);
+                String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
             }
         }
 
@@ -265,13 +281,19 @@ public class SetupActivityApp extends AppCompatActivity {
                 if (isChecked) {
                     IPTVbtnlay.setVisibility(View.VISIBLE);
                     IPTVtimlay.setVisibility(View.VISIBLE);
+                    IPTVminilay.setVisibility(View.VISIBLE);
+                    String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                    switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
                 } else {
                     IPTVbtnlay.setVisibility(View.GONE);
                     IPTVtimlay.setVisibility(View.GONE);
+                    IPTVminilay.setVisibility(View.GONE);
                     preferenceManager.setKey("app_name", "null");
                     preferenceManager.setKey("app_name_x", "null");
                     preferenceManager.setKey("isDelayTime", "5");
                     IPTVtim.setText("5 Sec");
+                    String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                    switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
                 }
             }
         });
@@ -350,6 +372,20 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        switchMINI.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                preferenceManager.setKey("server_setup_isLoginCheck", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("isFlagSetForMinimize on"));
+                    preferenceManager.setKey("isFlagSetForMinimize", "Yes");
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("isFlagSetForMinimize off"));
+                    preferenceManager.setKey("isFlagSetForMinimize", "No");
+                }
+            }
+        });
+
         IPTVbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -393,6 +429,13 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        WEBbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.lake_alert_WEBTV(SetupActivityApp.this);
+            }
+        });
+
 
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,7 +476,9 @@ public class SetupActivityApp extends AppCompatActivity {
         IPTVbtn.setOnFocusChangeListener(focusChangeListener);
         IPTVtim.setOnFocusChangeListener(focusChangeListener);
         PORTbtn.setOnFocusChangeListener(focusChangeListener);
+        WEBbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
+        switchMINI.setOnFocusChangeListener(focusChangeListener);
     }
 
     @Override

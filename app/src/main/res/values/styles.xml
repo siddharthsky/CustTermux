@@ -88,5 +88,29 @@
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
+    <!-- Custom Dark Blue Theme -->
+    <style name="CustomDarkBlueTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Primary color (Dark Blue) -->
+        <item name="colorPrimary">@color/dark_blue</item>
+        <item name="colorPrimaryDark">@color/dark_blue_dark</item>
+        <item name="colorAccent">@color/accent_color</item>
+        <!-- Customize the color for various elements -->
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- Dark Blue Color Definitions -->
+    <color name="dark_blue">#003366</color>
+    <color name="dark_blue_dark">#002244</color>
+    <color name="accent_color">#FF4081</color>
+    <color name="window_background">#001122</color>
+    <color name="white">#FFFFFF</color>
+
+    <style name="CustomSpinnerStyle">
+        <item name="android:background">@color/dark_blue</item>
+        <item name="android:popupBackground">@color/dark_blue_dark</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
 
 </resources>
