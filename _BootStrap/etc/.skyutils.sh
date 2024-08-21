@@ -163,15 +163,15 @@ iptv() {
 iptvrunner() {
 	retrieved_iptv=$(retrieve_first_line "$HOME/.jiotv_go/bin/iptv.cfg")
 
-	am start --user 0 -n com.termux/com.termux.app.TermuxActivity
+	#am start --user 0 -n com.termux/com.termux.app.TermuxActivity
 
-	sleep 0.5
+	#sleep 0.5
 
 	if [ "$retrieved_iptv" != "NULL" ]; then
-		
 		am start --user 0 -n "$retrieved_iptv"
 		exit 0
 	fi
+	exit 0
 
 }
 
@@ -179,38 +179,49 @@ reinstall() {
 	echo "-----------------------"
 	echo "Reinstall Utility"
 	echo "-----------------------"
-
-	prompt_gui() {
-		termux-dialog confirm -t "Re-Install Server" -i "Do you want to reinstall JioTV GO server?"
-	}
-
-	prompt_gui2() {
-		termux-dialog spinner -v "ReInstall:Done" -t "Re-Install Status"
-	}
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	wait_and_count 3
 
 	reinstaller() {
 		echo "Removing Server Files..."
 		rm -rf "$HOME/.jiotv_go/bin/"
 		rm  "$HOME/.autoscript.sh"
+		rm  "$HOME/.autoscript_x.sh"
+		rm  "$HOME/.autoscript_xm.sh"
 		rm  "$HOME/.skyutils.sh"
 
   		am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
-
-    		
+    		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 
 
 	}
-		
-	if prompt_gui | grep -q "yes"; then
-		#Update
-		reinstaller
-		prompt_gui2
-	else
-		echo -e "\e[31mUser chose not to reinstall.\e[0m"
-		exit 0
-	fi	
+
+  	reinstaller
+	
+}
+
+reinstall2() {
+	echo "-----------------------"
+	echo "Reinstall Utility"
+	echo "-----------------------"
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	wait_and_count 3
+
+	reinstaller() {
+		echo "Removing Server Files..."
+		rm -rf "$HOME/.jiotv_go/bin/"
+		rm  "$HOME/.autoscript.sh"
+		rm  "$HOME/.autoscript_x.sh"
+		rm  "$HOME/.autoscript_xm.sh"
+		rm  "$HOME/.skyutils.sh"
+
+  		#am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 
 
+	}
+
+  	reinstaller
 	
 }
 
@@ -218,15 +229,9 @@ update() {
 	echo "-----------------------"
 	echo "Update Utility"
 	echo "-----------------------"
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	wait_and_count 3
 
-	prompt_gui() {
-		termux-dialog confirm -t "Update" -i "Do you want to update JioTV GO server?"
-	}
-	
-	prompt_gui2() {
-		termux-dialog spinner -v "Update:Done" -t "Update Status"
-	}
-	
 	updater() {
 		pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 		rm "$HOME/.jiotv_go/bin/jiotv_go"
@@ -286,17 +291,14 @@ update() {
 	
 	}
 		
-	if prompt_gui | grep -q "yes"; then
-		#Update
-		updater
-		prompt_gui2
-	else
-		echo -e "\e[31mUser chose not to update.\e[0m"
-		exit 0
-	fi	
+	updater
+	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+ 	#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 }
 
 runcode() {
+
+	#code = $1
 	code=$(termux-dialog text -t "Enter command" | jq -r '.text')
 	if [ $? != 0 ]; then
 		echo "Canceled."
@@ -416,31 +418,177 @@ verifyotpx() {
 	exit 0
 }
 
+exitpath_alt() {
+	echo "-----------------------"
+	echo -e "\033[31mStopping Server CustTermux\033[0m"
+	echo "-----------------------"
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+	pkill -f "jiotv_go"
+ 	echo "-----------------------"
+	echo -e "\033[31mExiting CustTermux\033[0m"
+	echo "-----------------------"
+}
+
+exitpath() {
+	echo "-----------------------"
+	echo -e "\033[31mStopping Server CustTermux\033[0m"
+	echo "-----------------------"
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+	pkill -f "jiotv_go"
+ 	echo "-----------------------"
+	echo -e "\033[31mExiting CustTermux\033[0m"
+	echo "-----------------------"
+ 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key isExit --es value yesExit
+}
+
+epg_on() {
+	echo "-----------------------"
+	echo "EPG Utility"
+	echo "-----------------------"
+ 	echo "Generating EPG for the first time."
+ 	$HOME/.jiotv_go/bin/jiotv_go epg gen
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value Yes
+	sleep 1
+ 	exit 0
+}
+
+epg_off() {
+	echo "-----------------------"
+	echo "EPG Utility"
+	echo "-----------------------"
+ 	$HOME/.jiotv_go/bin/jiotv_go epg del
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value No
+	sleep 1
+ 	exit 0
+ }
+
+ ssh_on() {
+	echo "-----------------------"
+	echo "SSH Utility"
+	echo "-----------------------"
+ 	echo "Checking Required Packages"
+  
+  	pkg install openssh -y
+        pkg install expect -y
+	# pkg install make -y
+
+	ssh_passwd_intent
+	
+	pkill sshd
+ 
+	sshd
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
+   
+   	echo "Started SSH"
+    	wait_and_count 3
+     	exit 0
+}
+
+ssh_off() {
+	echo "-----------------------"
+	echo "SSH Utility"
+	echo "-----------------------"
+  	pkill sshd
+ 	wait_and_count 1
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value No
+	echo "Stopped SSH"
+}
+
+ssh_passwd() {
+	set password "letmein"
+
+	spawn passwd
+ 
+	expect "New password:"
+	send "$password\r"
+	expect "Retype new password:"
+	send "$password\r"
+ 
+	expect eof
+}
+
+ssh_passwd_intent() {
+	am startservice \
+    -n com.termux/com.termux.app.RunCommandService \
+    -a com.termux.RUN_COMMAND \
+    --es "com.termux.RUN_COMMAND_PATH" "/data/data/com.termux/files/home/.set_password.exp" \
+    --ez "com.termux.RUN_COMMAND_BACKGROUND" true \
+    --ei "com.termux.RUN_COMMAND_SESSION_ACTION" 0 \
+    --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
+}
+
+write_port() {
+    port_num=$1
+    file="$HOME/.jiotv_go/bin/server_port.cfg"
+    touch "$file"
+    chmod 755 "$file"
+    echo "$port_num" > "$file"
+}
+
+custominstall() {
+	ARCH=$1
+	OS=$2
+ 	echo "-----------------------"
+	echo "Custom Install Utility"
+	echo "-----------------------"
+ 
+ 	rm -rf "$HOME/.jiotv_go/bin/jiotv_go"
+  
+ 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH" 
+     	mkdir -p "$HOME/.jiotv_go/bin"
+      	echo "[#] Downloading Latest JioTV GO -os $OS -arch $ARCH"
+   	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+   	chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+    	echo "Installed JioTV GO - $OS - $ARCH"
+     	echo "Restart CustTermux"
+      	exit 1
+}
+
+
+
 
 
 
 if [ "$1" == "login" ]; then
-    login
+ 	   login
 elif [ "$1" == "sendotp" ]; then
-    sendotp "$2"
+ 	   sendotp "$2"
 elif [ "$1" == "verifyotp" ]; then
-    verifyotp "$2" "$3"
+  	  verifyotp "$2" "$3"
 elif [ "$1" == "sendotpx" ]; then
-    sendotp "$2"
+  	  sendotp "$2"
 elif [ "$1" == "verifyotpx" ]; then
-    verifyotp "$2" "$3"
+  	  verifyotp "$2" "$3"
 elif [ "$1" == "theshowrunner" ]; then
-    theshowrunner
+  	  theshowrunner
 elif [ "$1" == "iptv" ]; then
-    iptv
+  	  iptv
 elif [ "$1" == "iptvrunner" ]; then
-    iptvrunner
+  	  iptvrunner
 elif [ "$1" == "reinstall" ]; then
-    reinstall
+  	  reinstall
+elif [ "$1" == "reinstall2" ]; then
+  	reinstall2
+elif [ "$1" == "epg_on" ]; then
+	epg_on
+elif [ "$1" == "epg_off" ]; then
+	epg_off
+ elif [ "$1" == "ssh_on" ]; then
+	ssh_on
+elif [ "$1" == "ssh_off" ]; then
+	ssh_off
+ elif [ "$1" == "ssh_passwd" ]; then
+	ssh_passwd
+ elif [ "$1" == "write_port" ]; then
+  	write_port "$2"
 elif [ "$1" == "update" ]; then
-    update
+   	 update
 elif [ "$1" == "runcode" ]; then
-    runcode
+    	runcode 
+elif [ "$1" == "custominstall" ]; then
+	custominstall "$2" "$3"
+elif [ "$1" == "exitpath" ]; then
+	exitpath 
 else
     echo "Usage Error"
     echo "Command: .skyutils.sh $1"
