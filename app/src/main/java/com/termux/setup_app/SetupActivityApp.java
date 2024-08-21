@@ -201,8 +201,7 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsLocal = preferenceManager.getKey("server_setup_isLocal");
         switchisLocal.setChecked("No".equals(serverSetupIsLocal));
 
-        String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
-        switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
+
 
         String autostartAppName = preferenceManager.getKey("app_name");
         switchAutostart.setChecked(autostartAppName != null && !"null".equals(autostartAppName));
@@ -216,11 +215,15 @@ public class SetupActivityApp extends AppCompatActivity {
             if (app_namex == null || app_namex.isEmpty()) {
                 textselectedAPP.setText("Selected App: empty");
                 IPTVtim.setText("5 Sec");
+                String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
             } else {
                 String c_app_namex = "Selected App: " + app_namex;
                 String isDelayTimestr = isDelayTime+" Sec";
                 IPTVtim.setText(isDelayTimestr);
                 textselectedAPP.setText(c_app_namex);
+                String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
             }
         }
 
@@ -277,6 +280,8 @@ public class SetupActivityApp extends AppCompatActivity {
                     IPTVbtnlay.setVisibility(View.VISIBLE);
                     IPTVtimlay.setVisibility(View.VISIBLE);
                     IPTVminilay.setVisibility(View.VISIBLE);
+                    String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                    switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
                 } else {
                     IPTVbtnlay.setVisibility(View.GONE);
                     IPTVtimlay.setVisibility(View.GONE);
@@ -285,6 +290,8 @@ public class SetupActivityApp extends AppCompatActivity {
                     preferenceManager.setKey("app_name_x", "null");
                     preferenceManager.setKey("isDelayTime", "5");
                     IPTVtim.setText("5 Sec");
+                    String serverSetupIsMINI = preferenceManager.getKey("isFlagSetForMinimize");
+                    switchMINI.setChecked("Yes".equals(serverSetupIsMINI));
                 }
             }
         });

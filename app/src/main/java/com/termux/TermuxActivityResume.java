@@ -255,20 +255,38 @@ public class TermuxActivityResume {
                 System.out.println("IPTV, found!");
                 try {
                     String isMINI = preferenceManager.getKey("isFlagSetForMinimize");
+
                     //String isMINI = "Yes"; //debug
-                    Log.d("DIX-MINI",isMINI);
-                    if ("Yes".equalsIgnoreCase(isMINI)) {
-                        Log.d("DIX-MINIin",isMINI);
-                        ((Activity) context).moveTaskToBack(true);
+
+                    if ("Yes".equals(isMINI)) {
+                        if (context instanceof Activity) {
+                            ((Activity) context).moveTaskToBack(true);
+                        } else {
+                            Log.e("DIX-MINIError", "Context is not an instance of Activity");
+                        }
+
+                        if (context instanceof Activity) {
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                Intent intent = new Intent();
+                                intent.setComponent(new ComponentName(appPkg, appClass));
+                                context.startActivity(intent);
+                                openIptvCount++;
+                            }, 200);
+                            Log.e("DIX-MINIwait", "Handler will wait for 200ms before executing code");
+                        } else {
+                            Log.e("DIX-MINIError", "Context is not an instance of Activity");
+                        }
+                    } else {
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            Intent intent = new Intent();
+                            intent.setComponent(new ComponentName(appPkg, appClass));
+                            context.startActivity(intent);
+                            openIptvCount++;
+                        }, 200);
+                        Log.e("DIX-MINIwait", "Handler will wait for 200ms before executing code");
                     }
 
-                    Intent intent = new Intent();
-                    intent.setComponent(new ComponentName(appPkg, appClass));
-                    context.startActivity(intent);
-                    openIptvCount++;
                 } catch (ActivityNotFoundException e) {
-                    // Log or handle the exception if needed
-                    // You can print a message or handle the error appropriately
                     System.out.println("Unable to open the specified app.");
                     Toast.makeText(context, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
                 }
