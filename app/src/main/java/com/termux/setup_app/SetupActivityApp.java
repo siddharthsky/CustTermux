@@ -78,7 +78,9 @@ public class SetupActivityApp extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTheme(R.style.DarkActivityTheme);
+//        setTheme(R.style.DarkActivityTheme);
+        setTheme(R.style.CustomDarkBlueTheme);
+
         setContentView(R.layout.activity_setup_app);
 
         // Enable the home button as an up button
