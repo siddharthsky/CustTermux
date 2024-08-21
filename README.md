@@ -1,7 +1,7 @@
 <h1 align="center">
   <br>
   <a href="">
-    <img src="_assets\logos\full-pg-cir-cropj.png" alt="" width="200">
+    <img src="_assets\logos\full-pg-cir-crop-.png" alt="" width="200">
   </a>
   <br>
   📺 CustTermux-JioTVGo
