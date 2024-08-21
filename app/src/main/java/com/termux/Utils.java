@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -215,6 +217,16 @@ public class Utils {
 //        terminalKeyView.setVisibility(View.VISIBLE);
 //        terminalViewPager.setVisibility(View.VISIBLE);
     }
+
+    public static void sky_wait(Context context, long delayMillis) {
+        Log.d("DIX-sky_wait", "Waiting for " + delayMillis + " milliseconds");
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            Log.d("DIX-sky_wait", "Delay finished, executing code");
+
+        }, delayMillis);
+    }
+
 
 
     public static void sky_epg_on(Context context) {
@@ -572,7 +584,7 @@ public class Utils {
         spinnerArch.setAdapter(archAdapter);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select Options");
+        builder.setTitle("Select OS and Architecture ");
         builder.setView(customView);
 
 
