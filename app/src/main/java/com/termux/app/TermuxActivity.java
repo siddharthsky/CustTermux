@@ -348,7 +348,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         };
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
-        button1_5.setOnFocusChangeListener(tooltipFocusListener);
+//        button1_5.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
 //        button3.setOnFocusChangeListener(tooltipFocusListener);
 //        button4.setOnFocusChangeListener(tooltipFocusListener);
@@ -372,6 +372,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             public void onClick(View v) {
                 Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        button1_5.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Utils.lake_alert_WEBTV(TermuxActivity.this);
+                return false;
             }
         });
 
@@ -1170,6 +1178,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("isDelayTime", "5");
             preferenceManager.setKey("permissionRequestCount", "0");
             preferenceManager.setKey("isFlagSetForMinimize", "No");
+            preferenceManager.setKey("isWEBTVconfig", " ");
 
 
             Utils.changeIconTOFirst(this);

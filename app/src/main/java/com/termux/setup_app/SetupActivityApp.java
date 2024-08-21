@@ -43,6 +43,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private Button IPTVbtn;
     private Button IPTVtim;
     private Button PORTbtn;
+    private Button WEBbtn;
     private Button restartButton;
     private View IPTVbtnlay;
     private View IPTVtimlay;
@@ -95,6 +96,7 @@ public class SetupActivityApp extends AppCompatActivity {
         textselectedAPP = findViewById(R.id.textselectedAPP);
         restartButton = findViewById(R.id.restartButton);
         PORTbtn = findViewById(R.id.PORTbtn);
+        WEBbtn = findViewById(R.id.WEBbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
         IPTVtim = findViewById(R.id.IPTVtim);
@@ -427,6 +429,13 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        WEBbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.lake_alert_WEBTV(SetupActivityApp.this);
+            }
+        });
+
 
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -467,6 +476,7 @@ public class SetupActivityApp extends AppCompatActivity {
         IPTVbtn.setOnFocusChangeListener(focusChangeListener);
         IPTVtim.setOnFocusChangeListener(focusChangeListener);
         PORTbtn.setOnFocusChangeListener(focusChangeListener);
+        WEBbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
         switchMINI.setOnFocusChangeListener(focusChangeListener);
     }
