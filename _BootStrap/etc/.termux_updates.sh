@@ -11,5 +11,5 @@ echo "##################### みらい ############################"
 #echo ""
 
 echo -e "${RED}NOTICE:${NC} ${NC}To avoid potential copyright issues with Jio,${NC}"
-echo -e "${YELLOW}we will be changing the name of our GitHub repository.${NC}"
-echo -e "${GREEN}Updates will be provided soon.${NC}"
+echo -e "${YELLOW}we will be renaming our GitHub repository.${NC}"
+echo -e "${GREEN}Update will be provided soon.${NC}"
