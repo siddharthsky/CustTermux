@@ -269,6 +269,15 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/ic_iptvIcon"
+            android:layout_width="22dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="IPTV"
+            android:src="@drawable/ic_copycat"
+            android:visibility="gone" />
 
 
         <ImageView

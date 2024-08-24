@@ -17,6 +17,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
@@ -30,6 +32,7 @@ import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.format.Formatter;
+import android.util.Base64;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -333,6 +336,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button8 = findViewById(R.id.button8);
         ImageView downloadIconx = findViewById(R.id.ic_download);
         ImageView copyIcon = findViewById(R.id.ic_copycat);
+        ImageView iptvIcon = findViewById(R.id.ic_iptvIcon);
 
         button1.requestFocus();
 
@@ -498,7 +502,24 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             permissionRequestCount = Integer.parseInt(permissionRequestCountStr);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            if (!Settings.canDrawOverlays(this)) {
+//                if (permissionRequestCount < 2) {
+//                    overapp_confirmation(this);
+//                    permissionRequestCount++;
+//                    preferenceManager.setKey("permissionRequestCount", String.valueOf(permissionRequestCount));
+//                } else {
+//                    Toast.makeText(this, "Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(this, "To show permission dialog, Extra > Fix CustTermux", Toast.LENGTH_SHORT).show();
+//                }
+//            } else {
+//                // Permission already granted, reset the count and proceed with the app logic
+//                preferenceManager.setKey("permissionRequestCount", "0");
+//                proceedWithAppLogic();
+//            }
+//        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Android 10 (API level 29)
             if (!Settings.canDrawOverlays(this)) {
                 if (permissionRequestCount < 2) {
                     overapp_confirmation(this);
@@ -510,11 +531,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 }
             } else {
                 // Permission already granted, reset the count and proceed with the app logic
-                preferenceManager.setKey("permissionRequestCount", "0");
+                //preferenceManager.setKey("permissionRequestCount", "0");
                 proceedWithAppLogic();
             }
         }
-
 
         ipAddressTextView = findViewById(R.id.ip_address);
         textplay = findViewById(R.id.textplay);
@@ -558,10 +578,29 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+
+
+
+        String IPTVsetflag = preferenceManager.getKey("app_name");
+
+        if (IPTVsetflag != null && !IPTVsetflag.equals("null") ) {
+            iptvIcon.setVisibility(View.VISIBLE);
+            String base64Image = preferenceManager.getKey("app_icon");
+            if (base64Image != null && !base64Image.isEmpty()) {
+                byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                iptvIcon.setImageBitmap(decodedBitmap);
+            }
+        } else {
+            iptvIcon.setVisibility(View.GONE);
+        }
+
+
+
         ipAddressTextView = findViewById(R.id.ip_address);
         downloadIcon = findViewById(R.id.ic_download);
-        copyIcon = findViewById(R.id.ic_copycat);
-
+//        copyIcon = findViewById(R.id.ic_copycat);
+        
         downloadIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
