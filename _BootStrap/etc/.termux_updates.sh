@@ -8,8 +8,8 @@ echo "##################### みらい ############################"
 #echo -e "${RED}NOTE:${NC} To be on the safer side, we are renaming the repositories. Stay tuned for the next updates."
 #echo -e "${RED}IMPORTANT:${NC} After ${GREEN}01.09.2024${NC}, you will not be able to install older versions of CustTermux."
 
-echo ""
+#echo ""
 
-echo -e "${RED}NOTICE:${NC} ${YELLOW}To avoid potential copyright issues with Jio,${NC}"
+echo -e "${RED}NOTICE:${NC} ${NC}To avoid potential copyright issues with Jio,${NC}"
 echo -e "${YELLOW}we will be changing the name of our GitHub repository.${NC}"
 echo -e "${GREEN}Updates will be provided soon.${NC}"
