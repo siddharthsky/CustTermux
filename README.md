@@ -8,11 +8,6 @@
   <br>
 </h1>
 
-## Update 4.0 -
-
-### 🚀 Usage
-
-
 ### 🙌 Acknowledgements
 
 - [Termux](https://github.com/termux)
