@@ -64,6 +64,10 @@
         tools:targetApi="m"
         android:networkSecurityConfig="@xml/network_security_config">
 
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.termux.app.CastOptionsProvider"/>
+
 
         <activity
             android:name=".KickStart"
@@ -229,6 +233,9 @@
         </activity>
 
         <activity android:name=".VideoPlayerActivity"
+            android:exported="true"/>
+
+        <activity android:name=".app.AnotherActivityCast"
             android:exported="true"/>
 
         <activity android:name=".tv_ui.TVPlayer"

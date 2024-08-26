@@ -54,7 +54,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.cast.framework.CastSession;
 import com.termux.AppSelectorActivity;
+import com.termux.SkyActionActivity;
 import com.termux.app.sky.SkyTVz;
 import com.termux.setup_login.LoginActivity2;
 import com.termux.LoginStatusChecker;
@@ -106,6 +108,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.mediarouter.app.MediaRouteButton;
 import androidx.viewpager.widget.ViewPager;
 
 import java.io.BufferedInputStream;
@@ -287,6 +290,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private String copy_text;
     private String ipport;
 
+    private CastHelper castHelper;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
@@ -314,6 +319,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // Initialize CastHelper
+        castHelper = new CastHelper(this);
+
+        // Setup MediaRouteButton
+        MediaRouteButton mediaRouteButton = findViewById(R.id.media_route_button);
+        castHelper.setupMediaRouteButton(mediaRouteButton);
+
+
 
         TextView serverStatusTextView = findViewById(R.id.server_status);
         TextView loginStatusTextView = findViewById(R.id.login_status);
@@ -458,6 +472,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             @Override
             public void onClick(View v) {
                 sky_exit();
+//                Intent intent = new Intent(TermuxActivity.this, AnotherActivityCast.class);
+//                startActivity(intent);
             }
         });
 
@@ -526,7 +542,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                     permissionRequestCount++;
                     preferenceManager.setKey("permissionRequestCount", String.valueOf(permissionRequestCount));
                 } else {
-                    Toast.makeText(this, "Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Draw Over Apps Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
                     Toast.makeText(this, "To show permission dialog, Extra > Fix CustTermux", Toast.LENGTH_SHORT).show();
                 }
             } else {
@@ -684,6 +700,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Send the {@link TermuxConstants#BROADCAST_TERMUX_OPENED} broadcast to notify apps that Termux
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
+    }
+    ///////////////////////////////////////////////////////////////
+
+    // Example method to change media
+    public void changeMedia(String mediaUrl, String title) {
+        CastSession session = castHelper.getCastSession(); // Provide a method in CastHelper to get session if needed
+        castHelper.loadMedia(session, mediaUrl, title);
     }
 
 
@@ -1021,6 +1044,32 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
 
+    // Array to store media URLs and titles
+    String[][] mediaList = {
+        {"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", "THE CHROMA CASTER"},
+        {"http://192.168.1.91/player/143", "THE M3U URL ip"},
+        {"http://localhost:5001/player/143", "THE M3U URL local"},
+        {"https://www.youtube.com/watch?v=QPLy0vHEXSA", "THE YT WAY"}
+    };
+
+    // Variable to track the current media index
+    int currentMediaIndex = 0;
+
+    private void sky_exit2() {
+        // Increment the index to switch to the next media
+        currentMediaIndex = (currentMediaIndex + 1) % mediaList.length;
+
+        // Get the next media URL and title
+        String newMediaUrl = mediaList[currentMediaIndex][0];
+        String newTitle = mediaList[currentMediaIndex][1];
+
+        Toast.makeText(TermuxActivity.this, "Playing" + newTitle, Toast.LENGTH_SHORT).show();
+
+        // Load the new media
+        castHelper.loadMedia(castHelper.getCastSession(), newMediaUrl, newTitle);
+    }
+
+
 
     private void sky_getter(){
         Intent intent = new Intent();
@@ -1258,6 +1307,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         serverStatusChecker.stopChecking();
         loginStatusChecker.stopChecking();
+
+        castHelper.removeSessionManagerListener();
     }
 
 
@@ -1302,6 +1353,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         serverStatusChecker.startChecking();
         loginStatusChecker.startChecking();
+
+        castHelper.addSessionManagerListener();
     }
 
 

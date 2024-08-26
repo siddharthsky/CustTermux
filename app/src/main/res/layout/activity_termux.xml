@@ -8,6 +8,19 @@
     android:background="@color/text_color_black"
     android:fitsSystemWindows="true">
 
+<!--    <LinearLayout-->
+<!--        xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="vertical"-->
+<!--        android:gravity="center">-->
+
+<!--        <androidx.mediarouter.app.MediaRouteButton-->
+<!--            android:id="@+id/media_route_button"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"/>-->
+
+<!--    </LinearLayout>-->
 
 
 
@@ -24,6 +37,8 @@
             android:contentDescription="Open Webpage"
             android:layout_marginBottom="-5dp"
             app:srcCompat="@mipmap/ic_banner2" />
+
+
 
     </LinearLayout>
 
