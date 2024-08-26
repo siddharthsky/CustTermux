@@ -546,6 +546,7 @@ custominstall() {
 
 termuxinfo() {
 	termux-info
+ 	exit 1
 
 }
 
