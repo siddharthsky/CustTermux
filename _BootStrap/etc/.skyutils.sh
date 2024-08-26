@@ -544,6 +544,10 @@ custominstall() {
       	exit 1
 }
 
+termuxinfo() {
+	termux-info
+
+}
 
 
 
@@ -573,6 +577,8 @@ elif [ "$1" == "epg_on" ]; then
 	epg_on
 elif [ "$1" == "epg_off" ]; then
 	epg_off
+elif [ "$1" == "termuxinfo" ]; then
+	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
 	ssh_on
 elif [ "$1" == "ssh_off" ]; then
