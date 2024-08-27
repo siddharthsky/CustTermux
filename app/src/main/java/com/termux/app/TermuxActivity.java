@@ -290,7 +290,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private String copy_text;
     private String ipport;
 
-    private CastHelper castHelper;
+//    private CastHelper castHelper;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -320,12 +320,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Initialize CastHelper
-        castHelper = new CastHelper(this);
-
-        // Setup MediaRouteButton
-        MediaRouteButton mediaRouteButton = findViewById(R.id.media_route_button);
-        castHelper.setupMediaRouteButton(mediaRouteButton);
+//        // Initialize CastHelper
+//        castHelper = new CastHelper(this);
+//
+//        // Setup MediaRouteButton
+//        MediaRouteButton mediaRouteButton = findViewById(R.id.media_route_button);
+//        castHelper.setupMediaRouteButton(mediaRouteButton);
 
 
 
@@ -547,7 +547,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 }
             } else {
                 // Permission already granted, reset the count and proceed with the app logic
-                //preferenceManager.setKey("permissionRequestCount", "0");
+                preferenceManager.setKey("permissionRequestCount", "0");
                 proceedWithAppLogic();
             }
         }
@@ -703,11 +703,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
     ///////////////////////////////////////////////////////////////
 
-    // Example method to change media
-    public void changeMedia(String mediaUrl, String title) {
-        CastSession session = castHelper.getCastSession(); // Provide a method in CastHelper to get session if needed
-        castHelper.loadMedia(session, mediaUrl, title);
-    }
+//    // Example method to change media
+//    public void changeMedia(String mediaUrl, String title) {
+//        CastSession session = castHelper.getCastSession(); // Provide a method in CastHelper to get session if needed
+//        castHelper.loadMedia(session, mediaUrl, title);
+//    }
 
 
     private void startFlashingEffect(TextView textView) {
@@ -1066,7 +1066,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Toast.makeText(TermuxActivity.this, "Playing" + newTitle, Toast.LENGTH_SHORT).show();
 
         // Load the new media
-        castHelper.loadMedia(castHelper.getCastSession(), newMediaUrl, newTitle);
+//        castHelper.loadMedia(castHelper.getCastSession(), newMediaUrl, newTitle);
     }
 
 
@@ -1308,7 +1308,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         serverStatusChecker.stopChecking();
         loginStatusChecker.stopChecking();
 
-        castHelper.removeSessionManagerListener();
+//        castHelper.removeSessionManagerListener();
     }
 
 
@@ -1354,7 +1354,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         serverStatusChecker.startChecking();
         loginStatusChecker.startChecking();
 
-        castHelper.addSessionManagerListener();
+//        castHelper.addSessionManagerListener();
     }
 
 
@@ -1437,6 +1437,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         } catch (Exception e) {
             // ignore.
         }
+
     }
 
     @Override
