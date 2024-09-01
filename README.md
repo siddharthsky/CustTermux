@@ -12,6 +12,6 @@
 ### 🙌 Acknowledgements
 
 - [Termux](https://github.com/termux)
-  - This project is based on Termux.
+  - Project is based on Termux.
 - [rabilrbl](https://github.com/rabilrbl)
   - This project uses [jiotv_go](https://github.com/rabilrbl/jiotv_go) as part of its implementation.
