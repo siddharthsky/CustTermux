@@ -259,6 +259,7 @@ get_value_from_key() {
 # Checking required packages
 Setup_Prerequisites() {
     #pkg install termux-am jq termux-api -y
+    pkg install termux-elf-cleaner -y
     rm -f $HOME/.termux/termux.properties
     touch $HOME/.termux/termux.properties
     chmod 755 $HOME/.termux/termux.properties
@@ -346,6 +347,9 @@ Default_Installation() {
 
     # Make the binary executable
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+    termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
+    
+    
     echo "Step 5: Granted executable permissions to the binary"
 
     # Add binary to PATH
@@ -374,7 +378,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9 [5 series]"
+echo "Script : version v6.9.2 [5 series]"
 
 
 
