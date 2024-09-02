@@ -208,15 +208,16 @@ Default_Installation() {
     # fi
 
     # Set binary URL
-    # BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
+    BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
+    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
     
 
-	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
-		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
-	else
-		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
-		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-  	fi
+# if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+# 	BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
+# else
+# 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
+# 	#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+#  	fi
 
 
     # Download the binary
@@ -254,7 +255,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9.2"
+echo "Script : version v6.9.2 [7 series]"
 
 
 
