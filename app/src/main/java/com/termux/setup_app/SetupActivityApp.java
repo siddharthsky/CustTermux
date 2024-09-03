@@ -22,6 +22,7 @@ import com.termux.AppSelectorActivity;
 import com.termux.R;
 import com.termux.SkySharedPref;
 import com.termux.Utils;
+import com.termux.Utils2;
 import com.termux.app.TermuxActivity;
 import com.termux.setup.SetupActivity;
 import com.termux.shared.logger.Logger;
@@ -434,7 +435,9 @@ public class SetupActivityApp extends AppCompatActivity {
         WEBbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Utils.lake_alert_WEBTV(SetupActivityApp.this);
+                //Utils.lake_alert_WEBTV(TermuxActivity.this);
+                Utils2.lake_alert_WEBTV(SetupActivityApp.this);
+
             }
         });
 

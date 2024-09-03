@@ -52,7 +52,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class Utils {
+public class Utils2 {
     public static void showCustomToast(Context context, String message) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View layout = inflater.inflate(R.layout.custom_toast2, null);
@@ -160,9 +160,9 @@ public class Utils {
         preferenceManager.setKey("isFlagSetForMinimize", "No");
         preferenceManager.setKey("isWEBTVconfig", " ");
 
-        File downloadDir = Utils.getDownloadDirectory(context);
+        File downloadDir = Utils2.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
-        boolean isDeleted = Utils.deleteFile(file);
+        boolean isDeleted = Utils2.deleteFile(file);
 
         Intent intentC = new Intent();
         intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -320,9 +320,9 @@ public class Utils {
 //    }
 
     public static void updateCustTermux(Context context) {
-        File downloadDir = Utils.getDownloadDirectory(context);
+        File downloadDir = Utils2.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
-        boolean isDeleted = Utils.deleteFile(file);
+        boolean isDeleted = Utils2.deleteFile(file);
         SkySharedPref preferenceManager = new SkySharedPref(context);
         preferenceManager.setKey("permissionRequestCount", "0");
 
@@ -398,13 +398,13 @@ public class Utils {
                         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
                         context.startService(intentC);
 
-                        Utils.showCustomToast(context, "Port number updated to: " + port);
+                        Utils2.showCustomToast(context, "Port number updated to: " + port);
                         // Notify the listener about the port change
                         if (listener != null) {
                             listener.onPortChanged(portStr);
                         }
                     } else {
-                        Utils.showCustomToast(context, "Please enter a valid 4-digit port number.");
+                        Utils2.showCustomToast(context, "Please enter a valid 4-digit port number.");
                     }
                 }
             })
@@ -482,11 +482,11 @@ public class Utils {
 
                         if (timeD < 2) {
                             preferenceManager.setKey("isDelayTime", String.valueOf(2));
-                            Utils.showCustomToast(context, "Time cannot be set below 2 seconds.");
-                            Utils.showCustomToast(context, "Delay time updated to: 2 Sec");
+                            Utils2.showCustomToast(context, "Time cannot be set below 2 seconds.");
+                            Utils2.showCustomToast(context, "Delay time updated to: 2 Sec");
                         } else {
                             preferenceManager.setKey("isDelayTime", String.valueOf(timeD));
-                            Utils.showCustomToast(context, "Delay time updated to: " + timeD + " Sec");
+                            Utils2.showCustomToast(context, "Delay time updated to: " + timeD + " Sec");
 
                             // Notify the listener about the time change
                             if (listener != null) {
@@ -494,7 +494,7 @@ public class Utils {
                             }
                         }
                     } else {
-                        Utils.showCustomToast(context, "Please enter a valid time.");
+                        Utils2.showCustomToast(context, "Please enter a valid time.");
                     }
                 }
             })
@@ -594,7 +594,7 @@ public class Utils {
             String selectedArch = spinnerArch.getSelectedItem().toString();
 
             Toast.makeText(context, "Selected OS: " + selectedOS + "\nSelected Arch: " + selectedArch, Toast.LENGTH_SHORT).show();
-            Utils.sky_custom_TV(context, selectedOS, selectedArch);
+            Utils2.sky_custom_TV(context, selectedOS, selectedArch);
         });
 
         // Set cancel button
@@ -653,129 +653,57 @@ public class Utils {
     }
 
     public static void lake_alert_WEBTV(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select Options");
-
-        // Inflate the layout for the main dialog
         LayoutInflater inflater = LayoutInflater.from(context);
-        android.view.View customView = inflater.inflate(R.layout.dialog_main_buttons, null);
+        android.view.View customView = inflater.inflate(R.layout.dialog_select_options_web, null);
+
+        Spinner spinnerCategory = customView.findViewById(R.id.spinner_category);
+        Spinner spinnerLanguage = customView.findViewById(R.id.spinner_language);
+        Spinner spinnerQuality = customView.findViewById(R.id.spinner_quality);
+
+
+        String[] categoryOptions = {"All Categories", "Entertainment", "Movies", "Kids", "Sports", "Lifestyle", "Infotainment", "News", "Music", "Devotional", "Business", "Educational", "Shopping", "JioDarshan"};
+        String[] languageOptions = {"All Languages", "Hindi", "Marathi", "Punjabi", "Urdu", "Bengali", "English", "Malayalam", "Tamil", "Gujarati", "Odia", "Telugu", "Bhojpuri", "Kannada", "Assamese", "Nepali", "French", "Other"};
+        String[] qualityOptions = {"High", "Medium", "Low"};
+
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categoryOptions);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+
+        ArrayAdapter<String> languageAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, languageOptions);
+        languageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLanguage.setAdapter(languageAdapter);
+
+        ArrayAdapter<String> qualityAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, qualityOptions);
+        qualityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerQuality.setAdapter(qualityAdapter);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Select Category, Language, and Quality");
         builder.setView(customView);
 
-        // Initialize buttons
-        Button buttonQuality = customView.findViewById(R.id.button_quality);
-        Button buttonCategory = customView.findViewById(R.id.button_category);
-        Button buttonLanguage = customView.findViewById(R.id.button_language);
-
-        // Set up button actions
-        buttonQuality.setOnClickListener(v -> showQualityDialog(context));
-        buttonCategory.setOnClickListener(v -> showCategoryDialog(context));
-        buttonLanguage.setOnClickListener(v -> showLanguageDialog(context));
-
-        builder.setPositiveButton("Save", (dialog, which) -> sky_saver(context));
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        builder.create().show();
-    }
-
-    private static void showCategoryDialog(Context context) {
-        String[] categoryOptions = {"All Categories", "Entertainment", "Movies", "Kids", "Sports", "Lifestyle", "Infotainment", "News", "Music", "Devotional", "Business", "Educational", "Shopping", "JioDarshan"};
-        boolean[] selectedCategories = new boolean[categoryOptions.length];
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select Categories");
-
-        builder.setMultiChoiceItems(categoryOptions, selectedCategories, (dialog, which, isChecked) -> {
-            selectedCategories[which] = isChecked;
-        });
-
         builder.setPositiveButton("OK", (dialog, which) -> {
-            StringBuilder selectedCategoriesStr = new StringBuilder();
-            for (int i = 0; i < selectedCategories.length; i++) {
-                if (selectedCategories[i]) {
-                    selectedCategoriesStr.append(categoryOptions[i]).append(",");
-                }
-            }
-            if (selectedCategoriesStr.length() > 0) {
-                selectedCategoriesStr.setLength(selectedCategoriesStr.length() - 1); // Remove trailing comma
-            }
+            String selectedCategory = spinnerCategory.getSelectedItem().toString();
+            String selectedLanguage = spinnerLanguage.getSelectedItem().toString();
+            String selectedQuality = spinnerQuality.getSelectedItem().toString();
 
-            // Save selected categories to SharedPreferences
-            SkySharedPref preferenceManager = new SkySharedPref(context);
-            preferenceManager.setKey("isWEBTV_CAT", selectedCategoriesStr.toString());
-            //sky_saver(context);
-
-            Toast.makeText(context, "Selected Categories: " + selectedCategoriesStr.toString(), Toast.LENGTH_SHORT).show();
-        });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        builder.create().show();
-    }
-
-    private static void showLanguageDialog(Context context) {
-        String[] languageOptions = {"All Languages", "Hindi", "Marathi", "Punjabi", "Urdu", "Bengali", "English", "Malayalam", "Tamil", "Gujarati", "Odia", "Telugu", "Bhojpuri", "Kannada", "Assamese", "Nepali", "French", "Other"};
-        boolean[] selectedLanguages = new boolean[languageOptions.length];
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select Languages");
-
-        builder.setMultiChoiceItems(languageOptions, selectedLanguages, (dialog, which, isChecked) -> {
-            selectedLanguages[which] = isChecked;
-        });
-
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            StringBuilder selectedLanguagesStr = new StringBuilder();
-            for (int i = 0; i < selectedLanguages.length; i++) {
-                if (selectedLanguages[i]) {
-                    selectedLanguagesStr.append(languageOptions[i]).append(",");
-                }
-            }
-            if (selectedLanguagesStr.length() > 0) {
-                selectedLanguagesStr.setLength(selectedLanguagesStr.length() - 1); // Remove trailing comma
-            }
-
-            // Save selected languages to SharedPreferences
-            SkySharedPref preferenceManager = new SkySharedPref(context);
-            preferenceManager.setKey("isWEBTV_LANG", selectedLanguagesStr.toString());
-            //sky_saver(context);
-
-            Toast.makeText(context, "Selected Languages: " + selectedLanguagesStr.toString(), Toast.LENGTH_SHORT).show();
-        });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        builder.create().show();
-    }
-
-    private static void showQualityDialog(Context context) {
-        String[] qualityOptions = {"High", "Medium", "Low"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select Quality");
-
-        builder.setSingleChoiceItems(qualityOptions, -1, (dialog, which) -> {
-            // Save the selected quality option
-            String selectedQuality = qualityOptions[which];
+            // Define the specific numbers for each option using the provided maps
+            int categoryNumber = getCategoryNumber(selectedCategory);
+            int languageNumber = getLanguageNumber(selectedLanguage);
             String qualityParameter = getQualityParameter(selectedQuality);
 
-            // Save selected quality to SharedPreferences
-            SkySharedPref preferenceManager = new SkySharedPref(context);
-            preferenceManager.setKey("isWEBTV_QUALITY", qualityParameter);
-            //sky_saver(context);
+            Toast.makeText(context, "Selected Category: " + selectedCategory + "\n" +
+                "Selected Language: " + selectedLanguage + "\n" +
+                "Selected Quality: " + selectedQuality, Toast.LENGTH_SHORT).show();
 
-            Toast.makeText(context, "Selected Quality: " + selectedQuality, Toast.LENGTH_SHORT).show();
+            sky_webtv_adder(context, categoryNumber, languageNumber, qualityParameter);
         });
 
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            // Handle saving or applying the selected quality
-        });
-
+        // Set cancel button
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
+        // Show the dialog
         builder.create().show();
     }
-
-
 
     private static int getCategoryNumber(String category) {
         switch (category) {
@@ -827,114 +755,21 @@ public class Utils {
             default: return "high";
         }
     }
-    private static  void sky_saver(Context context){
+
+    private static void sky_webtv_adder(Context context, int categoryNumber, int languageNumber, String qualityParameter) {
         SkySharedPref preferenceManager = new SkySharedPref(context);
 
-        // Retrieve saved preferences
-        String categories = preferenceManager.getKey("isWEBTV_CAT");
-        String languages = preferenceManager.getKey("isWEBTV_LANG");
-        String qualityParameter = preferenceManager.getKey("isWEBTV_QUALITY");
+//        String SAVE = "?category=" + categoryNumber + "&language=" + languageNumber;
+//        if (!qualityParameter.isEmpty()) {
+//            SAVE += "&q=" + qualityParameter;
+//        }
 
-        // Convert comma-separated category names to their corresponding numbers
-        String[] categoryArray = categories.split(",");
-        StringBuilder categoryNumbers = new StringBuilder();
-        for (String category : categoryArray) {
-            int number = getCategoryNumber(category.trim());
-            if (number != 0) {
-                categoryNumbers.append(number).append(",");
-            }
-        }
-        if (categoryNumbers.length() > 0) {
-            categoryNumbers.setLength(categoryNumbers.length() - 1); // Remove trailing comma
-        }
+        String SAVE = "?category=" + categoryNumber + "&language=" + languageNumber + "&q=" + qualityParameter;
 
-        // Convert comma-separated language names to their corresponding numbers
-        String[] languageArray = languages.split(",");
-        StringBuilder languageNumbers = new StringBuilder();
-        for (String language : languageArray) {
-            int number = getLanguageNumber(language.trim());
-            if (number != 0) {
-                languageNumbers.append(number).append(",");
-            }
-        }
-        if (languageNumbers.length() > 0) {
-            languageNumbers.setLength(languageNumbers.length() - 1); // Remove trailing comma
-        }
-
-        // Construct the final query string
-        StringBuilder queryBuilder = new StringBuilder("?");
-        if (categoryNumbers.length() > 0) {
-            queryBuilder.append("category=").append(categoryNumbers.toString());
-        }
-        if (languageNumbers.length() > 0) {
-            if (queryBuilder.length() > 1) queryBuilder.append("&");
-            queryBuilder.append("language=").append(languageNumbers.toString());
-        }
-        if (!qualityParameter.isEmpty()) {
-            if (queryBuilder.length() > 1) queryBuilder.append("&");
-            queryBuilder.append("q=").append(qualityParameter);
-        }
-
-        preferenceManager.setKey("isWEBTVconfig", queryBuilder.toString());
-
-        String finalURL = "http://localhost:5001/" + queryBuilder.toString();
-
-        // Use the final URL as needed
-        Toast.makeText(context, "Generated URL: " + finalURL, Toast.LENGTH_LONG).show();
-        //Toast.makeText(context, "Configured WEBTV", Toast.LENGTH_LONG).show();
-    }
-
-    private static void sky_webtv_adder(Context context, String categories, String languages, String qualityParameter) {
-        SkySharedPref preferenceManager = new SkySharedPref(context);
-
-        // Convert comma-separated category names to their corresponding numbers
-        String[] categoryArray = categories.split(",");
-        StringBuilder categoryNumbers = new StringBuilder();
-        for (String category : categoryArray) {
-            int number = getCategoryNumber(category.trim());
-            if (number != 0) {
-                categoryNumbers.append(number).append(",");
-            }
-        }
-        if (categoryNumbers.length() > 0) {
-            categoryNumbers.setLength(categoryNumbers.length() - 1); // Remove trailing comma
-        }
-
-        // Convert comma-separated language names to their corresponding numbers
-        String[] languageArray = languages.split(",");
-        StringBuilder languageNumbers = new StringBuilder();
-        for (String language : languageArray) {
-            int number = getLanguageNumber(language.trim());
-            if (number != 0) {
-                languageNumbers.append(number).append(",");
-            }
-        }
-        if (languageNumbers.length() > 0) {
-            languageNumbers.setLength(languageNumbers.length() - 1); // Remove trailing comma
-        }
-
-        // Construct the final query string
-        StringBuilder queryBuilder = new StringBuilder("?");
-        if (categoryNumbers.length() > 0) {
-            queryBuilder.append("category=").append(categoryNumbers.toString());
-        }
-        if (languageNumbers.length() > 0) {
-            if (queryBuilder.length() > 1) queryBuilder.append("&");
-            queryBuilder.append("language=").append(languageNumbers.toString());
-        }
-        if (!qualityParameter.isEmpty()) {
-            if (queryBuilder.length() > 1) queryBuilder.append("&");
-            queryBuilder.append("q=").append(qualityParameter);
-        }
-
-        String SAVE = queryBuilder.toString();
-
-        // Example URL: http://localhost:5001/?category=5,6,7&language=1,6&q=high
+        // Example URL: http://localhost:5001/?category=5&language=1&q=high
 
         preferenceManager.setKey("isWEBTVconfig", SAVE);
     }
-
-
 
     public static void runTERMUXinfo(Context context) {
 
@@ -949,4 +784,3 @@ public class Utils {
         context.startService(intentC);
     }
 }
-
