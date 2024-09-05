@@ -391,9 +391,15 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9.3 [5 series] test"
+echo "Script : version v6.9.3x [5 series] test"
 
+SDK_VERSION=$(getprop ro.build.version.sdk)
 
+# Check if the SDK version is equal to or less than 23
+if [ "$SDK_VERSION" -le 23 ]; then
+	# Set OS to "android5"
+	echo "VER = $SDK_VERSION"
+fi
 
 
 
