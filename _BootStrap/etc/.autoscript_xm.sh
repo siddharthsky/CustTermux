@@ -347,6 +347,7 @@ Default_Installation() {
 
 	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
  		echo "WORK OF ART"
+   		#BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
 		BINARY_URL="https://objects.githubusercontent.com/github-production-release-asset-2e65be/682418985/0bbc55a1-a253-43ed-a733-1897f8c5ed1d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20240905%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240905T171924Z&X-Amz-Expires=300&X-Amz-Signature=3544f1061f49eb5c8cd89d79d469a095a69c410c4ee8e304fdf7f924eb4e7bf6&X-Amz-SignedHeaders=host&actor_id=96260439&key_id=0&repo_id=682418985&response-content-disposition=attachment%3B%20filename%3Djiotv_go-android5-armv7&response-content-type=application%2Foctet-stream"
 	else
 		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
