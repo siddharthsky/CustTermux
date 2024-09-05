@@ -343,8 +343,8 @@ Default_Installation() {
 
 	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
  		echo "WORK OF ART"
-   		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
-       		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
+   		#BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
+       		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
 	else
 		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
 		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
@@ -388,7 +388,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9.3 [5 series]"
+echo "Script : version v6.9.3z [5 series]"
 
 
 
