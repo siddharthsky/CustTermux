@@ -323,6 +323,18 @@ Default_Installation() {
         OS="linux"
     fi
 
+	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+	  # Get the SDK version
+	  SDK_VERSION=$(getprop ro.build.version.sdk)
+	
+	  # Check if the SDK version is equal to or less than 23
+	  if [ "$SDK_VERSION" -le 23 ]; then
+	    # Set OS to "android5"
+	    OS="android5"
+     	    ARCH="armv7"
+	  fi
+	fi
+
     # # OSx=$OSTYPE
     # if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
     #     OS="linux"
@@ -334,7 +346,7 @@ Default_Installation() {
 
 
 	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
-		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
+		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
 	else
 		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
 		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
