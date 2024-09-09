@@ -237,7 +237,17 @@ Default_Installation() {
 
     # Make the binary executable
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
-    termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
+
+	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+		# Get the SDK version
+		SDK_VERSION=$(getprop ro.build.version.sdk)
+		# Check if the SDK version is equal to or less than 23
+		if [ "$SDK_VERSION" -le 23 ]; then
+			termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
+		fi
+	fi
+  
+    
     
     
     echo "Step 5: Granted executable permissions to the binary"
