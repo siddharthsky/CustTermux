@@ -141,8 +141,8 @@ get_value_from_key() {
 
 # Checking required packages
 Setup_Prerequisites() {
-	pkg update -y
- pkg upgrade -y
+	# pkg update -y
+ # pkg upgrade -y
     #pkg install termux-am jq termux-api -y
     # pkg install termux-elf-cleaner -y
     rm -f $HOME/.termux/termux.properties
@@ -205,7 +205,7 @@ Default_Installation() {
     echo "Step 3: Created \$HOME/.jiotv_go/bin"
 
     if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
-        OS="linux"
+        ARCH="amd64"
     fi
   
   if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
