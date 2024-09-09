@@ -275,9 +275,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : version v6.9.4x [5 series]"
+	echo "Script : version v6.9.4x1 [5 series]"
 else
-	echo "Script : version v6.9.4x [7 series]"
+	echo "Script : version v6.9.4x1 [7 series]"
 fi
 
 
