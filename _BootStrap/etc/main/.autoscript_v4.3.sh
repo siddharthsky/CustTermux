@@ -278,8 +278,15 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9.4 [5 series]"
 
+
+SDK_VERSION=$(getprop ro.build.version.sdk)
+# Check if the SDK version is equal to or less than 23
+if [ "$SDK_VERSION" -le 23 ]; then
+	echo "Script : version v6.9.4 [5 series]"
+else
+	echo "Script : version v6.9.4 [7 series]"
+fi
 
 
 
