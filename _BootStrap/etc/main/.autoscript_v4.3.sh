@@ -213,8 +213,10 @@ Default_Installation() {
     # Check if the SDK version is equal to or less than 23
     if [ "$SDK_VERSION" -le 23 ]; then
       # Set OS to "android5"
-      OS="android5"
-      ARCH="armv7"
+      # OS="android5"
+      # ARCH="armv7"
+	OS="android"
+      	ARCH="arm"
       pkg install termux-elf-cleaner -y
     fi
   fi
