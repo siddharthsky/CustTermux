@@ -205,7 +205,7 @@ Default_Installation() {
     echo "Step 3: Created \$HOME/.jiotv_go/bin"
 
     if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
-        ARCH="amd64"
+        ARCH="386"
     fi
   
   if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
@@ -279,9 +279,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : version v6.9.4z [5 series]"
+	echo "Script : version v6.9.4z1 [5 series]"
 else
-	echo "Script : version v6.9.4z  [7 series]"
+	echo "Script : version v6.9.4z1  [7 series]"
 fi
 
 
