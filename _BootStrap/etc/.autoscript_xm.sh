@@ -346,8 +346,8 @@ Default_Installation() {
    		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
        		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
 	else
-		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
-		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
+		BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
 	fi
 
     # Download the binary
