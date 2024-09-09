@@ -215,20 +215,9 @@ Default_Installation() {
     fi
   fi
 
-
     # Set binary URL
-    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.6.0/jiotv_go-$OS-$ARCH"
+    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
     BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-
-
-	# if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
- # 		echo "WORK OF ART"
- #   		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
- #       		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
-	# else
-	# 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
-	# 	#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-	# fi
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
@@ -246,10 +235,8 @@ Default_Installation() {
 			termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
 		fi
 	fi
-  
-    
-    
-    
+	  
+
     echo "Step 5: Granted executable permissions to the binary"
 
     # Add binary to PATH
