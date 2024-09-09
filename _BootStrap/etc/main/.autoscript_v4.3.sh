@@ -224,7 +224,7 @@ Default_Installation() {
     # Set binary URL
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-     BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/jiotv_go22-$OS-$ARCH"
+     BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/jiotv_go223-$OS-$ARCH"
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
@@ -277,9 +277,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : version v6.9.4x22 [5 series]"
+	echo "Script : version v6.9.4x223 [5 series]"
 else
-	echo "Script : version v6.9.4x22 [7 series]"
+	echo "Script : version v6.9.4x223 [7 series]"
 fi
 
 
