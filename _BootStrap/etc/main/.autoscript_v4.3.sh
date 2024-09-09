@@ -141,6 +141,8 @@ get_value_from_key() {
 
 # Checking required packages
 Setup_Prerequisites() {
+	pkg update -y
+ pkg upgrade -y
     #pkg install termux-am jq termux-api -y
     # pkg install termux-elf-cleaner -y
     rm -f $HOME/.termux/termux.properties
