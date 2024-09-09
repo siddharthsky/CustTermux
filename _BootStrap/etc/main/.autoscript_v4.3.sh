@@ -222,7 +222,7 @@ Default_Installation() {
     # Set binary URL
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-    BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin_armNEXT"
+     BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/jiotv_go-$OS-$ARCH"
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
