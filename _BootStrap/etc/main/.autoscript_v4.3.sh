@@ -75,16 +75,16 @@ TheShowRunner() {
     if [ "$VARIABLE03" == "Yes" ]; then
         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
         termux-wake-lock
-	$HOME/.jiotv_go/bin/jiotv_go bg run
-        #$HOME/.jiotv_go/bin/jiotv_go bg run
+	#$HOME/.jiotv_go/bin/jiotv_go bg run
+        $HOME/.jiotv_go/bin/jiotv_go bg run
     else
         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
-	$HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public
-        #$HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
+	#$HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public
+        $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
     fi
 
-    # am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" - temp off
+     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" #- temp off
 }
 
 
@@ -98,11 +98,11 @@ TheShowRunner_onetime() {
  
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
-		$HOME/.jiotv_go/bin/jiotv_go run
-  		#$HOME/.jiotv_go/bin/jiotv_go bg run
+		#$HOME/.jiotv_go/bin/jiotv_go run
+  		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
- 		$HOME/.jiotv_go/bin/jiotv_go run -P
-		#$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+ 		#$HOME/.jiotv_go/bin/jiotv_go run -P
+		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
  	#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 }
@@ -221,7 +221,8 @@ Default_Installation() {
 
     # Set binary URL
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
-    BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+    BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin_armNEXT"
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
@@ -274,9 +275,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : version v6.9.4 [5 series]"
+	echo "Script : version v6.9.4x [5 series]"
 else
-	echo "Script : version v6.9.4 [7 series]"
+	echo "Script : version v6.9.4x [7 series]"
 fi
 
 
@@ -305,7 +306,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "INSTALLATION -- PART 2"
 	echo "-----------------------"
 	Default_Installation
-	# Setup_Extra -temp off
+	Setup_Extra #-temp off
  	clear
 	Server_Runner
  	TheShowRunner_onetime
