@@ -13,7 +13,7 @@ suffix=" #####"
 word="ひらめき"
 
 # Array of colors
-colors=($RED $GREEN $YELLOW)
+colors=($GREEN)
 
 # Loop through each character of the word
 echo -n "$prefix"
