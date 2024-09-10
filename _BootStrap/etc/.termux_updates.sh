@@ -10,7 +10,7 @@ prefix="##### "
 suffix=" #####"
 
 # The word to change color
-word="ひらめき"
+word="一期一会"
 
 # Array of colors
 colors=($GREEN)
