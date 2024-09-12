@@ -153,11 +153,8 @@ Default_Installation() {
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 
-    if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
-        SDK_VERSION=$(getprop ro.build.version.sdk)
-        if [ "$SDK_VERSION" -le 23 ]; then
-            termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
-        fi
+    if [ "$OS" = "android5" ] && [ "$ARCH" = "arm7" ]; then
+        termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
     fi
 
     echo "Step 5: Granted executable permissions to the binary"
@@ -190,9 +187,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.5zx [5 series]"
+    echo "Script: v6.9.5x [5 series]"
 else
-    echo "Script: v6.9.5zx [7 series]"
+    echo "Script: v6.9.5z [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
