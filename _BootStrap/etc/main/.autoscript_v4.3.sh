@@ -54,15 +54,15 @@ TheShowRunner() {
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
     if [ "$VARIABLE03" == "Yes" ]; then
-        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
         termux-wake-lock
         am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
+        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
     else
-        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
         am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
+        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
     fi
 }
 
@@ -191,9 +191,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.5xcv [5 series]"
+    echo "Script: v6.9.5z [5 series]"
 else
-    echo "Script: v6.9.5xcv [7 series]"
+    echo "Script: v6.9.5z [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
