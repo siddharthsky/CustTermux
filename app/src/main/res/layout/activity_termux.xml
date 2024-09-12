@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="Open Webpage"
             android:layout_marginBottom="-5dp"
-            app:srcCompat="@mipmap/ic_banner2" />
+            app:srcCompat="@mipmap/ic_launcher_neo" />
 
 
 
