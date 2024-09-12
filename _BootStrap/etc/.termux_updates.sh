@@ -28,6 +28,13 @@ echo "$suffix"
 
 
 get_version() {
+
+    # Check if the file exists
+    if [ ! -f "$HOME/.jiotv_go/bin/jiotv_go" ]; then
+        echo "not installed"  # Return a default value or message
+        return
+    fi
+    
     version_output=$($HOME/.jiotv_go/bin/jiotv_go -v)
     version=$(echo "$version_output" | grep -oP '(?<=version v)\d+\.\d+\.\d+')
     echo "$version"
