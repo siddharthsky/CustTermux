@@ -97,6 +97,89 @@ theshowrunner() {
 	bash $PREFIX/etc/bash.bashrc
 }
 
+get_value_from_key() {
+    local KEY="$1"
+    local VAR_NAME="$2"
+    logcat -c
+    sleep 0
+    am start -a com.termux.GetReceiver -n com.termux/.SkySharedPrefActivity --es key "$KEY"
+    sleep 0
+    local VALUE=$(logcat -d | grep "SkySharedPrefActivity" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    
+    if [ -z "$VALUE" ]; then
+        VALUE=$(logcat -d | grep "Retrieved key:" | grep "$KEY" | awk -F'value: ' '{print $2}' | head -n 1)
+    fi
+    
+    eval "$VAR_NAME='$VALUE'"
+    # Debug
+    echo "Captured value: $(eval echo \$$VAR_NAME)"    
+}
+
+TheShowRunner1() {
+	a_username=$(whoami)
+
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+
+	get_value_from_key "server_setup_isLocal" "VARIABLE03"
+ 
+	if [ "$VARIABLE03" == "Yes" ]; then
+ 		echo -e "\e[32mRunning Server Locally\e[0m"
+		$HOME/.jiotv_go/bin/jiotv_go run
+  		#$HOME/.jiotv_go/bin/jiotv_go bg run
+	else
+ 		$HOME/.jiotv_go/bin/jiotv_go run -P
+		#$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+	fi
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+}
+
+TheShowRunner2() {
+    retrieve_first_line() {
+        file="$1"
+        if [ -f "$file" ]; then
+            head -n 1 "$file"
+        else
+            echo ""
+        fi
+    }
+
+    default_port=5001
+
+    # Retrieve the port from the file
+    retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
+
+    # Validate if retrieved_port is a 4-digit number
+    if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
+        port_to_use=$retrieved_port
+    else
+        file="$HOME/.jiotv_go/bin/server_port.cfg"
+        touch "$file"
+        chmod 755 "$file"
+        echo "5001" > "$file"
+        port_to_use=$default_port
+    fi
+
+    get_value_from_key "server_setup_isLocal" "VARIABLE03"
+
+    if [ "$VARIABLE03" == "Yes" ]; then
+        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
+        termux-wake-lock
+	#$HOME/.jiotv_go/bin/jiotv_go bg run
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
+        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use
+    else
+        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+        termux-wake-lock
+	#$HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
+	$HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public
+        
+    fi
+
+     
+}
+
+
 iptv() {
 	select_iptv() {
 		spr="SparkleTV2 - any app"	
@@ -566,6 +649,10 @@ elif [ "$1" == "verifyotpx" ]; then
   	  verifyotp "$2" "$3"
 elif [ "$1" == "theshowrunner" ]; then
   	  theshowrunner
+elif [ "$1" == "TheShowRunner1" ]; then
+  	TheShowRunner1
+elif [ "$1" == "TheShowRunner2" ]; then
+	TheShowRunner2
 elif [ "$1" == "iptv" ]; then
   	  iptv
 elif [ "$1" == "iptvrunner" ]; then
