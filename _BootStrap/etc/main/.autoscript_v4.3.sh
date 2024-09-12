@@ -33,7 +33,7 @@ get_ip_address() {
 
 Server_Runner() {
 	#get_ip_address
-	$HOME/.jiotv_go/bin/jiotv_go -v
+	# $HOME/.jiotv_go/bin/jiotv_go -v # temp off
 	echo "---------------------------"
 	# echo -e "\e[96mFor Access:\e[0m"
 	# echo -e "\e[96mLogin Page:\e[0m http://localhost:5001"
