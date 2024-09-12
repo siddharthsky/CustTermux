@@ -271,8 +271,9 @@ Default_Installation() {
 }
 
 Setup_Extra() {
-	echo "EPG UTIL"
+	echo "EPG UTIL : STARTED"
 	$HOME/.jiotv_go/bin/jiotv_go epg gen
+	echo "EPG UTIL : FINISHED"
 	am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute 
 }
 
@@ -281,9 +282,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : v6.9.5z [5 series]"
+	echo "Script : v6.9.5xz [5 series]"
 else
-	echo "Script : v6.9.5z [7 series]"
+	echo "Script : v6.9.5xz [7 series]"
 fi
 
 
