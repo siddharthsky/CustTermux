@@ -24,6 +24,63 @@ Server_Runner() {
     pkill -f "jiotv_go"
 }
 
+# TheShowRunner() {
+#     retrieve_first_line() {
+#         file="$1"
+#         if [ -f "$file" ]; then
+#             head -n 1 "$file"
+#         else
+#             echo ""
+#         fi
+#     }
+
+#     default_port=5001
+#     retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
+
+#     if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
+#         port_to_use=$retrieved_port
+#     else
+#         file="$HOME/.jiotv_go/bin/server_port.cfg"
+#         touch "$file"
+#         chmod 755 "$file"
+#         echo "5001" > "$file"
+#         port_to_use=$default_port
+#     fi
+
+#     get_value_from_key "server_setup_isLocal" "VARIABLE03"
+
+#     if [ "$VARIABLE03" == "Yes" ]; then
+#         termux-wake-lock
+        
+#         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
+#         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
+#     else
+#         termux-wake-lock
+        
+#         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
+#         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+#     fi
+
+#     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+# }
+
+# TheShowRunner_onetime() {
+#     a_username=$(whoami)
+#     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+
+#     get_value_from_key "server_setup_isLocal" "VARIABLE03"
+
+#     if [ "$VARIABLE03" == "Yes" ]; then
+#         echo -e "\e[32mRunning Server Locally\e[0m"
+#         $HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
+#     else
+#         echo -e "\e[32mRunning Server Publicly\e[0m"
+#         $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
+#     fi
+
+#     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+# }
+
 TheShowRunner() {
     retrieve_first_line() {
         file="$1"
@@ -41,8 +98,7 @@ TheShowRunner() {
         port_to_use=$retrieved_port
     else
         file="$HOME/.jiotv_go/bin/server_port.cfg"
-        touch "$file"
-        chmod 755 "$file"
+        touch "$file" && chmod 600 "$file"
         echo "5001" > "$file"
         port_to_use=$default_port
     fi
@@ -51,17 +107,32 @@ TheShowRunner() {
 
     if [ "$VARIABLE03" == "Yes" ]; then
         termux-wake-lock
-        
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
     else
         termux-wake-lock
-        
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
     fi
 
-    am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+    # Wait for the server to be live, with a maximum of 5 tries
+    attempts=0
+    max_attempts=5
+    while [ $attempts -lt $max_attempts ]; do
+        if curl -s http://localhost:$port_to_use > /dev/null; then
+            # Start the activity when the server is live
+            am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+            break
+        else
+            echo "Attempt $((attempts + 1))/$max_attempts: Waiting for server to be live..."
+            sleep 5
+            attempts=$((attempts + 1))
+        fi
+    done
+
+    if [ $attempts -ge $max_attempts ]; then
+        echo -e "\e[31mServer did not become live after $max_attempts attempts\e[0m"
+    fi
 }
 
 TheShowRunner_onetime() {
@@ -78,8 +149,28 @@ TheShowRunner_onetime() {
         $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
     fi
 
-    am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+    # Wait for the server to be live, with a maximum of 5 tries
+    attempts=0
+    max_attempts=5
+    while [ $attempts -lt $max_attempts ]; do
+        if curl -s http://localhost:$port_to_use > /dev/null; then
+            # Start the activity when the server is live
+            am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+            break
+        else
+            echo "Attempt $((attempts + 1))/$max_attempts: Waiting for server to be live..."
+            sleep 5
+            attempts=$((attempts + 1))
+        fi
+    done
+
+    if [ $attempts -ge $max_attempts ]; then
+        echo -e "\e[31mServer did not become live after $max_attempts attempts\e[0m"
+    fi
 }
+
+
+
 
 ################################################################################################
 # AM functions
@@ -187,9 +278,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.5x [5 series]"
+    echo "Script: v6.9.5t [5 series]"
 else
-    echo "Script: v6.9.5z [7 series]"
+    echo "Script: v6.9.5t [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
