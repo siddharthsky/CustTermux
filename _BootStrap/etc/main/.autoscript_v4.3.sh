@@ -51,15 +51,17 @@ TheShowRunner() {
 
     if [ "$VARIABLE03" == "Yes" ]; then
         termux-wake-lock
-        am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+        
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
     else
         termux-wake-lock
-        am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+        
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
     fi
+
+    am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
 }
 
 TheShowRunner_onetime() {
@@ -72,6 +74,7 @@ TheShowRunner_onetime() {
         echo -e "\e[32mRunning Server Locally\e[0m"
         $HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
     else
+        echo -e "\e[32mRunning Server Publicly\e[0m"
         $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
     fi
 
