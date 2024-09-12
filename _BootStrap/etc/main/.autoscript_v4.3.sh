@@ -242,16 +242,17 @@ Default_Installation() {
 
     BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+
+    echo "Step 5: Granted executable permissions to the binary"
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 
-    echo "TEMP FLASH $OS and $ARCH"
-    if [ "$OS" = "android5" ] && [ "$ARCH" = "arm7" ]; then
-        echo "Removing DT_FLAGS"
+    if [ "$OS" = "android5" ] && [ "$ARCH" = "armv7" ]; then
+        echo "Step 6: Removing DT_FLAGS"
         pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
         termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
     fi
 
-    echo "Step 5: Granted executable permissions to the binary"
+   
     case "$SHELL_NAME" in
         "bash")
             export PATH="$PATH:$HOME/.jiotv_go/bin"
