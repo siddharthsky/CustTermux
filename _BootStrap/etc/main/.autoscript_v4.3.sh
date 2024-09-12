@@ -45,49 +45,47 @@ Server_Runner() {
 }
 
 TheShowRunner() {
- #    retrieve_first_line() {
- #        file="$1"
- #        if [ -f "$file" ]; then
- #            head -n 1 "$file"
- #        else
- #            echo ""
- #        fi
- #    }
+    retrieve_first_line() {
+        file="$1"
+        if [ -f "$file" ]; then
+            head -n 1 "$file"
+        else
+            echo ""
+        fi
+    }
 
- #    default_port=5001
+    default_port=5001
 
- #    # Retrieve the port from the file
- #    retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
+    # Retrieve the port from the file
+    retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
 
- #    # Validate if retrieved_port is a 4-digit number
- #    if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
- #        port_to_use=$retrieved_port
- #    else
- #        file="$HOME/.jiotv_go/bin/server_port.cfg"
- #        touch "$file"
- #        chmod 755 "$file"
- #        echo "5001" > "$file"
- #        port_to_use=$default_port
- #    fi
+    # Validate if retrieved_port is a 4-digit number
+    if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
+        port_to_use=$retrieved_port
+    else
+        file="$HOME/.jiotv_go/bin/server_port.cfg"
+        touch "$file"
+        chmod 755 "$file"
+        echo "5001" > "$file"
+        port_to_use=$default_port
+    fi
 
- #    get_value_from_key "server_setup_isLocal" "VARIABLE03"
+    get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
- #    if [ "$VARIABLE03" == "Yes" ]; then
- #        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
- #        termux-wake-lock
-	# #$HOME/.jiotv_go/bin/jiotv_go bg run
- # 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
- #        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use
- #    else
- #        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
- #        termux-wake-lock
-	# #$HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
- # 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
-	# $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public
+    if [ "$VARIABLE03" == "Yes" ]; then
+        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
+        termux-wake-lock
+	#$HOME/.jiotv_go/bin/jiotv_go bg run
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
+        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
+    else
+        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+        termux-wake-lock
+	#$HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"  &
+	$HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
         
- #    fi
-
- 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "THE_SHOW_RUNNER2"
+    fi
 
      
 }
@@ -95,24 +93,21 @@ TheShowRunner() {
 
 
 TheShowRunner_onetime() {
-	# a_username=$(whoami)
+	a_username=$(whoami)
 
-	# am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
 
-	# get_value_from_key "server_setup_isLocal" "VARIABLE03"
+	get_value_from_key "server_setup_isLocal" "VARIABLE03"
  
-	# if [ "$VARIABLE03" == "Yes" ]; then
- # 		echo -e "\e[32mRunning Server Locally\e[0m"
-	# 	$HOME/.jiotv_go/bin/jiotv_go run
- #  		#$HOME/.jiotv_go/bin/jiotv_go bg run
-	# else
- # 		$HOME/.jiotv_go/bin/jiotv_go run -P
-	# 	#$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
-	# fi
- # 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
-
-  	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "THE_SHOW_RUNNER1"
-
+	if [ "$VARIABLE03" == "Yes" ]; then
+ 		echo -e "\e[32mRunning Server Locally\e[0m"
+		$HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
+  		#$HOME/.jiotv_go/bin/jiotv_go bg run
+	else
+ 		$HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
+		#$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+	fi
+ 	am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 }
 
 
@@ -232,7 +227,7 @@ Default_Installation() {
     # Set binary URL
     #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
     BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
-     #BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/jiotv_go223x-$OS-$ARCH"
+    #BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/jiotv_go223x-$OS-$ARCH"
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
@@ -287,9 +282,9 @@ Setup_Extra() {
 SDK_VERSION=$(getprop ro.build.version.sdk)
 # Check if the SDK version is equal to or less than 23
 if [ "$SDK_VERSION" -le 23 ]; then
-	echo "Script : v6.9.5iz [5 series]"
+	echo "Script : v6.9.5z [5 series]"
 else
-	echo "Script : v6.9.5iz [7 series]"
+	echo "Script : v6.9.5z [7 series]"
 fi
 
 
