@@ -56,24 +56,24 @@ autoscript_skyutils() {
 }
 
 
-autoscript_xm() {
+autoscript_xz() {
 	# Check if script exists
-	if [[ -f "$HOME/.autoscript_xm.sh" ]]; then
-		./.autoscript_xm.sh
+	if [[ -f "$HOME/.autoscript_xz.sh" ]]; then
+		./.autoscript_xz.sh
 		return 0
 	else
 		echo "[#] Downloading Script - II"
-		URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.autoscript_xm.sh"
-		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.autoscript_xm.sh" "$URL3" || { echo "Failed to download, Clear app data"; exit 1; }
-		chmod 755 "$HOME/.autoscript_xm.sh"
-   ./.autoscript_xm.sh
+		URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.3.sh"
+		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.autoscript_xz.sh" "$URL3" || { echo "Failed to download, Clear app data"; exit 1; }
+		chmod 755 "$HOME/.autoscript_xz.sh"
+   ./.autoscript_xz.sh
 	fi
 }
 
 
 autoscript_skyutils
 
-autoscript_xm
+autoscript_xz
 
 
 

@@ -117,7 +117,7 @@ update_file() {
 
 autoscript_xz() {
     URL2="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.termux_updates.sh"
-    URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.autoscript_xz.sh"
+    URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.3.sh"
 	
     update_file "$HOME/.termux_updates.sh" "$URL2" "[#] Downloading Script - II"
     update_file "$HOME/.autoscript_xz.sh" "$URL3" " "
