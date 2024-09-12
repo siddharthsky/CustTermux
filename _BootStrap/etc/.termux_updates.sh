@@ -23,8 +23,8 @@ echo "$suffix"
 # Function to get the current version
 get_version() {
     if [ ! -f "$HOME/.jiotv_go/bin/jiotv_go" ]; then
-        echo "0.0.0"  # Default version
-        return
+        version="0.0.0"
+        echo "$version"
     fi
     version_output=$($HOME/.jiotv_go/bin/jiotv_go -v)
     version=$(echo "$version_output" | grep -oP '(?<=version v)\d+\.\d+\.\d+')
