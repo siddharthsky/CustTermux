@@ -9,8 +9,8 @@ ext {
     // Bootstrap of a different variant must not be manually installed by the user after app installation
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
-    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
-    versionCust = "4.1"
+    packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-5" // Default: "apt-android-7"
+    versionCust = "4.3"
 }
 
 android {
@@ -54,8 +54,8 @@ android {
         applicationId "com.termux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 124
-        versionName "0.123.5"
+        versionCode 126
+        versionName "0.123.7"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)

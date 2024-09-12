@@ -98,6 +98,14 @@ public class SkyActionActivity extends AppCompatActivity {
                             setup_finisher();
                             finish();
                             break;
+                        case "THE_SHOW_RUNNER1":
+                            THE_SHOW_RUNNER1();
+                            finish();
+                            break;
+                        case "THE_SHOW_RUNNER2":
+                            THE_SHOW_RUNNER2();
+                            finish();
+                            break;
                         default:
                             end_server();
                             //dw
@@ -109,6 +117,30 @@ public class SkyActionActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    private void THE_SHOW_RUNNER1() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"TheShowRunner1"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
+    }
+
+    private void THE_SHOW_RUNNER2() {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"TheShowRunner2"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        startService(intentC);
     }
 
     private void setup_finisher() {

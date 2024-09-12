@@ -57,6 +57,7 @@ import android.widget.Toast;
 import com.google.android.gms.cast.framework.CastSession;
 import com.termux.AppSelectorActivity;
 import com.termux.SkyActionActivity;
+import com.termux.Utils2;
 import com.termux.app.sky.SkyTVz;
 import com.termux.setup_login.LoginActivity2;
 import com.termux.LoginStatusChecker;
@@ -396,7 +397,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button1_5.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Utils.lake_alert_WEBTV(TermuxActivity.this);
+                //Utils.lake_alert_WEBTV(TermuxActivity.this);
+                Utils2.lake_alert_WEBTV(TermuxActivity.this);
                 return false;
             }
         });
@@ -1266,7 +1268,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("isDelayTime", "5");
             preferenceManager.setKey("permissionRequestCount", "0");
             preferenceManager.setKey("isFlagSetForMinimize", "No");
-            preferenceManager.setKey("isWEBTVconfig", " ");
+            preferenceManager.setKey("isWEBTVconfig", "");
 
 
             Utils.changeIconTOFirst(this);
