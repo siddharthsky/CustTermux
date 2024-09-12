@@ -247,6 +247,7 @@ Default_Installation() {
     echo "TEMP FLASH $OS and $ARCH"
     if [ "$OS" = "android5" ] && [ "$ARCH" = "arm7" ]; then
         echo "Removing DT_FLAGS"
+        pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
         termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
     fi
 
