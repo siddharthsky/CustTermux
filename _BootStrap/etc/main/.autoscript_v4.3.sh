@@ -39,7 +39,7 @@ Server_Runner() {
 	# echo -e "\e[96mLogin Page:\e[0m http://localhost:5001"
 	# echo -e "\e[96mIPTV Playlist:\e[0m http://localhost:5001/playlist.m3u"
 	# echo "---------------------------"
-	source ~/.bashrc # PATH update
+	# source ~/.bashrc # PATH update
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 	pkill -f "jiotv_go"
 }
