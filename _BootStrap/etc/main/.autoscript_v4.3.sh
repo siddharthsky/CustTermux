@@ -244,7 +244,9 @@ Default_Installation() {
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
 
+    echo "TEMP FLASH $OS and $ARCH"
     if [ "$OS" = "android5" ] && [ "$ARCH" = "arm7" ]; then
+        echo "Removing DT_FLAGS"
         termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
     fi
 
