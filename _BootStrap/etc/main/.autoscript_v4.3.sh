@@ -17,13 +17,9 @@ esac
 # Utility functions
 ################################################################################################
 
-IP_ADD=""
-get_ip_address() {
-    local ip_address=$(termux-wifi-connectioninfo | grep -oP '(?<="ip": ")[^"]+')
-    IP_ADD="$ip_address"
-}
-
 Server_Runner() {
+    $HOME/.jiotv_go/bin/jiotv_go -v # temp off
+    echo "---------------------------"
     pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
     pkill -f "jiotv_go"
 }
