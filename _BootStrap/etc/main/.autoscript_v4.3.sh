@@ -271,8 +271,10 @@ Default_Installation() {
 }
 
 Setup_Extra() {
-    $HOME/.jiotv_go/bin/jiotv_go epg gen
-    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute 
+	echo "EPG UTIL"
+	$HOME/.jiotv_go/bin/jiotv_go epg gen
+	echo "EPG UTIL = DONE"
+	# am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute 
 }
 
 
