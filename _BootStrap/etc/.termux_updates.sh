@@ -159,9 +159,14 @@ reinstall2() {
 # Get the Termux app version code
 termux_version_code=$(termux-info | grep "TERMUX_APP__APP_VERSION_CODE" | awk -F': ' '{print $2}')
 
-# Check if the version code is greater than 126 and run reinstall2 if true
-if [ "$termux_version_code" -gt 126 ]; then
-  reinstall2
+# Validate that termux_version_code is a non-empty number
+if [[ "$termux_version_code" =~ ^[0-9]+$ ]]; then
+  # Check if the version code is greater than 126 and run reinstall2 if true
+  if [ "$termux_version_code" -gt 126 ]; then
+    reinstall2
+  else
+    echo "Version code is 126 or less. No action needed."
+  fi
 else
-  echo "No action needed."
+  echo "Invalid or missing version code."
 fi
