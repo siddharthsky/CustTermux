@@ -157,7 +157,7 @@ reinstall2() {
 }
 
 # Get the Termux app version code
-termux_version_code=$(termux-info | grep "TERMUX_APP__APP_VERSION_CODE" | cut -d ' ' -f 2)
+termux_version_code=$(termux-info | awk -F'=' '/TERMUX_APP__APP_VERSION_CODE/ {print $2}')
 
 # Debugging statement to check the extracted value
 echo "Extracted Termux version code: '$termux_version_code'"
