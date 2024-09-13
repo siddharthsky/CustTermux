@@ -157,7 +157,10 @@ reinstall2() {
 }
 
 # Get the Termux app version code
-termux_version_code=$(termux-info | grep "TERMUX_APP__APP_VERSION_CODE" | awk -F': ' '{print $2}')
+termux_version_code=$(termux-info | grep "TERMUX_APP__APP_VERSION_CODE" | cut -d ' ' -f 2)
+
+# Debugging statement to check the extracted value
+echo "Extracted Termux version code: '$termux_version_code'"
 
 # Validate that termux_version_code is a non-empty number
 if [[ "$termux_version_code" =~ ^[0-9]+$ ]]; then
