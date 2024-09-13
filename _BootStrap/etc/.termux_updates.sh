@@ -131,3 +131,37 @@ else
         echo "JioTV Go is up to date (version $current_version)."
     fi
 fi
+
+
+# Function to reinstall or perform actions if the version code is greater than 126
+reinstall2() {
+  echo "-----------------------"
+  echo "Upgrade Utility"
+  echo "-----------------------"
+  pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+  sleep 3
+
+  reinstaller() {
+    echo "Removing Server Files..."
+    rm -rf "$HOME/.jiotv_go/bin/"
+    rm "$HOME/.autoscript.sh"
+    rm "$HOME/.autoscript_x.sh"
+    rm "$HOME/.autoscript_xm.sh"
+    rm "$HOME/.skyutils.sh"
+    rm "$HOME/.autoscript_xz.sh"
+
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+  }
+
+  reinstaller
+}
+
+# Get the Termux app version code
+termux_version_code=$(termux-info | grep "TERMUX_APP__APP_VERSION_CODE" | awk -F': ' '{print $2}')
+
+# Check if the version code is greater than 126 and run reinstall2 if true
+if [ "$termux_version_code" -gt 126 ]; then
+  reinstall2
+else
+  echo "No action needed."
+fi
