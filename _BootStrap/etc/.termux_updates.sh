@@ -157,19 +157,19 @@ reinstall2() {
 }
 
 # Get the Termux app version code
-termux_version_code=$(termux-info | awk -F'=' '/TERMUX_APP__APP_VERSION_CODE/ {print $2}')
+#termux_version_code=$(termux-info | awk -F'=' '/TERMUX_APP__APP_VERSION_CODE/ {print $2}')
 
 # Debugging statement to check the extracted value
-echo "Extracted Termux version code: '$termux_version_code'"
+#echo "Extracted Termux version code: '$termux_version_code'"
 
 # Validate that termux_version_code is a non-empty number
-if [[ "$termux_version_code" =~ ^[0-9]+$ ]]; then
+#if [[ "$termux_version_code" =~ ^[0-9]+$ ]]; then
   # Check if the version code is greater than 126 and run reinstall2 if true
-  if [ "$termux_version_code" -gt 125 ]; then
+ # if [ "$termux_version_code" -gt 125 ]; then
     #reinstall2
-  else
-    echo "Version code is 125 or less. No action needed."
-  fi
-else
-  echo "Invalid or missing version code."
-fi
+#  else
+ #   echo "Version code is 125 or less. No action needed."
+#  fi
+#else
+#  echo "Invalid or missing version code."
+#fi
