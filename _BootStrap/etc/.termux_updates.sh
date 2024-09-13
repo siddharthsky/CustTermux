@@ -165,10 +165,10 @@ echo "Extracted Termux version code: '$termux_version_code'"
 # Validate that termux_version_code is a non-empty number
 if [[ "$termux_version_code" =~ ^[0-9]+$ ]]; then
   # Check if the version code is greater than 126 and run reinstall2 if true
-  if [ "$termux_version_code" -gt 126 ]; then
+  if [ "$termux_version_code" -gt 125 ]; then
     reinstall2
   else
-    echo "Version code is 126 or less. No action needed."
+    echo "Version code is 125 or less. No action needed."
   fi
 else
   echo "Invalid or missing version code."
