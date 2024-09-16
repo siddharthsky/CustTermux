@@ -7,9 +7,9 @@ YELLOW='\033[0;33m'   # Yellow
 NC='\033[0m'          # No Color
 
 # Text components
-prefix="##### "
-suffix=" #####"
-word="一期一会"
+prefix="###### "
+suffix=" ######"
+word="十人十色"
 colors=($GREEN)
 
 # Loop through each character of the word and apply color
@@ -19,6 +19,25 @@ for (( i=0; i<${#word}; i++ )); do
   echo -ne "${color}${word:$i:1}${NC}"
 done
 echo "$suffix"
+
+
+
+
+Setup_Prerequisites() {
+    if [ ! -f "$HOME/.termux/termux.properties" ]; then
+        touch "$HOME/.termux/termux.properties"
+        chmod 755 "$HOME/.termux/termux.properties"
+        echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
+    else
+        if ! grep -q "allow-external-apps = true" "$HOME/.termux/termux.properties"; then
+            echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
+        fi
+    fi
+}
+
+Setup_Prerequisites
+
+
 
 # Function to get the current version
 get_version() {
