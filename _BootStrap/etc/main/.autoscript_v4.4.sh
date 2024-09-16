@@ -206,6 +206,10 @@ Setup_Prerequisites() {
     FILE_URL="https://bit.ly/setpasswordexp"
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_password.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.set_password.exp"
+    if [ "$SDK_VERSION" -le 23 ]; then
+        chmod 400 $PREFIX/libexec/termux-am/am.apk
+     fi
+
 }
 
 Default_Installation() {
@@ -290,16 +294,27 @@ fi
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
 
 if [ ! -f "$FILE_PATH" ]; then
+    counter=0  # Initialize counter
     while true; do
         get_value_from_key "isServerSetupDone" "VARIABLE00"
+    
         if [ "$VARIABLE00" == "Done" ]; then
             echo "Initial setup is complete."
             break
         else
             echo "Waiting for initial setup to complete..."
+    
+            counter=$((counter + 1))  # Increment counter
+    
+            if [ $counter -eq 3 ]; then
+                echo "Running 'am' fix..."
+                chmod 400 $PREFIX/libexec/termux-am/am.apk  # Call 
+            fi
+    
             sleep 3
         fi
     done
+    
     echo "-----------------------"
     echo "INSTALLATION -- PART 1"
     echo "-----------------------"
