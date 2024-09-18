@@ -35,7 +35,7 @@ echo "IN BASH MOD: IN"
 
 
 echo "IN BASH MOD: IS HERE" 
-
+Bash_Bashrc
 
 ################################################################################################
 # Utility functions
