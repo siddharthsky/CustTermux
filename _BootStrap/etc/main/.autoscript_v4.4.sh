@@ -20,17 +20,18 @@ esac
 Bash_Bashrc() {
     echo "Starting Bash_Bashrc function..."
 
-    if ! grep -q ".autoscript_v4.4.sh" "$PREFIX/etc/bash.bashrc"; then
-        echo "[INFO] Installing v4.4..."
-        
-        # Update the URL3 to point to the .autoscript_v4.4.sh
-        sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
-        
-        echo "[SUCCESS] Updated to v4.4..."
+    # Check if $HOME/.v4.4.cfg exists
+    if [[ -f "$HOME/.v4.4.cfg" ]]; then
+        if ! grep -q ".autoscript_v4.4.sh" "$PREFIX/etc/bash.bashrc"; then
+            echo "[INFO] Installing v4.4..."
+            sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
+            echo "[SUCCESS] Updated to v4.4"
+        fi
     fi
     
     echo "Exiting Bash_Bashrc function."
 }
+
 
 
 Bash_Bashrc
@@ -250,9 +251,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.6mm [5 series]"
+    echo "Script: v6.9.6m [5 series]"
 else
-    echo "Script: v6.9.6mm [7 series]"
+    echo "Script: v6.9.6m [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
