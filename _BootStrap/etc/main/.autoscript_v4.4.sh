@@ -14,6 +14,30 @@ case "$SHELL_NAME" in
 esac
 
 ################################################################################################
+# Update bash.bashrc function
+################################################################################################
+
+Bash_Bashrc() {
+echo "IN BASH MOD: IN"
+    # Check if the file contains ".autoscript_v4.4.sh", if not, modify the URL3
+    if ! grep -q ".autoscript_v4.5.sh" "$PREFIX/etc/bash.bashrc"; then
+    echo "IN BASH MOD: not 4.5"
+        # Replace the value of URL3 to point to your custom URL (regardless of what it was before)
+        sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.5.sh"|' "$PREFIX/etc/bash.bashrc"
+       echo "IN BASH MOD: updateed to 4.5"  
+        # # If the SDK version is less than or equal to 23, use .autoscript_v4.5.sh
+        # if [ "$SDK_VERSION" -le 23 ]; then
+        #     sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
+        # fi
+    fi
+       echo "IN BASH MOD: OUT"  
+}
+
+
+
+
+
+################################################################################################
 # Utility functions
 ################################################################################################
 
@@ -23,63 +47,6 @@ Server_Runner() {
     pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
     pkill -f "jiotv_go"
 }
-
-# TheShowRunner() {
-#     retrieve_first_line() {
-#         file="$1"
-#         if [ -f "$file" ]; then
-#             head -n 1 "$file"
-#         else
-#             echo ""
-#         fi
-#     }
-
-#     default_port=5001
-#     retrieved_port=$(retrieve_first_line "$HOME/.jiotv_go/bin/server_port.cfg")
-
-#     if [[ "$retrieved_port" =~ ^[0-9]{4}$ ]]; then
-#         port_to_use=$retrieved_port
-#     else
-#         file="$HOME/.jiotv_go/bin/server_port.cfg"
-#         touch "$file"
-#         chmod 755 "$file"
-#         echo "5001" > "$file"
-#         port_to_use=$default_port
-#     fi
-
-#     get_value_from_key "server_setup_isLocal" "VARIABLE03"
-
-#     if [ "$VARIABLE03" == "Yes" ]; then
-#         termux-wake-lock
-        
-#         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
-#         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
-#     else
-#         termux-wake-lock
-        
-#         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
-#         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
-#     fi
-
-#     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
-# }
-
-# TheShowRunner_onetime() {
-#     a_username=$(whoami)
-#     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
-
-#     get_value_from_key "server_setup_isLocal" "VARIABLE03"
-
-#     if [ "$VARIABLE03" == "Yes" ]; then
-#         echo -e "\e[32mRunning Server Locally\e[0m"
-#         $HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
-#     else
-#         echo -e "\e[32mRunning Server Publicly\e[0m"
-#         $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
-#     fi
-
-#     am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
-# }
 
 TheShowRunner() {
     retrieve_first_line() {
@@ -168,8 +135,6 @@ TheShowRunner_onetime() {
         echo -e "\e[31mServer did not become live after $max_attempts attempts\e[0m"
     fi
 }
-
-
 
 
 ################################################################################################
