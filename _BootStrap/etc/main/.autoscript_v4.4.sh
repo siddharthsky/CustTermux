@@ -18,23 +18,21 @@ esac
 ################################################################################################
 
 Bash_Bashrc() {
-echo "IN BASH MOD: IN"
-    # Check if the file contains ".autoscript_v4.4.sh", if not, modify the URL3
-    if ! grep -q ".autoscript_v4.5.sh" "$PREFIX/etc/bash.bashrc"; then
-    echo "IN BASH MOD: not 4.5"
-        # Replace the value of URL3 to point to your custom URL (regardless of what it was before)
-        sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.5.sh"|' "$PREFIX/etc/bash.bashrc"
-       echo "IN BASH MOD: updateed to 4.5"  
-        # # If the SDK version is less than or equal to 23, use .autoscript_v4.5.sh
-        # if [ "$SDK_VERSION" -le 23 ]; then
-        #     sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
-        # fi
+    echo "Starting Bash_Bashrc function..."
+
+    if ! grep -q ".autoscript_v4.4.sh" "$PREFIX/etc/bash.bashrc"; then
+        echo "[INFO] Installing v4.4..."
+        
+        # Update the URL3 to point to the .autoscript_v4.4.sh
+        sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
+        
+        echo "[SUCCESS] Updated to v4.4..."
     fi
-       echo "IN BASH MOD: OUT"  
+    
+    echo "Exiting Bash_Bashrc function."
 }
 
 
-echo "IN BASH MOD: IS HERE" 
 Bash_Bashrc
 
 ################################################################################################
