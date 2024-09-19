@@ -3,6 +3,7 @@ package com.termux.app;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
@@ -56,6 +57,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.cast.framework.CastSession;
 import com.termux.AppSelectorActivity;
+import com.termux.BuildConfig;
 import com.termux.SkyActionActivity;
 import com.termux.Utils2;
 import com.termux.app.sky.SkyTVz;
@@ -1239,6 +1241,33 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+    private void clearAppData() {
+        try {
+            // Clearing app data
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                boolean success = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
+                Log.d("ClearAppData", "Clear user data success: " + success);
+            } else {
+                String packageName = getApplicationContext().getPackageName();
+                Runtime runtime = Runtime.getRuntime();
+                runtime.exec("pm clear " + packageName);
+                Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
+            }
+
+            // Restart the app
+            Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish(); // Optional: finish the current activity
+            } else {
+                Log.e("ClearAppData", "Failed to get launch intent for package: " + getPackageName());
+            }
+        } catch (Exception e) {
+            Log.e("ClearAppData", "Failed to clear app data", e);
+        }
+    }
+
 
 
     @Override
@@ -1258,6 +1287,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("isLocalPORTonly", "5001");
             preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
             preferenceManager.setKey("server_setup_isAutoboot", "No");
+            preferenceManager.setKey("server_setup_isAutobootBG", "No");
             preferenceManager.setKey("server_setup_isLocal", "No");
             preferenceManager.setKey("app_name", "null");
             preferenceManager.setKey("app_launchactivity", "null");
@@ -1269,16 +1299,37 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("permissionRequestCount", "0");
             preferenceManager.setKey("isFlagSetForMinimize", "No");
             preferenceManager.setKey("isWEBTVconfig", "");
-
+            preferenceManager.setKey("versionCustScript", BuildConfig.VERSION_CUST_SCRIPT);
 
             Utils.changeIconTOFirst(this);
 
-
-//            Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
             startActivity(intent);
         }
 //        Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
+
+
+        String custVar = BuildConfig.VERSION_CUST_SCRIPT; //4.4
+        String versionCustScript = preferenceManager.getKey("versionCustScript"); //null or 4.3
+
+
+        //preferenceManager.setKey("versionCustScript", "4.3");
+        if (!custVar.equals(versionCustScript)) {
+            Utils.showAlertbox(this, "CTx Reset Required",
+                "To function properly, please clear the app's data.",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        preferenceManager.setKey("versionCustScript", custVar);
+                        Toast.makeText(TermuxActivity.this, "Clearing App Data", Toast.LENGTH_SHORT).show();
+                        clearAppData();
+                    }
+                });
+        }
+
+
+
+
 
         Logger.logDebug(LOG_TAG, "onStart");
 
