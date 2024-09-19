@@ -35,6 +35,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchisLocal;
     private SwitchCompat switchAutostart;
     private SwitchCompat switchAutoboot;
+    private SwitchCompat switchAutobootBG;
     private SwitchCompat switchLoginCheck;
     private SwitchCompat switchEPG;
     private SwitchCompat switchBANNER;
@@ -48,6 +49,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private Button restartButton;
     private View IPTVbtnlay;
     private View IPTVtimlay;
+    private View AUTOBGlay;
     private LinearLayout rbl;
     private LinearLayout sid;
 
@@ -91,6 +93,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchisLocal = findViewById(R.id.switchisLocal);
         switchAutostart = findViewById(R.id.switchAutostart);
         switchAutoboot = findViewById(R.id.switchAutoboot);
+        switchAutobootBG = findViewById(R.id.switchAutobootBG);
         switchLoginCheck = findViewById(R.id.switchLoginCheck);
         switchEPG = findViewById(R.id.switchEPG);
         switchBANNER = findViewById(R.id.switchBANNER);
@@ -106,6 +109,7 @@ public class SetupActivityApp extends AppCompatActivity {
         IPTVtimlay = findViewById(R.id.IPTVtimlay);
         switchMINI = findViewById(R.id.switchMINI);
         IPTVminilay = findViewById(R.id.IPTVminilay);
+        AUTOBGlay = findViewById(R.id.AUTOBGlay);
 
 
 
@@ -234,6 +238,17 @@ public class SetupActivityApp extends AppCompatActivity {
 
         String serverSetupIsAutoboot = preferenceManager.getKey("server_setup_isAutoboot");
         switchAutoboot.setChecked("Yes".equals(serverSetupIsAutoboot));
+        if (!switchAutoboot.isChecked()) {
+            AUTOBGlay.setVisibility(View.GONE);
+            String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
+            switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
+        }else {
+            String server_setup_isAutobootBG = preferenceManager.getKey("server_setup_isAutobootBG");
+            switchAutobootBG.setChecked("Yes".equals(server_setup_isAutobootBG));
+            AUTOBGlay.setVisibility(View.VISIBLE);
+            String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
+            switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
+        }
 
         String serverSetupIsLoginCheck = preferenceManager.getKey("server_setup_isLoginCheck");
         switchLoginCheck.setChecked("Yes".equals(serverSetupIsLoginCheck));
@@ -305,7 +320,35 @@ public class SetupActivityApp extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Utils.showCustomToast(SetupActivityApp.this, (isChecked ? "CustTermux will autostart on boot." : "CustTermux will not autostart"));
-                preferenceManager.setKey("server_setup_isAutoboot", isChecked ? "Yes" : "No");
+                //preferenceManager.setKey("server_setup_isAutoboot", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    AUTOBGlay.setVisibility(View.VISIBLE);
+                    Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will autostart on boot."));
+                    preferenceManager.setKey("server_setup_isAutoboot", "Yes");
+                    String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
+                    switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
+
+                } else {
+                    AUTOBGlay.setVisibility(View.GONE);
+                    Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will not autostart"));
+                    preferenceManager.setKey("server_setup_isAutoboot", "No");
+                    String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
+                    switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
+                }
+            }
+        });
+
+        switchAutobootBG.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                preferenceManager.setKey("server_setup_isAutobootBG", isChecked ? "Yes" : "No");
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("server_setup_isAutobootBG on"));
+                    preferenceManager.setKey("server_setup_isAutobootBG", "Yes");
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("server_setup_isAutobootBG off"));
+                    preferenceManager.setKey("server_setup_isAutobootBG", "No");
+                }
             }
         });
 
@@ -474,6 +517,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchisLocal.setOnFocusChangeListener(focusChangeListener);
         switchAutostart.setOnFocusChangeListener(focusChangeListener);
         switchAutoboot.setOnFocusChangeListener(focusChangeListener);
+        switchAutobootBG.setOnFocusChangeListener(focusChangeListener);
         switchLoginCheck.setOnFocusChangeListener(focusChangeListener);
         switchEPG.setOnFocusChangeListener(focusChangeListener);
         switchBANNER.setOnFocusChangeListener(focusChangeListener);
