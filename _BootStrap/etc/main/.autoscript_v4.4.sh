@@ -17,24 +17,24 @@ esac
 # Update bash.bashrc function
 ################################################################################################
 
-Bash_Bashrc() {
-    echo "Starting Bash_Bashrc function..."
+# Bash_Bashrc() {
+#     echo "Starting Bash_Bashrc function..."
 
-    # Check if $HOME/.v4.4.cfg exists
-    if [[ -f "$HOME/.v4.4.cfg" ]]; then
-        if ! grep -q ".autoscript_v4.4.sh" "$PREFIX/etc/bash.bashrc"; then
-            echo "[INFO] Installing v4.4..."
-            sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
-            echo "[SUCCESS] Updated to v4.4"
-        fi
-    fi
+#     # Check if $HOME/.v4.4.cfg exists
+#     if [[ -f "$HOME/.v4.4.cfg" ]]; then
+#         if ! grep -q ".autoscript_v4.4.sh" "$PREFIX/etc/bash.bashrc"; then
+#             echo "[INFO] Installing v4.4..."
+#             sed -i 's|URL3=".*"|URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.4.sh"|' "$PREFIX/etc/bash.bashrc"
+#             echo "[SUCCESS] Updated to v4.4"
+#         fi
+#     fi
     
-    echo "Exiting Bash_Bashrc function."
-}
+#     echo "Exiting Bash_Bashrc function."
+# }
 
 
 
-Bash_Bashrc
+# Bash_Bashrc
 
 ################################################################################################
 # Utility functions
