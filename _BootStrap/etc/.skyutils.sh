@@ -340,17 +340,9 @@ reinstall2() {
 
 	reinstaller() {
 		echo "Removing Server Files..."
-		rm -rf "$HOME/.jiotv_go/bin/"
-		rm  "$HOME/.autoscript.sh"
-		rm  "$HOME/.autoscript_x.sh"
-		rm  "$HOME/.autoscript_xm.sh"
-		rm  "$HOME/.skyutils.sh"
-  		rm  "$HOME/.autoscript_xz.sh"
-
+  		rm -rf "$HOME/*"
   		#am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
     		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
-
-
 	}
 
   	reinstaller
