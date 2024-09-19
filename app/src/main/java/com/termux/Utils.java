@@ -148,6 +148,7 @@ public class Utils {
         preferenceManager.setKey("isLocalPORTonly", "5001");
         preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
         preferenceManager.setKey("server_setup_isAutoboot", "No");
+        preferenceManager.setKey("server_setup_isAutobootBG", "No");
         preferenceManager.setKey("server_setup_isLocal", "No");
         preferenceManager.setKey("app_name", "null");
         preferenceManager.setKey("app_launchactivity", "null");
@@ -159,6 +160,7 @@ public class Utils {
         preferenceManager.setKey("permissionRequestCount", "0");
         preferenceManager.setKey("isFlagSetForMinimize", "No");
         preferenceManager.setKey("isWEBTVconfig", " ");
+
 
         File downloadDir = Utils.getDownloadDirectory(context);
         File file = new File(downloadDir, "update.apk");
