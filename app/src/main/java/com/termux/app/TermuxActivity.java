@@ -119,7 +119,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -601,6 +605,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+
+
         String IPTVsetflag = preferenceManager.getKey("app_name");
 
         if (IPTVsetflag != null && !IPTVsetflag.equals("null") ) {
@@ -721,6 +727,38 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         animator.setRepeatCount(ObjectAnimator.INFINITE);
         animator.setRepeatMode(ObjectAnimator.REVERSE);
         animator.start();
+    }
+
+    private void startIP() {
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
+
+        if (Objects.equals(isLOCAL, "Yes")) {
+            Log.d("d", "Server is Local!");
+            ipAddressTextView.setText("localhost");
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist url: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
+
+        } else {
+            // Get and display Wi-Fi IP address
+            String wifiIpAddress = getWifiIpAddress(this);
+            preferenceManager.setKey("server_setup_wifiip",wifiIpAddress);
+            ipAddressTextView.setText(wifiIpAddress);
+
+            String ipport = preferenceManager.getKey("isLocalPORTonly");
+            String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
+            String b_playlink = "Playlist url: "+a_playlink;
+            textplay.setBackgroundResource(R.drawable.border);
+            textplay.setText(b_playlink);
+            preferenceManager.setKey("temp_playlist",a_playlink);
+            //startFlashingEffect(textplay);
+        }
     }
 
 
@@ -1407,6 +1445,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         serverStatusChecker.startChecking();
         loginStatusChecker.startChecking();
 
+        startIP();
+
 //        castHelper.addSessionManagerListener();
     }
 
@@ -1417,8 +1457,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int ipAddress = wifiInfo.getIpAddress();
-        return Formatter.formatIpAddress(ipAddress);
+        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
+
+        try {
+            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
+            String ipAddressStr = inetAddress.getHostAddress();
+
+            SkySharedPref preferenceManager = new SkySharedPref(this);
+            preferenceManager.setKey("wifi1", ipAddressStr);
+
+            return ipAddressStr;
+        } catch (UnknownHostException e) {
+            Log.e("WifiIP", "Failed to get host address", e);
+            return null;
+        }
     }
+
 
     public String getWifiIpAddress() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -1432,8 +1486,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
 
         int ipAddress = wifiInfo.getIpAddress();
-        return Formatter.formatIpAddress(ipAddress);
+        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
+
+        try {
+            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
+            String ipAddressStr = inetAddress.getHostAddress();
+
+            // Save the IP address in shared preferences
+            SkySharedPref preferenceManager = new SkySharedPref(this);
+            preferenceManager.setKey("wifi2", ipAddressStr);
+
+            return ipAddressStr;
+        } catch (UnknownHostException e) {
+            Log.e("WifiIP", "Failed to get host address", e);
+            return "Unknown host exception";
+        }
     }
+
 
 
 
