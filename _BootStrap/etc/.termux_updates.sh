@@ -43,6 +43,7 @@ Setup_Prerequisites() {
         # Append the required string, creating the file if it doesn't exist
         echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
         chmod 755 "$HOME/.termux/termux.properties"
+         echo "ECHO MEW DONE"
     fi
 }
 
