@@ -21,17 +21,31 @@ echo "$suffix"
 echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.release)"
 
 
+# Setup_Prerequisites() {
+#     if [ ! -f "$HOME/.termux/termux.properties" ]; then
+#         touch "$HOME/.termux/termux.properties"
+#         chmod 755 "$HOME/.termux/termux.properties"
+#         echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
+#     else
+#         if ! grep -q "allow-external-apps = true" "$HOME/.termux/termux.properties"; then
+#             echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
+#         fi
+#     fi
+# }
+
 Setup_Prerequisites() {
-    if [ ! -f "$HOME/.termux/termux.properties" ]; then
-        touch "$HOME/.termux/termux.properties"
-        chmod 755 "$HOME/.termux/termux.properties"
+    # Ensure the .termux directory exists
+    mkdir -p "$HOME/.termux"
+    echo "ECHO MEW"
+
+    # Check if termux.properties exists and if the desired string is missing
+    if ! grep -q "allow-external-apps = true" "$HOME/.termux/termux.properties" 2>/dev/null; then
+        # Append the required string, creating the file if it doesn't exist
         echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
-    else
-        if ! grep -q "allow-external-apps = true" "$HOME/.termux/termux.properties"; then
-            echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
-        fi
+        chmod 755 "$HOME/.termux/termux.properties"
     fi
 }
+
 
 Setup_Prerequisites
 
