@@ -6,13 +6,11 @@ GREEN='\033[0;32m'    # Green
 YELLOW='\033[0;33m'   # Yellow
 NC='\033[0m'          # No Color
 
-# Text components
 prefix="###### "
 suffix=" ######"
 word="十人十色"
 colors=($GREEN)
 
-# Loop through each character of the word and apply color
 echo -n "$prefix"
 for (( i=0; i<${#word}; i++ )); do
   color=${colors[$((i % ${#colors[@]}))]}
