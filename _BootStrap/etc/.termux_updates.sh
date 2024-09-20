@@ -109,7 +109,7 @@ updater() {
 
     # Make the binary executable
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
-    if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+    if [ "$OS" = "android5" ] && [ "$ARCH" = "armv7" ]; then
         termux-elf-cleaner $HOME/.jiotv_go/bin/jiotv_go
     fi
     echo "Step 5: Granted executable permissions to the binary"
