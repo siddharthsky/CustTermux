@@ -174,7 +174,11 @@ public class Utils {
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        context.startService(intentC);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intentC);
+        } else {
+            context.startService(new Intent(intentC));
+        }
     }
 
     public static void lake_alert_confirmation(Context context) {
