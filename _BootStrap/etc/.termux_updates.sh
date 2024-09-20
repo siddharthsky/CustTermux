@@ -20,7 +20,7 @@ for (( i=0; i<${#word}; i++ )); do
 done
 echo "$suffix"
 
-
+echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.release)"
 
 
 Setup_Prerequisites() {
