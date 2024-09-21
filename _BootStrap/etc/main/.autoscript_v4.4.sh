@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Detect the shell
 SHELL_NAME=$(basename "$SHELL")
 
