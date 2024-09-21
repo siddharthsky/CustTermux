@@ -160,7 +160,7 @@ else
     if version_less_than "$current_version" "$target_version"; then
         updater
     else
-        # echo "JioTV Go is up to date (version $current_version)."
+        echo "JioTV Go is up to date (version $current_version)."
     fi
 fi
 
