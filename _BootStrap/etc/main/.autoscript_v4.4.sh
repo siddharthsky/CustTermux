@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Detect the shell
 SHELL_NAME=$(basename "$SHELL")
 
@@ -255,9 +254,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.6o [5 series]"
+    echo "Script: v6.9.6p [5 series]"
 else
-    echo "Script: v6.9.6o [7 series]"
+    echo "Script: v6.9.6p [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
