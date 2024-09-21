@@ -599,10 +599,15 @@ epg_off() {
 	ssh_passwd_intent
 	
 	pkill sshd
+
+ 	a_username=$(whoami)
+   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+   
  
 	sshd
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isSSH --es value Yes
-   
+
+   	
    	echo "Started SSH"
     	wait_and_count 3
      	exit 0
