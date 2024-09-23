@@ -70,12 +70,12 @@ public class SetupActivityApp extends AppCompatActivity {
     private int[] animationResources = {
         R.raw.batmanx,  // Example raw resource ID for animation
         R.raw.bird,
-//        R.raw.gemini
+       R.raw.gemini
     };
     private int[] weights = {
          3  // Weight for batman
         ,5  // Weight for bird
-//      ,2   // Weight for gemini
+      ,2   // Weight for gemini
     };
 
     @Override
@@ -323,14 +323,14 @@ public class SetupActivityApp extends AppCompatActivity {
                 //preferenceManager.setKey("server_setup_isAutoboot", isChecked ? "Yes" : "No");
                 if (isChecked) {
                     AUTOBGlay.setVisibility(View.VISIBLE);
-                    Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will autostart on boot."));
+                    //Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will autostart on boot."));
                     preferenceManager.setKey("server_setup_isAutoboot", "Yes");
                     String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
                     switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
 
                 } else {
                     AUTOBGlay.setVisibility(View.GONE);
-                    Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will not autostart"));
+                    //Utils.showCustomToast(SetupActivityApp.this, ("2xCustTermux will not autostart"));
                     preferenceManager.setKey("server_setup_isAutoboot", "No");
                     String switchAutobootBGx = preferenceManager.getKey("server_setup_isAutobootBG");
                     switchAutobootBG.setChecked("Yes".equals(switchAutobootBGx));
@@ -343,10 +343,10 @@ public class SetupActivityApp extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 //                preferenceManager.setKey("server_setup_isAutobootBG", isChecked ? "Yes" : "No");
                 if (isChecked) {
-                    Utils.showCustomToast(SetupActivityApp.this, ("server_setup_isAutobootBG on"));
+                    Utils.showCustomToast(SetupActivityApp.this, ("[CTx] Server will run in Background"));
                     preferenceManager.setKey("server_setup_isAutobootBG", "Yes");
                 } else {
-                    Utils.showCustomToast(SetupActivityApp.this, ("server_setup_isAutobootBG off"));
+                    Utils.showCustomToast(SetupActivityApp.this, ("[CTx] Server will run in Foreground"));
                     preferenceManager.setKey("server_setup_isAutobootBG", "No");
                 }
             }
