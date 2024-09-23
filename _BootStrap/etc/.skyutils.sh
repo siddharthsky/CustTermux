@@ -748,6 +748,8 @@ elif [ "$1" == "runcode" ]; then
     	runcode 
 elif [ "$1" == "custominstall" ]; then
 	custominstall "$2" "$3"
+elif [ "$1" == "custominstall2" ]; then
+	custominstall2
 elif [ "$1" == "exitpath" ]; then
 	exitpath 
 else
