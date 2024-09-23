@@ -673,6 +673,25 @@ custominstall() {
       	exit 1
 }
 
+custominstall2() {
+	ARCH=$1
+	OS=$2
+ 	echo "-----------------------"
+	echo "Custom Install Utility2"
+	echo "-----------------------"
+ 
+ 	rm -rf "$HOME/.jiotv_go/bin/jiotv_go"
+  
+ 	BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/jstart_20240923" 
+     	mkdir -p "$HOME/.jiotv_go/bin"
+      	echo "[#] Downloading Custom JioTV GO"
+   	curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+   	chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+    	echo "Installed Custom JioTV GO"
+     	echo "Restart CustTermux"
+      	exit 1
+}
+
 termuxinfo() {
 	termux-info
  	exit 1
