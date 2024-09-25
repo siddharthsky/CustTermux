@@ -8,7 +8,7 @@ NC='\033[0m'          # No Color
 
 prefix="###### "
 suffix=" ######"
-word="十人十色"
+word="一石二鳥"
 colors=($GREEN)
 
 echo -n "$prefix"
@@ -46,10 +46,27 @@ Setup_Prerequisites() {
         chmod 755 "$HOME/.termux/termux.properties"
          # echo "ECHO MEW DONE"
     fi
+
+    
+    if [ -x "$HOME/.jiotv_go/bin/jiotv_go" ]; then
+        if [ ! -f "$HOME/.jiotv_go/bin/x/v1.chk" ]; then
+            mkdir -p "$HOME/.jiotv_go/bin/x"
+            echo "allow-external-apps = true" >> "$HOME/.jiotv_go/bin/x/v1.chk"
+            rm -rf $HOME/.jiotv_go/store_v4.toml
+            echo "Applying fix: Relogin is required."
+        else
+            # echo "File v1.chk exists and is executable."
+        fi
+    fi
+
+
+    
 }
 
 
 Setup_Prerequisites
+
+
 
 
 
