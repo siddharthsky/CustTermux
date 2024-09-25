@@ -8,7 +8,7 @@ NC='\033[0m'          # No Color
 
 prefix="###### "
 suffix=" ######"
-word="一石二鳥"
+word="見ぬが花"
 colors=($GREEN)
 
 echo -n "$prefix"
@@ -37,31 +37,27 @@ echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.r
 Setup_Prerequisites() {
     # Ensure the .termux directory exists
     mkdir -p "$HOME/.termux"
-    # echo "ECHO MEW"
 
     # Check if termux.properties exists and if the desired string is missing
     if ! grep -q "allow-external-apps = true" "$HOME/.termux/termux.properties" 2>/dev/null; then
         # Append the required string, creating the file if it doesn't exist
         echo "allow-external-apps = true" >> "$HOME/.termux/termux.properties"
         chmod 755 "$HOME/.termux/termux.properties"
-         # echo "ECHO MEW DONE"
     fi
 
-    
+    # Check if the jiotv_go binary exists and is executable
     if [ -x "$HOME/.jiotv_go/bin/jiotv_go" ]; then
+        # Check if the v1.chk file does not exist
         if [ ! -f "$HOME/.jiotv_go/bin/x/v1.chk" ]; then
+            # Create the necessary directory and file, apply fix
             mkdir -p "$HOME/.jiotv_go/bin/x"
             echo "allow-external-apps = true" >> "$HOME/.jiotv_go/bin/x/v1.chk"
-            rm -rf $HOME/.jiotv_go/store_v4.toml
+            rm -rf "$HOME/.jiotv_go/store_v4.toml"
             echo "Applying fix: Relogin is required."
-        else
-            # echo "File v1.chk exists and is executable."
         fi
     fi
-
-
-    
 }
+
 
 
 Setup_Prerequisites
