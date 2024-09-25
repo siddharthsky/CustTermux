@@ -47,8 +47,8 @@ Setup_Prerequisites() {
 
     # Check if the jiotv_go binary exists and is executable
     if [ -x "$HOME/.jiotv_go/bin/jiotv_go" ]; then
-        # Check if the v1.chk file does not exist
-        if [ ! -f "$HOME/.jiotv_go/bin/x/v1.chk" ]; then
+        # Check if the v1.chk file does not exist and store_v4.toml exists
+        if [ ! -f "$HOME/.jiotv_go/bin/x/v1.chk" ] && [ -f "$HOME/.jiotv_go/store_v4.toml" ]; then
             # Create the necessary directory and file, apply fix
             mkdir -p "$HOME/.jiotv_go/bin/x"
             echo "allow-external-apps = true" >> "$HOME/.jiotv_go/bin/x/v1.chk"
@@ -57,6 +57,7 @@ Setup_Prerequisites() {
         fi
     fi
 }
+
 
 
 
