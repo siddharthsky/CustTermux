@@ -673,7 +673,7 @@ custominstall() {
       	exit 1
 }
 
-custominstall2() {
+custominstall3() {
 	ARCH=$1
 	OS=$2
  	echo "-----------------------"
@@ -696,6 +696,80 @@ custominstall2() {
      	echo "Restart CustTermux"
       	exit 1
 }
+
+custominstall2() {
+	echo "-----------------------"
+	echo "Custom Install Utility"
+	echo "-----------------------"
+ 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+ 	wait_and_count 3
+
+	updater() {
+		pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+		rm "$HOME/.jiotv_go/bin/jiotv_go"
+		sleep 1
+		
+		OS=""
+		case "$OSTYPE" in
+			"linux-android"*)
+				OS="android"
+				;;
+			"linux-"*)
+				OS="linux"
+				;;
+			"darwin"*)
+				OS="darwin"
+				;;
+			*)
+				echo "Unsupported operating system: $OSTYPE"
+				exit 1
+				;;
+		esac
+		
+		ARCH=$(uname -m)
+
+		case $ARCH in
+			"x86_64")
+				ARCH="amd64"
+				;;
+			"aarch64" | "arm64")
+				ARCH="arm64"
+				;;
+			"i386" | "i686")
+				ARCH="386"
+				;;
+			"arm"*)
+				ARCH="arm"
+				;;
+			*)
+				echo "Unsupported architecture: $ARCH"
+				exit 1
+				;;
+		esac	
+			
+			
+		if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
+			OS="linux"
+		fi
+		# Set binary URL
+  		# https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom_android_arm
+		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom-$OS-$ARCH"
+
+		echo "Updating Custom binary..."
+
+		# Download the binary
+		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
+
+  		chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+	
+	}
+		
+	updater
+	echo "Installed Custom JioTV GO"
+     	echo "Restart CustTermux"
+      	exit 1
+}
+
 
 termuxinfo() {
 	termux-info
