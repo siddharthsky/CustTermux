@@ -679,6 +679,11 @@ custominstall2() {
  	echo "-----------------------"
 	echo "Custom Install Utility2"
 	echo "-----------------------"
+
+	echo ""
+        echo "Custome Binary is not available for latest v3.11"
+	echo "Update will be available soon"
+        exit 1
  
  	rm -rf "$HOME/.jiotv_go/bin/jiotv_go"
   
