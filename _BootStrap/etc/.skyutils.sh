@@ -681,7 +681,7 @@ custominstall3() {
 	echo "-----------------------"
 
 	echo ""
-        echo "Custome Binary is not available for the latest version"
+        echo "Custom Binary is not available for the latest version"
 	echo "Update will be available soon"
         exit 1
  
