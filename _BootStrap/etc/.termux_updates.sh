@@ -25,6 +25,7 @@ echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.r
 if ! command -v jq &> /dev/null; then
     echo "jq is not installed. Installing..."
     pkg install -y jq
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 else
     # Fetch and print the country
     country=$(curl -s ipinfo.io | jq -r '.country')
