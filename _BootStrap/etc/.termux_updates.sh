@@ -21,18 +21,9 @@ echo "$suffix"
 # echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.release)"
 echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.release), Arch: $(uname -m)"
 
-# Check for country
-if ! command -v jq &> /dev/null; then
-    echo "jq is not installed. Installing..."
-    pkg install -y jq
-    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
-else
-    # Fetch and print the country
-    country=$(curl -s ipinfo.io | jq -r '.country')
-    echo "CC:$country"
-fi
-
-
+# Fetch and print the country
+country=$(curl -s ipinfo.io | grep country | awk '{print $2}' | tr -d '"')
+echo "Your country code is: $country"
 
 
 
