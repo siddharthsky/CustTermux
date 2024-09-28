@@ -23,7 +23,14 @@ echo "SDK API: $(getprop ro.build.version.sdk), AV: $(getprop ro.build.version.r
 
 # Fetch and print the country
 country=$(curl -s ipinfo.io | grep country | awk '{print $2}' | tr -d '"')
-echo "Your country code is: $country"
+echo "CC: $country"
+
+# Check if the country code is not "IN"
+if [ "$country" != "IN" ]; then
+    # Print in red text
+    echo -e "\e[31mThis app will only work in India.\e[0m"
+fi
+
 
 
 
