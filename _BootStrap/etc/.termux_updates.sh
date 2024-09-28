@@ -28,7 +28,7 @@ echo "CC: $country"
 # Check if the country code is not "IN"
 if [ "$country" != "IN" ]; then
     # Print in red text
-    echo -e "\e[31mThis app will only work in India.\e[0m"
+    echo -e "\e[31mSorry, this app doesn’t travel outside of India!\e[0m"
 fi
 
 
