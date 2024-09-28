@@ -26,7 +26,7 @@ country=$(curl -s ipinfo.io | grep country | awk '{print $2}' | tr -d '"')
 echo "CC: $country"
 
 # Check if the country code is not "IN"
-if [ "$country" != "IN" ]; then
+if [ "$country" != "IN," ]; then
     # Print in red text
     echo -e "\e[31mSorry, this app doesn’t travel outside of India!\e[0m"
 fi
