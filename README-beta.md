@@ -1,10 +1,10 @@
 <h1 align="center">
   <br>
   <a href="https://github.com/siddharthsky/ai-video-summarizer-and-timestamp-generator-LLM-p">
-    <img src="https://github.com/siddharthsky/CustTermux-JioTVGo/blob/5e4151627498699e8f2b030479a4abc69f638a85/_assets/full-pg-cir-crop.png" alt="AI YouTube Video Summarizer" width="200">
+    <img src="https://github.com/siddharthsky/CustTermux/blob/5e4151627498699e8f2b030479a4abc69f638a85/_assets/full-pg-cir-crop.png" alt="AI YouTube Video Summarizer" width="200">
   </a>
   <br>
-  📺 CustTermux-JioTVGo
+  📺 CustTermux
   <br>
 </h1>
 
@@ -19,7 +19,7 @@
 
    [Uninstall all Termux apps before proceeding: termux:boot, termux:tasker, etc.] [This fork uses "github-test keys".] 
 
-2. Install the CustTermux APK from the [release page](https://github.com/siddharthsky/CustTermux-JioTVGo/releases).
+2. Install the CustTermux APK from the [release page](https://github.com/siddharthsky/CustTermux/releases).
 
    [For example, use FireTV=armeabi-v7a. If you don't know the architecture, use "Universal".]
 

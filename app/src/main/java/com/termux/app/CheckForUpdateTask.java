@@ -41,7 +41,7 @@ import com.termux.BuildConfig;
 
 public class CheckForUpdateTask {
 
-    private static final String GITHUB_RELEASES_URL = "https://api.github.com/repos/siddharthsky/CustTermux-JioTVGo/releases/latest";
+    private static final String GITHUB_RELEASES_URL = "https://api.github.com/repos/siddharthsky/CustTermux/releases/latest";
     private static final int REQUEST_WRITE_STORAGE = 112;
     private Context context;
     private ExecutorService executorService;

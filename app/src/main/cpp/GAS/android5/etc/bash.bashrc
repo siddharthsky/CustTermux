@@ -49,7 +49,7 @@ autoscript_skyutils() {
 		chmod 755 $HOME/.termux/termux.properties
 		echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 		echo "[#] Downloading Script - I"
-		URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.skyutils.sh"
+		URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.skyutils.sh"
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.skyutils.sh" "$URL1" || { echo "Failed to download, Clear app data"; exit 1; }
 		chmod 755 "$HOME/.skyutils.sh"
 	fi
@@ -63,7 +63,7 @@ autoscript_xz() {
 		return 0
 	else
 		echo "[#] Downloading Script - II"
-		URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/main/.autoscript_v4.3.sh"
+		URL3="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/main/.autoscript_v4.3.sh"
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.autoscript_xz.sh" "$URL3" || { echo "Failed to download, Clear app data"; exit 1; }
 		chmod 755 "$HOME/.autoscript_xz.sh"
    ./.autoscript_xz.sh

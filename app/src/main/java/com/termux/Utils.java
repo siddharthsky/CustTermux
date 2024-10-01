@@ -321,7 +321,7 @@ public class Utils {
 
 
 //    public static void updateCustTermux(Context context) {
-//        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux-JioTVGo/releases"));
+//        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux/releases"));
 //        context.startActivity(browserIntent);
 //    }
 
