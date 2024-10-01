@@ -259,6 +259,7 @@ get_value_from_key() {
 # Checking required packages
 Setup_Prerequisites() {
     #pkg install termux-am jq termux-api -y
+    pkg install termux-elf-cleaner -y
     rm -f $HOME/.termux/termux.properties
     touch $HOME/.termux/termux.properties
     chmod 755 $HOME/.termux/termux.properties
@@ -318,18 +319,36 @@ Default_Installation() {
     mkdir -p "$HOME/.jiotv_go/bin"
     echo "Step 3: Created \$HOME/.jiotv_go/bin"
 
-    if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
-        OS="linux"
-    fi
-
-    # # OSx=$OSTYPE
-    # if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+    # if [ "$OS" = "android" ] && [ "$ARCH" = "386" ]; then
     #     OS="linux"
     # fi
 
+	if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+	  # Get the SDK version
+	  SDK_VERSION=$(getprop ro.build.version.sdk)
+	
+	  # Check if the SDK version is equal to or less than 23
+	  if [ "$SDK_VERSION" -le 23 ]; then
+	    # Set OS to "android5"
+	    OS="android5"
+	    ARCH="armv7"
+	  fi
+	fi
+
+
     # Set binary URL
-    BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.6.0/jiotv_go-$OS-$ARCH"
-    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+    #BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.6.0/jiotv_go-$OS-$ARCH"
+    BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+
+
+	# if [ "$OS" = "android" ] && [ "$ARCH" = "arm" ]; then
+ # 		echo "WORK OF ART"
+ #   		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/main/golang/majorbin"
+ #       		#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/develop.2024.09.05.06.33.1725518036/jiotv_go-android5-armv7"
+	# else
+	# 	#BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/download/v3.8.0/jiotv_go-$OS-$ARCH"
+	# 	BINARY_URL="https://github.com/rabilrbl/jiotv_go/releases/latest/download/jiotv_go-$OS-$ARCH"
+	# fi
 
     # Download the binary
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/jiotv_go" "$BINARY_URL" || { echo "Failed to download binary"; exit 1; }
@@ -338,6 +357,9 @@ Default_Installation() {
 
     # Make the binary executable
     chmod 755 "$HOME/.jiotv_go/bin/jiotv_go"
+    termux-elf-cleaner "$HOME/.jiotv_go/bin/jiotv_go"
+    
+    
     echo "Step 5: Granted executable permissions to the binary"
 
     # Add binary to PATH
@@ -366,8 +388,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9"
-
+echo "Script : version v6.9.3z [5 series]"
 
 
 

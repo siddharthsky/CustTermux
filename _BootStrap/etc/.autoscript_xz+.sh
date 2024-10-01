@@ -75,16 +75,14 @@ TheShowRunner() {
     if [ "$VARIABLE03" == "Yes" ]; then
         echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
         termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use
-	# temp $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use"
+        $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use"
     else
         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
         termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public
-	# temp $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
+        $HOME/.jiotv_go/bin/jiotv_go bg run --args "--port $port_to_use --public"
     fi
 
-    # temp am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
+    am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
 }
 
 
@@ -98,11 +96,9 @@ TheShowRunner_onetime() {
  
 	if [ "$VARIABLE03" == "Yes" ]; then
  		echo -e "\e[32mRunning Server Locally\e[0m"
-		$HOME/.jiotv_go/bin/jiotv_go run
- 		# temp $HOME/.jiotv_go/bin/jiotv_go bg run
+		$HOME/.jiotv_go/bin/jiotv_go bg run
 	else
- 		$HOME/.jiotv_go/bin/jiotv_go run -a -P
-		# temp $HOME/.jiotv_go/bin/jiotv_go bg run -a -P
+		$HOME/.jiotv_go/bin/jiotv_go bg run -a -P
 	fi
 
  	#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2"
@@ -148,10 +144,8 @@ Setup_Prerequisites() {
     chmod 755 $HOME/.termux/termux.properties
     echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 
-
-    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_password.exp"
+    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.set_password.exp"
     #FILE_URL="https://bit.ly/setpasswordexp" #^redirects here
-
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_password.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.set_password.exp"
 }
@@ -261,7 +255,7 @@ Setup_Extra() {
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
 }
 
-echo "Script : version v6.9.2x [7 series]"
+echo "Script : version v6.9.2 [7 series]"
 
 
 
@@ -291,7 +285,7 @@ if [ ! -f "$FILE_PATH" ]; then
 	echo "INSTALLATION -- PART 2"
 	echo "-----------------------"
 	Default_Installation
-	# temp Setup_Extra
+	Setup_Extra
  	clear
 	Server_Runner
  	TheShowRunner_onetime
@@ -299,4 +293,3 @@ else
 	Server_Runner
  	TheShowRunner
 fi
-
