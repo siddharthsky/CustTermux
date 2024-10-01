@@ -61,7 +61,7 @@ autoscript_skyutils() {
 		pkg install jq -y
 		pkg install termux-api -y
 		echo "[#] Downloading Script - I"
-		URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/skyutils.sh"
+		URL1="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/skyutils.sh"
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.skyutils.sh" "$URL1" || { echo "Failed to download, Clear app data"; exit 1; }
 		chmod 755 "$HOME/.skyutils.sh"
 	fi
@@ -74,7 +74,7 @@ autoscript() {
 		return 0
 	else
 		echo "[#] Downloading Script - II"
-		URL2="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.autoscript.sh"
+		URL2="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.autoscript.sh"
 		curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.autoscript.sh" "$URL2" || { echo "Failed to download, Clear app data"; exit 1; }
 		chmod 755 "$HOME/.autoscript.sh"
    ./.autoscript.sh

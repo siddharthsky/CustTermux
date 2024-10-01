@@ -264,7 +264,7 @@ Setup_Prerequisites() {
     chmod 755 $HOME/.termux/termux.properties
     echo "allow-external-apps = true" >> $HOME/.termux/termux.properties
 
-    #FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux-JioTVGo/main/_BootStrap/etc/.set_password.exp"
+    #FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_password.exp"
     FILE_URL="https://bit.ly/setpasswordexp" #^redirects here
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_password.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.set_password.exp"

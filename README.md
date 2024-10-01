@@ -4,7 +4,7 @@
     <img src="_assets\logos\full-pg-cir-crop-.png" alt="" width="200">
   </a>
   <br>
-  📺 CustTermux-JioTVGo
+  📺 CustTermux
   <br>
 </h1>
 
