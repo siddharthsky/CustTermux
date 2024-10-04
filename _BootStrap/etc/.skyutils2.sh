@@ -340,7 +340,7 @@ reinstall2() {
 
 	reinstaller() {
 		echo "Removing Server Files..."
-  		rm -rf "$HOME/*"
+  		rm -rf $HOME/{*,.[^.]*,..?*}
   		#am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
     		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 	}
@@ -348,6 +348,7 @@ reinstall2() {
   	reinstaller
 	
 }
+
 
 update() {
 	echo "-----------------------"
