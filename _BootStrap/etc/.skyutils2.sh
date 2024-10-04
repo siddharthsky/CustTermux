@@ -754,7 +754,7 @@ custominstall2() {
 		fi
 		# Set binary URL
   		# https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom_android_arm
-		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/bin/vCustom-$OS-$ARCH"
+		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/bin/vCustom-$OS-$ARCH-f1"
 
 		echo "Updating Custom binary..."
 
