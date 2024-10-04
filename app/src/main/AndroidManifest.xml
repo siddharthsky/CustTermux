@@ -20,7 +20,7 @@
     <permission
         android:name="${TERMUX_PACKAGE_NAME}.permission.RUN_COMMAND"
         android:description="@string/permission_run_command_description"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_neo"
         android:label="@string/permission_run_command_label"
         android:protectionLevel="dangerous" />
 

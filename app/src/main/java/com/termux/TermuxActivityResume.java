@@ -181,7 +181,7 @@ public class TermuxActivityResume {
             Bitmap iconBitmap = base64ToBitmap(iconBase64);
             iconImageView.setImageBitmap(iconBitmap);
         } else {
-            iconImageView.setImageResource(R.mipmap.ic_launcher2);
+            iconImageView.setImageResource(R.mipmap.ic_launcher_neo);
         }
 
         String packageName = preferenceManager.getKey("app_name");
