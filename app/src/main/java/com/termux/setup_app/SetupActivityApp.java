@@ -70,12 +70,10 @@ public class SetupActivityApp extends AppCompatActivity {
     private int[] animationResources = {
         R.raw.batmanx,  // Example raw resource ID for animation
         R.raw.bird,
-       R.raw.gemini
     };
     private int[] weights = {
          3  // Weight for batman
         ,5  // Weight for bird
-      ,2   // Weight for gemini
     };
 
     @Override

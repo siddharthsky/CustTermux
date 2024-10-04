@@ -16,7 +16,7 @@
             android:id="@+id/iptv_icon"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:src="@mipmap/ic_launcher2" />
+            android:src="@mipmap/ic_launcher_neo" />
 
         <LinearLayout
             android:layout_width="wrap_content"
