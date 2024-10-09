@@ -12,10 +12,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class WebPlayerActivity extends AppCompatActivity {
 
@@ -23,11 +26,11 @@ public class WebPlayerActivity extends AppCompatActivity {
     private ProgressBar loadingSpinner;
     private List<String> channelNumbers;
     private String url;
-//    private static final String DEFAULT_URL = "http://localhost:5001/";
     private static final String TAG = "WebPlayerActivity";
     private String BASE_URL;
     private String CONFIGPART_URL;
     private String DEFAULT_URL;
+    private String PORTx;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -35,18 +38,15 @@ public class WebPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web_player);
 
-        // Initialize SkySharedPref and other member variables
         SkySharedPref preferenceManager = new SkySharedPref(this);
         BASE_URL = preferenceManager.getKey("isLocalPORT");
-
+        PORTx = preferenceManager.getKey("isLocalPORTonly");
         CONFIGPART_URL = preferenceManager.getKey("isWEBTVconfig");
+        DEFAULT_URL = BASE_URL + CONFIGPART_URL;
 
-        DEFAULT_URL = BASE_URL+CONFIGPART_URL;
-
-        Log.d("DIX-WEBTV","URL: " + DEFAULT_URL);
+        Log.d(TAG, "URL: " + DEFAULT_URL);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
         getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_FULLSCREEN |
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
@@ -55,7 +55,6 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         webView = findViewById(R.id.webview);
         loadingSpinner = findViewById(R.id.loading_spinner);
-
         webView.setWebViewClient(new CustomWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
 
@@ -68,7 +67,6 @@ public class WebPlayerActivity extends AppCompatActivity {
         webSettings.setMediaPlaybackRequiresUserGesture(false); // Allow autoplay
 
         url = DEFAULT_URL;
-        // Load the initial URL
         loadUrl();
     }
 
@@ -118,76 +116,85 @@ public class WebPlayerActivity extends AppCompatActivity {
         webView.onResume();
     }
 
-//    @Override
-//    public boolean dispatchKeyEvent(KeyEvent event) {
-//        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-//            if (webView.getUrl().contains("/player/")) {
-//                switch (event.getKeyCode()) {
-//                    case KeyEvent.KEYCODE_DPAD_RIGHT:
-//                        navigateToNextChannel();
-//                        return true;
-//                    case KeyEvent.KEYCODE_DPAD_LEFT:
-//                        navigateToPreviousChannel();
-//                        return true;
-//                }
-//            }
-//        }
-//        return super.dispatchKeyEvent(event);
-//    }
-//
-//    private void navigateToNextChannel() {
-//        Log.d(TAG, "Channel Numbers: navigateToNextChannel" + channelNumbers);
-//        if (channelNumbers == null || channelNumbers.isEmpty()) {
-//            Log.d(TAG, "No channel numbers available.");
-//            return;
-//        }
-//        String currentUrl = webView.getUrl();
-//        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
-//        int index = channelNumbers.indexOf(currentNumber);
-//        Log.d(TAG, "Current Channel: " + currentNumber);
-//        if (index >= 0) {
-//            String nextNumber = (index < channelNumbers.size() - 1) ? channelNumbers.get(index + 1) : channelNumbers.get(0);
-//            String nextUrl = "http://localhost:5001/player/" + nextNumber;
-//            Log.d(TAG, "Navigating to Next Channel: " + nextUrl);
-//            webView.loadUrl(nextUrl);
-//        } else {
-//            Log.d(TAG, "No next channel available.");
-//        }
-//    }
-//
-//    private void navigateToPreviousChannel() {
-//        Log.d(TAG, "Channel Numbers: navigateToPreviousChannel" + channelNumbers);
-//        if (channelNumbers == null || channelNumbers.isEmpty()) {
-//            Log.d(TAG, "No channel numbers available.");
-//            return;
-//        }
-//        String currentUrl = webView.getUrl();
-//        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
-//        int index = channelNumbers.indexOf(currentNumber);
-//        Log.d(TAG, "Current Channel: " + currentNumber);
-//        if (index > 0) {
-//            String previousNumber = channelNumbers.get(index - 1);
-//            String previousUrl = "http://localhost:5001/player/" + previousNumber;
-//            Log.d(TAG, "Navigating to Previous Channel: " + previousUrl);
-//            webView.loadUrl(previousUrl);
-//        } else if (index == 0) {
-//            String previousNumber = channelNumbers.get(channelNumbers.size() - 1);
-//            String previousUrl = "http://localhost:5001/player/" + previousNumber;
-//            Log.d(TAG, "Navigating to Previous Channel: " + previousUrl);
-//            webView.loadUrl(previousUrl);
-//        } else {
-//            Log.d(TAG, "No previous channel available.");
-//        }
-//    }
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && Objects.requireNonNull(webView.getUrl()).contains("/player/")) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    navigateToNextChannel();
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    navigateToPreviousChannel();
+                    return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void navigateToNextChannel() {
+        if (channelNumbers == null || channelNumbers.isEmpty()) {
+            Log.d(TAG, "No channel numbers available.");
+            return;
+        }
+        String currentUrl = webView.getUrl();
+        assert currentUrl != null;
+        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+        int index = channelNumbers.indexOf(currentNumber);
+        if (index >= 0) {
+            String nextNumber = (index < channelNumbers.size() - 1) ? channelNumbers.get(index + 1) : channelNumbers.get(0);
+            String nextUrl = "http://localhost:" + PORTx + "/player/" + nextNumber;
+            Log.d(TAG, "Navigating to Next Channel: " + nextUrl);
+            webView.loadUrl(nextUrl);
+        } else {
+            Log.d(TAG, "No next channel available.");
+        }
+    }
+
+    private void navigateToPreviousChannel() {
+        if (channelNumbers == null || channelNumbers.isEmpty()) {
+            Log.d(TAG, "No channel numbers available.");
+            return;
+        }
+        String currentUrl = webView.getUrl();
+        assert currentUrl != null;
+        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+        int index = channelNumbers.indexOf(currentNumber);
+        if (index >= 0) {
+            String previousNumber = (index > 0) ? channelNumbers.get(index - 1) : channelNumbers.get(channelNumbers.size() - 1);
+            String previousUrl = "http://localhost:" + PORTx + "/player/" + previousNumber;
+            Log.d(TAG, "Navigating to Previous Channel: " + previousUrl);
+            webView.loadUrl(previousUrl);
+        } else {
+            Log.d(TAG, "No previous channel available.");
+        }
+    }
+
+    private int playerUrlCount = 0;
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack(); // Navigate back in the WebView history
+        if (webView != null) {
+            String currentUrl = webView.getUrl();
+            assert currentUrl != null;
+
+            if (currentUrl.contains("/player/")) {
+                playerUrlCount++;
+                webView.loadUrl(DEFAULT_URL);
+            } else if (currentUrl.equals(DEFAULT_URL)) {
+                playerUrlCount++;
+                if (playerUrlCount >= 3) {
+                    finish();
+                }
+            } else if (webView.canGoBack()) {
+                webView.goBack();
+            } else {
+                super.onBackPressed();
+            }
         } else {
-            super.onBackPressed(); // Finish the activity if no history
+            super.onBackPressed();
         }
     }
+
 
     private class CustomWebViewClient extends WebViewClient {
         @Override
@@ -212,29 +219,20 @@ public class WebPlayerActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             loadingSpinner.setVisibility(View.GONE);
-
             if (url.contains("/player/")) {
                 Log.d(TAG, "Playing: " + url);
-                Log.d(TAG, "Channel Numbers player: " + channelNumbers);
                 setFullScreenMode();
                 view.loadUrl("javascript:(function() { " +
                     "var video = document.getElementsByTagName('video')[0]; " +
                     "if (video) { " +
-                    "  video.style.width = '100vw'; " +  // Use viewport width
-                    "  video.style.height = '100vh'; " + // Use viewport height
-                    "  video.style.objectFit = 'contain'; " + // Scale the video while preserving aspect ratio
+                    "  video.style.width = '100vw'; " +
+                    "  video.style.height = '100vh'; " +
+                    "  video.style.objectFit = 'contain'; " +
                     "  video.play(); " +
                     "} " +
                     "})()");
-//            } else if (url.contains("/play/")) {
-//                // Extract channels from the latest page
-//                Log.d(TAG, "Got Play: " + url);
-//                Log.d(TAG, "Channel Numbers play: " + channelNumbers);
-//            } else if (url.contains(DEFAULT_URL)) {
-//                // Clear the channel numbers list if not on a /play/ or /player/ page
-//                Log.d(TAG, "List cleared " + url);
-//                // Extract channels from the latest page
-//                extractChannelNumbers();
+            } else if (url.contains(DEFAULT_URL)) {
+                extractChannelNumbers();
             }
         }
     }
