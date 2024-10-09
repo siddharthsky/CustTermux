@@ -12,12 +12,11 @@ import java.net.URL;
 
 public class ServerStatusChecker {
 
-    private static String URL_LINK ;
-    private static String urlString ;
-    private Handler handler;
+    private String urlLink;
+    private final Handler handler;
     private Runnable runnable;
-    private TextView serverStatusTextView;
-    private Context context;
+    private final TextView serverStatusTextView;
+    private final Context context;
 
     public ServerStatusChecker(Context context, TextView serverStatusTextView) {
         this.handler = new Handler();
@@ -41,37 +40,48 @@ public class ServerStatusChecker {
     }
 
     private void checkServerStatus() {
-        // Initialize SkySharedPref and get the port from preferences
         SkySharedPref preferenceManager = new SkySharedPref(context);
-        urlString = preferenceManager.getKey("isLocalPORT");
+        urlLink = preferenceManager.getKey("isLocalPORT");
+
+        if (urlLink == null || urlLink.isEmpty()) {
+            updateStatus("Error: Invalid URL");
+            Log.e("ServerStatusChecker", "URL is invalid or not set in preferences");
+            return;
+        }
+
         new Thread(() -> {
-            URL_LINK = urlString;
             try {
-                URL url = new URL(URL_LINK);
+                URL url = new URL(urlLink);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setConnectTimeout(3000); // 3 seconds timeout
                 urlConnection.connect();
-                if (urlConnection.getResponseCode() == 200) {
+
+                int responseCode = urlConnection.getResponseCode();
+                if (responseCode == 200) {
                     updateStatus("Running");
-                } else if (urlConnection.getResponseCode() == 500) {
+                } else if (responseCode == 500) {
                     updateStatus("Stopped");
                 } else {
                     updateStatus("Stopped");
                 }
             } catch (IOException e) {
                 updateStatus("Error");
+                Log.e("ServerStatusChecker", "IOException occurred while checking server status", e);
             }
         }).start();
-        Log.d("TAG","Checked Server");
+
+        Log.d("ServerStatusChecker", "Checked Server Status");
     }
 
     private void updateStatus(final String status) {
         serverStatusTextView.post(() -> {
             serverStatusTextView.setText(status);
 
+            // Save server status in shared preferences
             SkySharedPref preferenceManager = new SkySharedPref(context);
             preferenceManager.setKey("isServerRunning", status);
 
+            // Change color based on status
             int color;
             if ("Running".equals(status)) {
                 color = ContextCompat.getColor(context, R.color.status_running);
