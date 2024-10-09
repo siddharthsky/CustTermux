@@ -10,23 +10,22 @@ import androidx.appcompat.app.AlertDialog;
 import com.termux.setup_login.LoginActivity2;
 
 public class LoginErrorActivity extends AppCompatActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         showAlert();
-
     }
 
+    // Login error alert dialog
     private void showAlert() {
-        new AlertDialog.Builder(this,R.style.CustomAlertDialogTheme)
+        new AlertDialog.Builder(this, R.style.CustomAlertDialogTheme)
             .setTitle("🔐 Login")
             .setMessage("An error occurred while checking login.\nDo you want to log in again?")
             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
-                    //Utils.showCustomDialog(LoginErrorActivity.this);
                     sky_login();
                     finish();
                 }
@@ -34,21 +33,18 @@ public class LoginErrorActivity extends AppCompatActivity {
             .setNegativeButton("No", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss(); // Dismiss the dialog
+                    dialog.dismiss();
                     finish();
-
                 }
             })
             .setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialog) {
                     dialog.dismiss();
-                    finish(); // Handle canceling of the dialog
-
+                    finish();
                 }
             })
             .show();
-
     }
 
     private void sky_login() {
@@ -56,17 +52,18 @@ public class LoginErrorActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-//    private void iptvrunner2() {
-//        SkySharedPref preferenceManager = new SkySharedPref(LoginErrorActivity.this);
-//        String apppkg = preferenceManager.getKey("app_name");
-//        String appclass = preferenceManager.getKey("app_launchactivity");
-//
-//        if (apppkg == null || "null".equals(apppkg)) {
-//            Log.d("d","no iptv");
-//        } else {
-//            Intent intent = new Intent();
-//            intent.setComponent(new ComponentName(apppkg, appclass));
-//            startActivity(intent);
-//        }
-//    }
+    // Method is preserved in case it's needed in the future
+    // private void iptvrunner2() {
+    //     SkySharedPref preferenceManager = new SkySharedPref(LoginErrorActivity.this);
+    //     String apppkg = preferenceManager.getKey("app_name");
+    //     String appclass = preferenceManager.getKey("app_launchactivity");
+
+    //     if (apppkg == null || "null".equals(apppkg)) {
+    //         Log.d("d","no iptv");
+    //     } else {
+    //         Intent intent = new Intent();
+    //         intent.setComponent(new ComponentName(apppkg, appclass));
+    //         startActivity(intent);
+    //     }
+    // }
 }
