@@ -32,6 +32,8 @@ public class WebPlayerActivity extends AppCompatActivity {
     private String BASE_URL;
     private String CONFIGPART_URL;
     private String DEFAULT_URL;
+    private String initURL;
+
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -72,6 +74,7 @@ public class WebPlayerActivity extends AppCompatActivity {
 
     private void loadUrl() {
         if (DEFAULT_URL != null) {
+            initURL = DEFAULT_URL;
             webView.loadUrl(DEFAULT_URL);
         }
     }
@@ -161,8 +164,8 @@ public class WebPlayerActivity extends AppCompatActivity {
 
             if (currentUrl.contains("/player/")) {
                 playerUrlCount++;
-                webView.loadUrl(DEFAULT_URL);
-            } else if (currentUrl.equals(DEFAULT_URL)) {
+                webView.loadUrl(initURL);
+            } else if (currentUrl.equals(initURL)) {
                 playerUrlCount++;
                 if (playerUrlCount >= 3) {
                     finish();
@@ -181,10 +184,14 @@ public class WebPlayerActivity extends AppCompatActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.contains("/play/")) {
+                initURL = webView.getUrl();
                 String newUrl = url.replace("/play/", "/player/");
                 Log.d(TAG, "Loading new player URL: " + newUrl);
                 webView.loadUrl(newUrl);
                 return true; // URL has been overridden
+            } else if (url.contains(initURL)){
+                initURL = url;
+                return true;
             }
             return false; // URL has not been overridden
         }
@@ -208,11 +215,12 @@ public class WebPlayerActivity extends AppCompatActivity {
                     "  video.play(); " +
                     "} " +
                     "})()");
-            } else if (url.equals(DEFAULT_URL)) {
-                moveSearchInput(view);
-                extractChannelNumbers();
+//            } else if (url.equals(DEFAULT_URL)) {
+//                moveSearchInput(view);
+//                extractChannelNumbers();
             } else {
                 moveSearchInput(view);
+                extractChannelNumbers();
             }
         }
 
