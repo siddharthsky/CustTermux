@@ -22,15 +22,16 @@ import java.util.Objects;
 
 public class WebPlayerActivity extends AppCompatActivity {
 
+    private static final String TAG = "RIX";
+
     private WebView webView;
     private ProgressBar loadingSpinner;
     private List<String> channelNumbers;
+
     private String url;
-    private static final String TAG = "WebPlayerActivity";
     private String BASE_URL;
     private String CONFIGPART_URL;
     private String DEFAULT_URL;
-    private String PORTx;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -40,21 +41,23 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         SkySharedPref preferenceManager = new SkySharedPref(this);
         BASE_URL = preferenceManager.getKey("isLocalPORT");
-        PORTx = preferenceManager.getKey("isLocalPORTonly");
+        String PORTx = preferenceManager.getKey("isLocalPORTonly");
         CONFIGPART_URL = preferenceManager.getKey("isWEBTVconfig");
         DEFAULT_URL = BASE_URL + CONFIGPART_URL;
 
         Log.d(TAG, "URL: " + DEFAULT_URL);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        );
+        setFullScreenMode();
 
+        initializeWebView();
+        loadUrl();
+    }
+
+    private void initializeWebView() {
         webView = findViewById(R.id.webview);
         loadingSpinner = findViewById(R.id.loading_spinner);
+
         webView.setWebViewClient(new CustomWebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
 
@@ -65,14 +68,11 @@ public class WebPlayerActivity extends AppCompatActivity {
         webSettings.setUseWideViewPort(true);
         webSettings.setDefaultTextEncodingName("utf-8");
         webSettings.setMediaPlaybackRequiresUserGesture(false); // Allow autoplay
-
-        url = DEFAULT_URL;
-        loadUrl();
     }
 
     private void loadUrl() {
-        if (url != null) {
-            webView.loadUrl(url);
+        if (DEFAULT_URL != null) {
+            webView.loadUrl(DEFAULT_URL);
         }
     }
 
@@ -82,23 +82,13 @@ public class WebPlayerActivity extends AppCompatActivity {
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         );
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-    }
-
-    private void setDarkTheme() {
-        if (webView != null) {
-            String jsCode = "document.getElementsByTagName('html')[0].setAttribute('data-theme', 'dark');" +
-                "localStorage.setItem('theme', 'dark');";
-            webView.evaluateJavascript(jsCode, null);
-        }
     }
 
     private void extractChannelNumbers() {
         webView.evaluateJavascript("Array.from(document.querySelectorAll('.card')).map(card => card.getAttribute('href').match(/\\/play\\/(\\d+)/)[1])", result -> {
             if (result != null && !result.isEmpty()) {
                 result = result.replace("[", "").replace("]", "").replace("\"", "");
-                String[] channelNumbersArray = result.split(",");
-                channelNumbers = Arrays.asList(channelNumbersArray);
+                channelNumbers = Arrays.asList(result.split(","));
                 Log.d(TAG, "Channel Numbers: " + channelNumbers);
             }
         });
@@ -118,7 +108,7 @@ public class WebPlayerActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && Objects.requireNonNull(webView.getUrl()).contains("/player/")) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && webView.getUrl() != null && webView.getUrl().contains("/player/")) {
             switch (event.getKeyCode()) {
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                     navigateToNextChannel();
@@ -132,40 +122,32 @@ public class WebPlayerActivity extends AppCompatActivity {
     }
 
     private void navigateToNextChannel() {
-        if (channelNumbers == null || channelNumbers.isEmpty()) {
-            Log.d(TAG, "No channel numbers available.");
-            return;
-        }
-        String currentUrl = webView.getUrl();
-        assert currentUrl != null;
-        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
-        int index = channelNumbers.indexOf(currentNumber);
-        if (index >= 0) {
-            String nextNumber = (index < channelNumbers.size() - 1) ? channelNumbers.get(index + 1) : channelNumbers.get(0);
-            String nextUrl = "http://localhost:" + PORTx + "/player/" + nextNumber;
-            Log.d(TAG, "Navigating to Next Channel: " + nextUrl);
-            webView.loadUrl(nextUrl);
-        } else {
-            Log.d(TAG, "No next channel available.");
-        }
+        navigateChannel(1);
     }
 
     private void navigateToPreviousChannel() {
+        navigateChannel(-1);
+    }
+
+    private void navigateChannel(int direction) {
         if (channelNumbers == null || channelNumbers.isEmpty()) {
             Log.d(TAG, "No channel numbers available.");
             return;
         }
+
         String currentUrl = webView.getUrl();
         assert currentUrl != null;
-        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+
+        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1, currentUrl.indexOf('?'));
         int index = channelNumbers.indexOf(currentNumber);
         if (index >= 0) {
-            String previousNumber = (index > 0) ? channelNumbers.get(index - 1) : channelNumbers.get(channelNumbers.size() - 1);
-            String previousUrl = "http://localhost:" + PORTx + "/player/" + previousNumber;
-            Log.d(TAG, "Navigating to Previous Channel: " + previousUrl);
-            webView.loadUrl(previousUrl);
+            int newIndex = (index + direction + channelNumbers.size()) % channelNumbers.size();
+            String newNumber = channelNumbers.get(newIndex);
+            String newUrl = currentUrl.replace("/" + currentNumber + "?", "/" + newNumber + "?");
+            Log.d(TAG, "Navigating to Channel: " + newUrl);
+            webView.loadUrl(newUrl);
         } else {
-            Log.d(TAG, "No previous channel available.");
+            Log.d(TAG, "Current number not found in channel numbers.");
         }
     }
 
@@ -195,17 +177,13 @@ public class WebPlayerActivity extends AppCompatActivity {
         }
     }
 
-
     private class CustomWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.contains("/play/")) {
-                // Clear previous channel numbers only if not already on a /player/ page
                 String newUrl = url.replace("/play/", "/player/");
+                Log.d(TAG, "Loading new player URL: " + newUrl);
                 webView.loadUrl(newUrl);
-//                Intent intent = new Intent(WebPlayerActivity.this, VideoActivity.class);
-//                intent.putExtra("videoUrl", newUrl);
-//                startActivity(intent);
                 return true; // URL has been overridden
             }
             return false; // URL has not been overridden
@@ -220,7 +198,6 @@ public class WebPlayerActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             loadingSpinner.setVisibility(View.GONE);
             if (url.contains("/player/")) {
-                Log.d(TAG, "Playing: " + url);
                 setFullScreenMode();
                 view.loadUrl("javascript:(function() { " +
                     "var video = document.getElementsByTagName('video')[0]; " +
@@ -231,9 +208,22 @@ public class WebPlayerActivity extends AppCompatActivity {
                     "  video.play(); " +
                     "} " +
                     "})()");
-            } else if (url.contains(DEFAULT_URL)) {
+            } else if (url.equals(DEFAULT_URL)) {
+                moveSearchInput(view);
                 extractChannelNumbers();
+            } else {
+                moveSearchInput(view);
             }
+        }
+
+        private void moveSearchInput(WebView view) {
+            view.loadUrl("javascript:(function() { " +
+                "var searchButton = document.getElementById('portexe-search-button'); " +
+                "var searchInput = document.getElementById('portexe-search-input'); " +
+                "if (searchButton && searchInput) { " +
+                "  searchButton.parentNode.insertBefore(searchInput, searchButton.nextSibling); " +
+                "} " +
+                "})()");
         }
     }
 }
