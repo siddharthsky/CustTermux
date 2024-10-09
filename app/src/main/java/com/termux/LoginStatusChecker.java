@@ -1,30 +1,30 @@
 package com.termux;
 
+import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import android.content.Context;
-import androidx.core.content.ContextCompat;
-
 public class LoginStatusChecker {
 
-    private static String URL_LINK ;
-    private static String urlString;
-    private static String urlchannel;
-    private Handler handler;
+    private String urlLink;
+    private String urlString;
+    private String urlChannel;
+    private final Handler handler;
     private Runnable runnable;
-    private TextView loginStatusTextView;
-    private Context context;
+    private final TextView loginStatusTextView;
+    private final Context context;
 
-    public LoginStatusChecker(Context context, TextView serverStatusTextView) {
-        this.handler = new Handler();
-        this.loginStatusTextView = serverStatusTextView;
+    public LoginStatusChecker(Context context, TextView loginStatusTextView) {
         this.context = context;
+        this.loginStatusTextView = loginStatusTextView;
+        this.handler = new Handler();
     }
 
     public void startChecking() {
@@ -32,7 +32,7 @@ public class LoginStatusChecker {
             @Override
             public void run() {
                 checkServerStatus();
-                handler.postDelayed(this, 10000); // Check every 5 seconds
+                handler.postDelayed(this, 10000); // Check every 10 seconds
             }
         };
         handler.post(runnable);
@@ -43,33 +43,37 @@ public class LoginStatusChecker {
     }
 
     private void checkServerStatus() {
-        // Initialize SkySharedPref and get the port from preferences
         SkySharedPref preferenceManager = new SkySharedPref(context);
         urlString = preferenceManager.getKey("isLocalPORT");
-        urlchannel = preferenceManager.getKey("isLocalPORTchannel");
+        urlChannel = preferenceManager.getKey("isLocalPORTchannel");
 
+        if (urlString != null && urlChannel != null) {
+            urlLink = urlString + urlChannel;
 
-        new Thread(() -> {
-            URL_LINK = urlString+urlchannel;
-            try {
-                URL url = new URL(URL_LINK);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setConnectTimeout(3000); // 3 seconds timeout
-                urlConnection.connect();
+            new Thread(() -> {
+                try {
+                    HttpURLConnection urlConnection = (HttpURLConnection) new URL(urlLink).openConnection();
+                    urlConnection.setConnectTimeout(3000); // 3 seconds timeout
+                    urlConnection.connect();
 
-                int responseCode = urlConnection.getResponseCode();
-                if (responseCode == 200) {
-                    updateStatus("Logged In");
-                } else if (responseCode == 500) {
-                    handleLogout(); // Handle logout on 500 response code
-                } else {
-                    updateStatus("Error"); // For other response codes
+                    int responseCode = urlConnection.getResponseCode();
+                    if (responseCode == 200) {
+                        updateStatus("Logged In");
+                    } else if (responseCode == 500) {
+                        handleLogout(); // Handle logout on 500 response code
+                    } else {
+                        updateStatus("Error"); // For other response codes
+                    }
+                } catch (IOException e) {
+                    updateStatus("Error");
                 }
-            } catch (IOException e) {
-                updateStatus("Error");
-            }
-        }).start();
-        Log.d("TAG","Checked Login");
+            }).start();
+
+            Log.d("LoginStatusChecker", "Checked Login Status");
+        } else {
+            updateStatus("Error: Invalid URL");
+            Log.e("LoginStatusChecker", "Error: Invalid URL or Channel");
+        }
     }
 
     private void updateStatus(final String status) {
@@ -81,6 +85,7 @@ public class LoginStatusChecker {
                     color = ContextCompat.getColor(context, R.color.status_running);
                     break;
                 case "Error":
+                case "Error: Invalid URL":
                     color = ContextCompat.getColor(context, R.color.status_error);
                     break;
                 case "Logged Out":
@@ -95,7 +100,6 @@ public class LoginStatusChecker {
     }
 
     private void handleLogout() {
-        // Update the status to indicate the logout
         updateStatus("Logged Out");
     }
 }

@@ -10,7 +10,7 @@ ext {
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
     packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
-    versionCust = "4.7"
+    versionCust = "4.8"
     versionCustScript = "4.5"
 }
 
@@ -55,8 +55,8 @@ android {
         applicationId "com.termux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 130
-        versionName "0.124.1"
+        versionCode 131
+        versionName "0.124.2"
         buildConfigField "String", "VERSION_CUST_SCRIPT", "\"${project.ext.versionCustScript}\""
 
         if (appVersionName) versionName = appVersionName
