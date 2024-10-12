@@ -138,15 +138,33 @@ public class WebPlayerActivity extends AppCompatActivity {
             return;
         }
 
+        Log.d(TAG, "Total channels available: " + channelNumbers.size());
+
         String currentUrl = webView.getUrl();
         assert currentUrl != null;
 
-        String currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1, currentUrl.indexOf('?'));
+        int queryIndex = currentUrl.indexOf('?');
+        String currentNumber;
+
+        if (queryIndex != -1) {
+            currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1, queryIndex);
+        } else {
+            currentNumber = currentUrl.substring(currentUrl.lastIndexOf('/') + 1);
+        }
+
         int index = channelNumbers.indexOf(currentNumber);
+
         if (index >= 0) {
             int newIndex = (index + direction + channelNumbers.size()) % channelNumbers.size();
             String newNumber = channelNumbers.get(newIndex);
-            String newUrl = currentUrl.replace("/" + currentNumber + "?", "/" + newNumber + "?");
+
+            String newUrl;
+            if (queryIndex != -1) {
+                newUrl = currentUrl.replace("/" + currentNumber + "?", "/" + newNumber + "?");
+            } else {
+                newUrl = currentUrl.replace("/" + currentNumber, "/" + newNumber);
+            }
+
             Log.d(TAG, "Navigating to Channel: " + newUrl);
             webView.loadUrl(newUrl);
         } else {
@@ -164,14 +182,18 @@ public class WebPlayerActivity extends AppCompatActivity {
 
             if (currentUrl.contains("/player/")) {
                 playerUrlCount++;
-                webView.loadUrl(initURL);
-            } else if (currentUrl.equals(initURL)) {
-                playerUrlCount++;
                 if (playerUrlCount >= 3) {
-                    finish();
+                    webView.loadUrl(initURL);
+                } else {
+                    webView.goBack();
                 }
             } else if (webView.canGoBack()) {
-                webView.goBack();
+                playerUrlCount++;
+                if (playerUrlCount >= 6) {
+                    finish();
+                } else {
+                    webView.goBack();
+                }
             } else {
                 super.onBackPressed();
             }
@@ -191,7 +213,7 @@ public class WebPlayerActivity extends AppCompatActivity {
                 return true; // URL has been overridden
             } else if (url.contains(initURL)){
                 initURL = url;
-                return true;
+                return false;
             }
             return false; // URL has not been overridden
         }
