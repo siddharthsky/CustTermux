@@ -117,14 +117,19 @@ import androidx.viewpager.widget.ViewPager;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Objects;
 
 /**
@@ -752,11 +757,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             ipAddressTextView.setText(wifiIpAddress);
 
             String ipport = preferenceManager.getKey("isLocalPORTonly");
-            String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist url: "+a_playlink;
+
+            if (Objects.equals(wifiIpAddress, "Error")){
+                String x_playlink = "Network Error: "+ipport;
+                textplay.setText(x_playlink);
+                preferenceManager.setKey("temp_playlist",x_playlink);
+            } else {
+                String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
+                String b_playlink = "Playlist url: "+a_playlink;
+                textplay.setText(b_playlink);
+                preferenceManager.setKey("temp_playlist",a_playlink);
+            }
             textplay.setBackgroundResource(R.drawable.border);
-            textplay.setText(b_playlink);
-            preferenceManager.setKey("temp_playlist",a_playlink);
+
             //startFlashingEffect(textplay);
         }
     }
@@ -1279,30 +1292,80 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+//    private void clearAppData() {
+//        try {
+//            // Clearing app data
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//                boolean success = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
+//                Log.d("ClearAppData", "Clear user data success: " + success);
+//            } else {
+//                String packageName = getApplicationContext().getPackageName();
+//                Runtime runtime = Runtime.getRuntime();
+//                runtime.exec("pm clear " + packageName);
+//                Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
+//            }
+//
+//            // Restart the app
+//            Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+//            if (intent != null) {
+//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                startActivity(intent);
+//                finish(); // Optional: finish the current activity
+//            } else {
+//                Log.e("ClearAppData", "Failed to get launch intent for package: " + getPackageName());
+//            }
+//        } catch (Exception e) {
+//            Log.e("ClearAppData", "Failed to clear app data", e);
+//        }
+//    }
+
     private void clearAppData() {
         try {
-            // Clearing app data
+            // Clearing app data for SDK version KITKAT and above
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                boolean success = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
-                Log.d("ClearAppData", "Clear user data success: " + success);
+                ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+
+                if (activityManager != null) {
+                    boolean success = activityManager.clearApplicationUserData();
+                    Log.d("ClearAppData", "Clear user data success: " + success);
+                } else {
+                    Log.e("ClearAppData", "ActivityManager is null, unable to clear data.");
+                }
+
             } else {
+                // Clearing app data via pm clear command for older Android versions
                 String packageName = getApplicationContext().getPackageName();
-                Runtime runtime = Runtime.getRuntime();
-                runtime.exec("pm clear " + packageName);
-                Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
+                try {
+                    Runtime.getRuntime().exec("pm clear " + packageName);
+                    Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
+                } catch (IOException e) {
+                    Log.e("ClearAppData", "Failed to execute pm clear command", e);
+                }
             }
 
             // Restart the app
+            restartApp();
+
+        } catch (Exception e) {
+            Log.e("ClearAppData", "Failed to clear app data", e);
+        }
+    }
+
+    private void restartApp() {
+        try {
+            // Get the launch intent for restarting the app
             Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+
             if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                // Clear all activities and restart the app from the root activity
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
-                finish(); // Optional: finish the current activity
+                finishAffinity(); // Ensure all activities are finished
             } else {
                 Log.e("ClearAppData", "Failed to get launch intent for package: " + getPackageName());
             }
         } catch (Exception e) {
-            Log.e("ClearAppData", "Failed to clear app data", e);
+            Log.e("ClearAppData", "Failed to restart the app", e);
         }
     }
 
@@ -1453,24 +1516,77 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+//    public String getWifiIpAddress(Context context) {
+//        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+//        int ipAddress = wifiInfo.getIpAddress();
+//        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
+//
+//        try {
+//            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
+//            String ipAddressStr = inetAddress.getHostAddress();
+//
+//            SkySharedPref preferenceManager = new SkySharedPref(this);
+//            preferenceManager.setKey("wifi1", ipAddressStr);
+//
+//            return ipAddressStr;
+//        } catch (UnknownHostException e) {
+//            Log.e("WifiIP", "Failed to get host address", e);
+//            return null;
+//        }
+//    }
+
     public String getWifiIpAddress(Context context) {
         WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int ipAddress = wifiInfo.getIpAddress();
-        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
 
-        try {
-            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
-            String ipAddressStr = inetAddress.getHostAddress();
+        if (wifiInfo != null && wifiInfo.getNetworkId() != -1) {
+            // Try getting Wi-Fi IP address
+            int wifiIpAddress = wifiInfo.getIpAddress();
+            byte[] wifiIpAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(wifiIpAddress).array();
 
-            SkySharedPref preferenceManager = new SkySharedPref(this);
-            preferenceManager.setKey("wifi1", ipAddressStr);
+            try {
+                InetAddress inetAddress = InetAddress.getByAddress(wifiIpAddressBytes);
+                String wifiIpAddressStr = inetAddress.getHostAddress();
 
-            return ipAddressStr;
-        } catch (UnknownHostException e) {
-            Log.e("WifiIP", "Failed to get host address", e);
-            return null;
+                SkySharedPref preferenceManager = new SkySharedPref(context);
+                preferenceManager.setKey("wifi1", wifiIpAddressStr);
+
+                return wifiIpAddressStr;
+            } catch (UnknownHostException e) {
+                Log.e("IP", "Failed to get Wi-Fi host address", e);
+            }
         }
+
+        // If Wi-Fi is not connected, try Ethernet
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+
+                if (!networkInterface.isLoopback() && networkInterface.isUp() &&
+                    (networkInterface.getName().contains("eth") || networkInterface.getName().contains("wlan"))) {
+
+                    Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                    while (addresses.hasMoreElements()) {
+                        InetAddress inetAddress = addresses.nextElement();
+                        if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                            String ethernetIpAddressStr = inetAddress.getHostAddress();
+
+                            SkySharedPref preferenceManager = new SkySharedPref(context);
+                            preferenceManager.setKey("ethernet1", ethernetIpAddressStr);
+
+                            return ethernetIpAddressStr;
+                        }
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            Log.e("IP", "Failed to get Ethernet address", e);
+        }
+
+        // If neither Wi-Fi nor Ethernet is connected
+        return "Error";
     }
 
 
