@@ -21,6 +21,8 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -1585,7 +1587,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             Log.e("IP", "Failed to get Ethernet address", e);
         }
 
-        // If neither Wi-Fi nor Ethernet is connected
+        // Check for mobile data connection and return localhost if active
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+            return "127.0.0.1";
+        }
+
+        // If neither Wi-Fi nor Ethernet nor mobile data is connected
         return "Error";
     }
 
