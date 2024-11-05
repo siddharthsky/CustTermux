@@ -36,6 +36,24 @@
 
 ---
 
+### 🚀 Usage
+
+1. **Launching CustTermux**: Open the app from your TV’s apps menu.
+2. **Setting Up for the First Time**:
+   - Upon the first launch, CustTermux will initialize the required environment and download dependencies.
+   - Follow any on-screen instructions to configure network settings or script options.
+   - Login by following the steps outlined in the **Login** section.
+3. **Accessing TV Channels**:
+   - Navigate to the WEB TV menu to explore available channels.
+   - Select a channel to start streaming instantly!
+4. **Using an IPTV Player**:
+   - To play channels via an IPTV player, add the IPTV playlist URL in your preferred IPTV player app. `[http://localhost:<port>/playlist.m3u]`
+   - Open the IPTV player and navigate to the section for adding playlists.
+   - Input the URL of the IPTV playlist and save it.
+   - Select the playlist to browse and play available channels.
+
+---
+
 ### 🔐 Login
 
 To access , login in required:
@@ -52,21 +70,6 @@ To access , login in required:
 3. **Handling Login Errors**:
    - If you attempt to log in multiple times in quick succession, the server may freeze, and a cooldown period for OTP is applied. Avoid spamming requests. If you encounter this issue, wait a few minutes before trying again.
    - Ensure you have a stable internet connection for OTP delivery and verification.
-
-
-
----
-
-### 🚀 Usage
-
-1. **Launching CustTermux**: Open the app from your TV’s apps menu.
-2. **Setting Up for the First Time**:
-   - Upon the first launch, CustTermux will initialize the required environment and download dependencies.
-   - Follow any on-screen instructions to configure network settings or script options.
-   - Login by following o
-3. **Accessing TV Channels**:
-   - Navigate to the WEB TV menu to explore available channels.
-   - Select a channel to start streaming instantly!
 
 ---
 
