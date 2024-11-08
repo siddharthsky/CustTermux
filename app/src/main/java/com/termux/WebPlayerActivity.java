@@ -398,15 +398,36 @@ public class WebPlayerActivity extends AppCompatActivity {
 
     private void saveRecentChannel(String playId, String logoUrl, String channelName) {
         SkySharedPref preferenceManager = new SkySharedPref(this);
-        
+
+        // Load existing recent channels from preferenceManager
+        String recentChannelsJson = preferenceManager.getKey(RECENT_CHANNELS_KEY);
+        if (recentChannelsJson != null && !recentChannelsJson.isEmpty()) {
+            try {
+                JSONArray jsonArray = new JSONArray(recentChannelsJson);
+                recentChannels.clear();
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    recentChannels.add(new Channel(
+                        jsonObject.getString("playId"),
+                        jsonObject.getString("logoUrl"),
+                        jsonObject.getString("channelName")
+                    ));
+                }
+            } catch (JSONException e) {
+                Log.d(TAG, "Error loading recent channels: " + e);
+            }
+        }
+
+        // Check if the channel with the given playId already exists and remove it if found
         recentChannels.removeIf(channel -> channel.playId.equals(playId));
         recentChannels.add(0, new Channel(playId, logoUrl, channelName));
 
-        // Keep latest 5 channels
+        // Keep only the latest 5 channels
         if (recentChannels.size() > 5) {
             recentChannels.remove(recentChannels.size() - 1);
         }
-        
+
+        // Convert updated list to JSON array and save back to preferences
         JSONArray jsonArray = new JSONArray();
         for (Channel channel : recentChannels) {
             try {
@@ -416,12 +437,13 @@ public class WebPlayerActivity extends AppCompatActivity {
                 jsonObject.put("channelName", channel.channelName);
                 jsonArray.put(jsonObject);
             } catch (JSONException e) {
-               Log.d(TAG, String.valueOf(e));
+                Log.d(TAG, String.valueOf(e));
             }
         }
-        
+
         preferenceManager.setKey(RECENT_CHANNELS_KEY, jsonArray.toString());
     }
+
 
     private void loadRecentChannels() {
         SkySharedPref preferenceManager = new SkySharedPref(this);
@@ -430,6 +452,7 @@ public class WebPlayerActivity extends AppCompatActivity {
         Log.d(TAG, "Channel Data from Shared Preferences: " + channelData);
 
         if (channelData != null && !channelData.isEmpty()) {
+
             recentChannels.clear(); // Clear existing list
             Log.d("RIX", "I WAS HERE");
             try {
@@ -457,7 +480,7 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         // Inject each recent channel into the UI
         for (Channel channel : recentChannels) {
-            String formattedPlayId = channel.playId.replace("?", "??");
+            String formattedPlayId = channel.playId.contains("?") ? channel.playId.replace("?", "??") : channel.playId + "??";
             
             Log.d(TAG, "Injecting Channel into WebView - Name: " + channel.channelName + ", Play ID: " + formattedPlayId);
             
