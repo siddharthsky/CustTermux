@@ -1,6 +1,7 @@
 package com.termux;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -16,9 +17,15 @@ import android.widget.ProgressBar;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class WebPlayerActivity extends AppCompatActivity {
 
@@ -33,6 +40,32 @@ public class WebPlayerActivity extends AppCompatActivity {
     private String CONFIGPART_URL;
     private String DEFAULT_URL;
     private String initURL;
+
+    private String currentPlayId;
+    private String currentLogoUrl;
+    private String currentChannelName;
+
+    private static final String RECENT_CHANNELS_KEY = "recent_channels";
+    private final List<Channel> recentChannels = new ArrayList<>();
+
+//    SkySharedPref preferenceManager = new SkySharedPref(WebPlayerActivity.this); // This is valid in an Activity
+
+
+    private class Channel {
+        String playId;
+        String logoUrl;
+        String channelName;
+
+        Channel(String playId, String logoUrl, String channelName) {
+            this.playId = playId;
+            this.logoUrl = logoUrl;
+            this.channelName = channelName;
+        }
+    }
+
+
+
+
 
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -54,8 +87,11 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         initializeWebView();
         loadUrl();
+//        loadRecentChannels();
+
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private void initializeWebView() {
         webView = findViewById(R.id.webview);
         loadingSpinner = findViewById(R.id.loading_spinner);
@@ -206,17 +242,65 @@ public class WebPlayerActivity extends AppCompatActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.contains("/play/")) {
+                // Save the current URL before navigating to the player
                 initURL = webView.getUrl();
+
+                // Extract the play ID from the URL
+                String playId = url.substring(url.lastIndexOf("/play/") + 6); // Extracting play ID
+
+                Log.d("WB", String.valueOf(playId));
+
+                // Use JavaScript to extract the channel logo and name
+                view.evaluateJavascript(
+                    "(function() { " +
+                        "try { " +
+                        "    var channelCard = document.querySelector('a[href*=\"/play/" + playId + "\"]'); " +
+                        "    if (channelCard) { " +
+                        "        var logoElement = channelCard.querySelector('img'); " +
+                        "        var nameElement = channelCard.querySelector('span'); " +
+                        "        var logoUrl = logoElement ? logoElement.getAttribute('src') : null; " +
+                        "        var channelName = nameElement ? nameElement.innerText : null; " +
+                        "        return JSON.stringify({playId: '" + playId + "', logoUrl: logoUrl, channelName: channelName}); " +
+                        "    } else { " +
+                        "        return null; " +
+                        "    } " +
+                        "} catch (error) { " +
+                        "    return null; " +
+                        "} " +
+                        "})();", result -> {
+                        if (result != null && !result.equals("null")) {
+                            try {
+                                // Remove any extra quotes surrounding the JSON result
+                                String jsonString = result.replaceAll("^\"|\"$", "").replace("\\\"", "\"");
+                                JSONObject jsonResult = new JSONObject(jsonString);
+                                currentPlayId = jsonResult.getString("playId");
+                                currentLogoUrl = jsonResult.getString("logoUrl");
+                                currentChannelName = jsonResult.getString("channelName");
+
+                                Log.d(TAG, "Channel Clicked: " + currentChannelName + " (Play ID: " + currentPlayId + ")");
+                                saveRecentChannel(currentPlayId, currentLogoUrl, currentChannelName);
+                            } catch (JSONException e) {
+                                Log.d(TAG, "JSON parsing error: " + e.getMessage());
+                            }
+                        } else {
+                            Log.d(TAG, "No channel data extracted.");
+                        }
+                    });
+
+
+
+                // Replace "/play/" with "/player/" to load the player view
                 String newUrl = url.replace("/play/", "/player/");
                 Log.d(TAG, "Loading new player URL: " + newUrl);
                 webView.loadUrl(newUrl);
                 return true; // URL has been overridden
-            } else if (url.contains(initURL)){
+            } else if (url.contains(initURL)) {
                 initURL = url;
                 return false;
             }
             return false; // URL has not been overridden
         }
+
 
         @Override
         public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
@@ -243,6 +327,10 @@ public class WebPlayerActivity extends AppCompatActivity {
             } else {
                 moveSearchInput(view);
                 extractChannelNumbers();
+                loadRecentChannels();
+//                injectTVChannel("GOOGLE TV", "0", "https://via.placeholder.com/100");
+//                injectTVChannel("STAR PLUS3", "1433", "https://upload.wikimedia.org/wikipedia/en/d/d7/StarPlus_Logo.png");
+
             }
         }
 
@@ -256,4 +344,129 @@ public class WebPlayerActivity extends AppCompatActivity {
                 "})()");
         }
     }
+
+    private void injectTVChannel(String channelName, String playId, String logoUrl) {
+
+        String jsCode = "javascript:(function() {" +
+            "console.log('Starting channel injection process...');" +
+
+            "var channelGrid = document.querySelector('.grid.grid-cols-2');" +
+            "console.log('Attempting to find the channel grid:', channelGrid);" +
+
+            "if (channelGrid) {" +
+            "  console.log('Channel grid found:', channelGrid);" +
+            "  var existingChannel = document.querySelector('a[href=\"/play/" + playId + "\"]');" +
+            "  console.log('Checking for existing channel with playId:', '" + playId + "');" +
+
+            "  if (existingChannel) {" +
+            "    console.log('Channel with playId ' + '" + playId + "' + ' already exists, skipping injection.');" +
+            "  } else {" +
+            "    console.log('Channel does not exist. Proceeding with channel injection...');" +
+            "    var newChannel = document.createElement('a');" +
+            "    newChannel.href = '/play/" + playId + "';" +
+            "    newChannel.className = 'card border-2 border-gold shadow-lg hover:shadow-xl hover:bg-base-300 transition-all duration-200 ease-in-out scale-100 hover:scale-105';" +
+            "    var cardContent = `<div class=\"flex flex-col items-center p-2 sm:p-4\">" +
+            "      <img src=\"" + logoUrl + "\" loading=\"lazy\" alt=\"" + channelName + "\" class=\"h-14 w-14 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-20 lg:w-20 rounded-full bg-gray-200\" />" +
+            "      <span class=\"text-lg font-bold mt-2\">" + channelName + "</span>" +
+            "      <div class=\"absolute top-2 right-2\">" +
+            "        <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"gold\" viewBox=\"0 -960 960 960\">" +
+            "        <path d=\"m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Z\"/>  " +
+            "        </svg>" +
+            "      </div>" +
+            "    </div>`;" +
+
+            "    newChannel.innerHTML = cardContent;" +
+            "    channelGrid.insertBefore(newChannel, channelGrid.firstChild);" +
+            "    console.log('Successfully injected new channel:', newChannel);" +
+            "  }" +
+            "} else {" +
+            "  console.log('Failed to find the channel grid. Injection skipped.');" +
+            "}" +
+            "})()";
+
+        webView.evaluateJavascript(jsCode, null);
+        Log.d("ChannelInjection", "JavaScript code injected into the WebView.");
+    }
+
+
+
+
+
+
+
+
+
+    private void saveRecentChannel(String playId, String logoUrl, String channelName) {
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        
+        recentChannels.removeIf(channel -> channel.playId.equals(playId));
+        recentChannels.add(0, new Channel(playId, logoUrl, channelName));
+
+        // Keep latest 5 channels
+        if (recentChannels.size() > 5) {
+            recentChannels.remove(recentChannels.size() - 1);
+        }
+        
+        JSONArray jsonArray = new JSONArray();
+        for (Channel channel : recentChannels) {
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("playId", channel.playId);
+                jsonObject.put("logoUrl", channel.logoUrl);
+                jsonObject.put("channelName", channel.channelName);
+                jsonArray.put(jsonObject);
+            } catch (JSONException e) {
+               Log.d(TAG, String.valueOf(e));
+            }
+        }
+        
+        preferenceManager.setKey(RECENT_CHANNELS_KEY, jsonArray.toString());
+    }
+
+    private void loadRecentChannels() {
+        SkySharedPref preferenceManager = new SkySharedPref(this);
+        String channelData = preferenceManager.getKey(RECENT_CHANNELS_KEY);
+
+        Log.d(TAG, "Channel Data from Shared Preferences: " + channelData);
+
+        if (channelData != null && !channelData.isEmpty()) {
+            recentChannels.clear(); // Clear existing list
+            Log.d("RIX", "I WAS HERE");
+            try {
+                JSONArray jsonArray = new JSONArray(channelData);
+
+//                // Start iterating
+//                for (int i = 0; i < jsonArray.length(); i++) {
+                
+                // Iterate in reverse
+                for (int i = jsonArray.length() - 1; i >= 0; i--) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    String playId = jsonObject.getString("playId");
+                    String logoUrl = jsonObject.getString("logoUrl");
+                    String channelName = jsonObject.getString("channelName");
+
+                    // Log each channel's details to confirm parsing
+                    Log.d(TAG, "Parsed Channel - Play ID: " + playId + ", Logo URL: " + logoUrl + ", Name: " + channelName);
+
+                    recentChannels.add(new Channel(playId, logoUrl, channelName));
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON parsing error in loadRecentChannels: " + e.getMessage());
+            }
+        }
+
+        // Inject each recent channel into the UI
+        for (Channel channel : recentChannels) {
+            String formattedPlayId = channel.playId.replace("?", "??");
+            
+            Log.d(TAG, "Injecting Channel into WebView - Name: " + channel.channelName + ", Play ID: " + formattedPlayId);
+            
+            injectTVChannel(channel.channelName, formattedPlayId, channel.logoUrl);
+        }
+    }
+
+
+
+
+
 }
