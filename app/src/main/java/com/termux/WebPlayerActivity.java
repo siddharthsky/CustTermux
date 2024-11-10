@@ -246,7 +246,10 @@ public class WebPlayerActivity extends AppCompatActivity {
                 initURL = webView.getUrl();
 
                 // Extract the play ID from the URL
-                String playId = url.substring(url.lastIndexOf("/play/") + 6); // Extracting play ID
+//                String playId = url.substring(url.lastIndexOf("/play/") + 6); // Extracting play ID
+
+                String playId = url.matches(".*/play/([^/]+).*") ? url.replaceAll(".*/play/([^/]+).*", "$1") : null;
+
 
                 Log.d("WB", String.valueOf(playId));
 
@@ -480,12 +483,17 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         // Inject each recent channel into the UI
         for (Channel channel : recentChannels) {
-            String formattedPlayId = channel.playId.contains("?") ? channel.playId.replace("?", "??") : channel.playId + "??";
-            
+            String formattedPlayId = channel.playId.contains("?")
+                ? channel.playId.indexOf('?') == 0 // Check if '?' is the first character
+                ? "??" + channel.playId.substring(1) // If it's just "?", replace it with "??"
+                : channel.playId.replaceFirst("\\?", "??") // Otherwise, replace the first "?" with "??"
+                : channel.playId + "??"; // If no "?", append "??"
+
             Log.d(TAG, "Injecting Channel into WebView - Name: " + channel.channelName + ", Play ID: " + formattedPlayId);
-            
+
             injectTVChannel(channel.channelName, formattedPlayId, channel.logoUrl);
         }
+
     }
 
 
