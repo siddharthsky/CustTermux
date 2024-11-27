@@ -373,7 +373,7 @@ public class WebPlayerActivity extends AppCompatActivity {
             "      <span class=\"text-lg font-bold mt-2\">" + channelName + "</span>" +
             "      <div class=\"absolute top-2 right-2\">" +
             "        <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"gold\" viewBox=\"0 -960 960 960\">" +
-            "        <path d=\"m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Z\"/>  " +
+            "        <path d=\"M480-269 314-169q-11 7-23 6t-21-8q-9-7-14-17.5t-2-23.5l44-189-147-127q-10-9-12.5-20.5T140-571q4-11 12-18t22-9l194-17 75-178q5-12 15.5-18t21.5-6q11 0 21.5 6t15.5 18l75 178 194 17q14 2 22 9t12 18q4 11 1.5 22.5T809-528L662-401l44 189q3 13-2 23.5T690-171q-9 7-21 8t-23-6L480-269Z\"/>  " +
             "        </svg>" +
             "      </div>" +
             "    </div>`;" +
@@ -422,7 +422,7 @@ public class WebPlayerActivity extends AppCompatActivity {
         }
 
         // Check if the channel with the given playId already exists and remove it if found
-        recentChannels.removeIf(channel -> channel.playId.equals(playId));
+        recentChannels.removeIf(channel -> channel.channelName.equals(channelName));
         recentChannels.add(0, new Channel(playId, logoUrl, channelName));
 
         // Keep only the latest 5 channels
@@ -483,16 +483,20 @@ public class WebPlayerActivity extends AppCompatActivity {
 
         // Inject each recent channel into the UI
         for (Channel channel : recentChannels) {
-            String formattedPlayId = channel.playId.contains("?")
-                ? channel.playId.indexOf('?') == 0 // Check if '?' is the first character
-                ? "??" + channel.playId.substring(1) // If it's just "?", replace it with "??"
-                : channel.playId.replaceFirst("\\?", "??") // Otherwise, replace the first "?" with "??"
-                : channel.playId + "??"; // If no "?", append "??"
+            String formattedPlayId;
+            if (channel.playId != null && !channel.playId.endsWith("//")) {
+                formattedPlayId = channel.playId + "//";
+            } else {
+                formattedPlayId = channel.playId;
+            }
 
             Log.d(TAG, "Injecting Channel into WebView - Name: " + channel.channelName + ", Play ID: " + formattedPlayId);
 
-            injectTVChannel(channel.channelName, formattedPlayId, channel.logoUrl);
+            if (formattedPlayId != null) {
+                injectTVChannel(channel.channelName, formattedPlayId, channel.logoUrl);
+            }
         }
+
 
     }
 
