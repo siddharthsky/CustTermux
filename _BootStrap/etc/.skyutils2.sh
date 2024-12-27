@@ -647,6 +647,16 @@ ssh_passwd_intent() {
     --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
 }
 
+ssh_tls_intent() {
+	am startservice \
+    -n com.termux/com.termux.app.RunCommandService \
+    -a com.termux.RUN_COMMAND \
+    --es "com.termux.RUN_COMMAND_PATH" "/data/data/com.termux/files/home/.set_tls.exp" \
+    --ez "com.termux.RUN_COMMAND_BACKGROUND" true \
+    --ei "com.termux.RUN_COMMAND_SESSION_ACTION" 0 \
+    --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
+}
+
 write_port() {
     port_num=$1
     file="$HOME/.jiotv_go/bin/server_port.cfg"
@@ -786,6 +796,12 @@ drm_on() {
 	echo "-----------------------"
  	echo "Enabling DRM"
  	export JIOTV_DRM=true
+  	echo $JIOTV_DRM
+   	pkg install openssh -y
+        pkg install expect -y
+
+	ssh_tls_intent
+ 
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value Yes
 	sleep 1
  	exit 0
