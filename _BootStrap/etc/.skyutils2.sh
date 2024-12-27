@@ -795,8 +795,7 @@ drm_on() {
 	echo "DRM Utility"
 	echo "-----------------------"
  	echo "Enabling DRM"
- 	# export JIOTV_DRM=true
-  # 	echo $JIOTV_DRM
+ 	export JIOTV_DRM=true
    	pkg install openssh -y
         pkg install expect -y
 
