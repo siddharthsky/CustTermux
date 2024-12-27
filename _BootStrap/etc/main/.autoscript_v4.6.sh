@@ -180,6 +180,18 @@ Setup_Prerequisites() {
 
 }
 
+Setup_Postrequisites() {
+
+    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_tls.exp"
+    echo "Setting tls files"
+    sleep 3
+    #FILE_URL="https://bit.ly/setpasswordexp" #^redirects here
+    curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_password.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
+    chmod 755 "$HOME/.set_tls.exp"
+    
+
+}
+
 Default_Installation() {
     case "$OSTYPE" in
         "linux-android"*) OS="android" ;;
@@ -293,6 +305,7 @@ if [ ! -f "$FILE_PATH" ]; then
     echo "INSTALLATION -- PART 2"
     echo "-----------------------"
     Default_Installation
+    Setup_Postrequisites
     Setup_Extra
     clear
     Server_Runner
