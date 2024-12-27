@@ -754,7 +754,8 @@ custominstall2() {
 		fi
 		# Set binary URL
   		# https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom_android_arm
-		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom-$OS-$ARCH-f1"
+		# BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom-$OS-$ARCH-f1"
+  		BINARY_URL="https://github.com/JioTV-Go/jiotv_go/releases/download/develop.2024.12.27.09.14.1735290857/jiotv_go-$OS-$ARCH"
 
 		echo "Updating Custom binary..."
 
