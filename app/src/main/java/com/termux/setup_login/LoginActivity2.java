@@ -17,11 +17,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.sdk.InMobiSdk;
+import com.inmobi.sdk.SdkInitializationListener;
 import com.termux.R;
 import com.termux.SkySharedPref;
 import com.termux.Utils;
 import com.termux.setup_app.SetupActivityApp;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -77,7 +81,34 @@ public class LoginActivity2 extends AppCompatActivity {
         GRID2 = findViewById(R.id.GRID2);
         button_login_password = findViewById(R.id.button_login_password);
 
-       
+
+        JSONObject consentObject = new JSONObject();
+        try {
+            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_AVAILABLE, false);
+            consentObject.put("gdpr", "0");
+            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_IAB, " << consent in IAB format >> ");
+        } catch (JSONException e) {
+            Log.e("LoginActivity2-gms", "InMobi Init failed -" + e);
+        }
+
+        InMobiSdk.init(this, "5bdfd8c077e34cdda2cd4c34aa65af1c", consentObject, new SdkInitializationListener() {
+            @Override
+            public void onInitializationComplete(@Nullable Error error) {
+                if (null != error) {
+                    Log.e("LoginActivity2-gms", "InMobi Init failed -" + error.getMessage());
+                } else {
+                    Log.d("LoginActivity2-gms", "InMobi Init Successful");
+                }
+            }
+        });
+
+        InMobiBanner bannerAd = findViewById(R.id.banner);
+        bannerAd.load();
+
+
+        // Find the banner view in the layout
+        //    private static final String DEFAULT_URL = "http://localhost:5001/";
+
 
         String Server_chalu_hai_kay = preferenceManager.getKey("isServerRunning");
         String AIO = "Current server status: " + Server_chalu_hai_kay;

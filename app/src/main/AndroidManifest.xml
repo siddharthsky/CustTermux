@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.termux"
-    android:installLocation="internalOnly">
+    android:installLocation="internalOnly"
+    android:hardwareAccelerated="true" >
 
 <!--    android:sharedUserId="${TERMUX_PACKAGE_NAME}"-->
 <!--    android:sharedUserLabel="@string/shared_user_label">-->
@@ -42,6 +43,9 @@
     <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"
         tools:ignore="LeanbackUsesWifi" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
@@ -66,6 +70,9 @@
 <!--            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"-->
 <!--            android:value="com.termux.app.CastOptionsProvider"/>-->
 
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9398188084213077~3486267797"/>
 
         <activity
             android:name=".KickStart"

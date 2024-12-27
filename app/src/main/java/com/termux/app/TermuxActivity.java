@@ -58,6 +58,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.cast.framework.CastSession;
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.sdk.InMobiSdk;
+import com.inmobi.sdk.SdkInitializationListener;
 import com.termux.AppSelectorActivity;
 import com.termux.BuildConfig;
 import com.termux.SkyActionActivity;
@@ -115,6 +118,9 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.mediarouter.app.MediaRouteButton;
 import androidx.viewpager.widget.ViewPager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -340,6 +346,32 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        // Setup MediaRouteButton
 //        MediaRouteButton mediaRouteButton = findViewById(R.id.media_route_button);
 //        castHelper.setupMediaRouteButton(mediaRouteButton);
+
+
+
+
+        JSONObject consentObject = new JSONObject();
+        try {
+            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_AVAILABLE, false);
+            consentObject.put("gdpr", "0");
+            consentObject.put(InMobiSdk.IM_GDPR_CONSENT_IAB, true);
+        } catch (JSONException e) {
+            Log.e("MAIN-gms", "InMobi Init failed -" + e);
+        }
+
+        InMobiSdk.init(this, "5bdfd8c077e34cdda2cd4c34aa65af1c", consentObject, new SdkInitializationListener() {
+            @Override
+            public void onInitializationComplete(@Nullable Error error) {
+                if (null != error) {
+                    Log.e("MAIN-gms", "InMobi Init failed -" + error.getMessage());
+                } else {
+                    Log.d("MAIN-gms", "InMobi Init Successful");
+                }
+            }
+        });
+
+        InMobiBanner bannerAd = findViewById(R.id.banner);
+        bannerAd.load();
 
 
 
@@ -1839,6 +1871,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
         if (mPreferences.shouldShowTerminalToolbar()) terminalToolbarViewPager.setVisibility(View.VISIBLE);
 
+
+
         ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
         mTerminalToolbarDefaultHeight = layoutParams.height;
 
@@ -1850,7 +1884,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         terminalToolbarViewPager.setAdapter(new TerminalToolbarViewPager.PageAdapter(this, savedTextInput));
         terminalToolbarViewPager.addOnPageChangeListener(new TerminalToolbarViewPager.OnPageChangeListener(this, terminalToolbarViewPager));
+
+
+
     }
+
 
     private void setTerminalToolbarHeight() {
         final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
@@ -1861,6 +1899,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             (mTermuxTerminalExtraKeys.getExtraKeysInfo() == null ? 0 : mTermuxTerminalExtraKeys.getExtraKeysInfo().getMatrix().length) *
             mProperties.getTerminalToolbarHeightScaleFactor());
         terminalToolbarViewPager.setLayoutParams(layoutParams);
+
     }
 
     public void toggleTerminalToolbar() {

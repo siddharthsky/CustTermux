@@ -24,7 +24,30 @@ android {
 
     dependencies {
         implementation "androidx.annotation:annotation:1.3.0"
-        implementation "androidx.core:core:1.6.0"
+//        implementation "androidx.core:core:1.6.0"
+
+        implementation "androidx.core:core-ktx:1.6.0"
+
+
+//        implementation "com.inmobi.omsdk:inmobi-omsdk:1.4.12.0"
+
+
+
+        implementation fileTree(dir: 'libs', include: ['*.aar'])
+
+        implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+        implementation 'com.google.android.gms:play-services-location:21.0.1'//optional dependency for better targeting
+        implementation ('androidx.browser:browser:1.4.0') {
+            exclude group: 'com.google.guava', module: 'listenablefuture'
+        }
+        implementation 'com.squareup.picasso:picasso:2.8'
+        implementation 'com.google.android.gms:play-services-ads:23.6.0'
+
+        implementation 'androidx.viewpager:viewpager:1.0.0'
+        implementation 'androidx.recyclerview:recyclerview:1.2.1'
+        implementation 'com.google.android.gms:play-services-appset:16.0.2' //optional dependency for better targeting
+        implementation 'com.google.android.gms:play-services-tasks:18.0.2' //optional dependency for better targeting
+
         implementation "androidx.drawerlayout:drawerlayout:1.1.1"
         implementation "androidx.preference:preference:1.1.1"
         implementation "androidx.viewpager:viewpager:1.0.0"
@@ -34,6 +57,7 @@ android {
         implementation "io.noties.markwon:ext-strikethrough:$markwonVersion"
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
+        implementation 'androidx.multidex:multidex:2.0.1'
 
         implementation "com.airbnb.android:lottie:5.0.1"
         implementation('com.google.android.gms:play-services-cast-framework:21.0.1') {
@@ -42,7 +66,7 @@ android {
 
 //        implementation "com.google.android.exoplayer:exoplayer:2.16.0"
 
-
+//        implementation 'com.inmobi.monetization:inmobi-ads-kotlin:10.8.0'
 
         implementation project(":terminal-view")
         implementation project(":termux-shared")
@@ -58,6 +82,7 @@ android {
         versionCode 135
         versionName "0.124.6"
         buildConfigField "String", "VERSION_CUST_SCRIPT", "\"${project.ext.versionCustScript}\""
+        multiDexEnabled true
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
@@ -78,6 +103,7 @@ android {
                 cFlags "-std=c11", "-Wall", "-Wextra", "-Werror", "-Os", "-fno-stack-protector", "-Wl,--gc-sections"
             }
         }
+
 
         splits {
             abi {

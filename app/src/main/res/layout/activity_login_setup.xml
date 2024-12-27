@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.inmobi.ads"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="32dp"
     android:id="@+id/scroll_view"
@@ -33,19 +33,6 @@
             android:background="@color/text_color_black"
             android:padding="2dp" />
 
-        <!-- Phone Number Input Instructions -->
-        <!--        <TextView-->
-        <!--            android:id="@+id/step_one_title2"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_below="@id/server_status"-->
-        <!--            android:layout_marginTop="10dp"-->
-        <!--            android:text="Enter your phone number to login"-->
-        <!--            android:textSize="18sp"-->
-        <!--            android:textColor="@android:color/white"-->
-        <!--            android:background="@color/text_color_black"-->
-        <!--            android:padding="5dp" />-->
-
         <RelativeLayout
             android:id="@+id/RLONE"
             android:layout_below="@id/server_status"
@@ -65,7 +52,6 @@
                 android:thumb="@drawable/sw_thumb"
                 app:track="@drawable/sw_track" />
 
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -83,7 +69,7 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@+id/subtextLOGIN"
+                    android:id="@id/subtextLOGIN"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="3dp"
@@ -132,9 +118,6 @@
                 android:background="@color/text_color_black"
                 android:padding="5dp" />
 
-
-
-            <!-- Phone Number Input Field -->
             <EditText
                 android:id="@+id/input_number"
                 android:layout_width="0dp"
@@ -149,7 +132,6 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
-            <!-- OTP Input Field -->
             <EditText
                 android:id="@+id/input_otp"
                 android:layout_width="0dp"
@@ -165,7 +147,6 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
-            <!-- Send OTP Button -->
             <Button
                 android:id="@+id/button_send_otp"
                 android:layout_width="0dp"
@@ -182,7 +163,6 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
-            <!-- Verify OTP Button -->
             <Button
                 android:id="@+id/button_verify_otp"
                 android:layout_width="0dp"
@@ -210,8 +190,7 @@
             android:layout_marginTop="5dp"
             android:columnCount="2"
             android:rowCount="2"
-            android:visibility="gone"
-            >
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/step_one_title2xpass"
@@ -241,9 +220,6 @@
                 android:background="@color/text_color_black"
                 android:padding="5dp" />
 
-
-
-            <!-- Phone Number Input Field -->
             <EditText
                 android:id="@+id/input_numberpass"
                 android:layout_width="0dp"
@@ -258,7 +234,6 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
-            <!-- OTP Input Field -->
             <EditText
                 android:id="@+id/input_otppass"
                 android:layout_width="0dp"
@@ -292,6 +267,17 @@
             android:focusableInTouchMode="true"
             android:visibility="gone"/>
 
-    </RelativeLayout>
+        <!-- InMobi Banner Ad -->
+        <com.inmobi.ads.InMobiBanner
+            android:id="@+id/banner"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_below="@id/button_login_password"
+            ads:placementId="plid-10000131238"
+            ads:refreshInterval="30"
+            android:background="@color/text_color_white"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="0dp" />
 
+    </RelativeLayout>
 </ScrollView>

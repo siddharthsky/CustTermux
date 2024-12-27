@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:ads="http://schemas.android.com/apk/lib/com.inmobi.ads"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="32dp"
     android:id="@+id/scroll_view"
@@ -33,19 +34,6 @@
             android:background="@color/text_color_black"
             android:padding="2dp" />
 
-        <!-- Phone Number Input Instructions -->
-        <!--        <TextView-->
-        <!--            android:id="@+id/step_one_title2"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_below="@id/server_status"-->
-        <!--            android:layout_marginTop="10dp"-->
-        <!--            android:text="Enter your phone number to login"-->
-        <!--            android:textSize="18sp"-->
-        <!--            android:textColor="@android:color/white"-->
-        <!--            android:background="@color/text_color_black"-->
-        <!--            android:padding="5dp" />-->
-
         <RelativeLayout
             android:id="@+id/RLONE"
             android:layout_below="@id/server_status"
@@ -64,7 +52,6 @@
                 android:focusableInTouchMode="true"
                 android:thumb="@drawable/sw_thumb"
                 app:track="@drawable/sw_track" />
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -131,8 +118,6 @@
                 android:textColor="@android:color/white"
                 android:background="@color/text_color_black"
                 android:padding="5dp" />
-
-
 
             <!-- Phone Number Input Field -->
             <EditText
@@ -201,7 +186,9 @@
                 android:focusableInTouchMode="true" />
         </GridLayout>
 
-        <!-- Grid Layout for Inputs and Buttons -->
+
+
+        <!-- Grid Layout for Inputs and Buttons (for Password Login) -->
         <GridLayout
             android:id="@+id/GRID2"
             android:layout_width="match_parent"
@@ -210,8 +197,7 @@
             android:layout_marginTop="5dp"
             android:columnCount="2"
             android:rowCount="2"
-            android:visibility="gone"
-            >
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/step_one_title2xpass"
@@ -240,8 +226,6 @@
                 android:textColor="@android:color/white"
                 android:background="@color/text_color_black"
                 android:padding="5dp" />
-
-
 
             <!-- Phone Number Input Field -->
             <EditText
@@ -292,6 +276,17 @@
             android:focusableInTouchMode="true"
             android:visibility="gone"/>
 
+        <!-- Add InMobi Banner Below Buttons in GRID2 -->
+        <com.inmobi.ads.InMobiBanner
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:id="@+id/banner2"
+            ads:placementId="plid-10000131238"
+            ads:refreshInterval="30"
+            android:layout_below="@id/button_login_password"
+            android:background="@color/text_color_black"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="0dp" />
     </RelativeLayout>
 
 </ScrollView>

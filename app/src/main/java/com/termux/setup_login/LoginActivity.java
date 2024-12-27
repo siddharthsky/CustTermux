@@ -3,6 +3,7 @@ package com.termux.setup_login;
 import android.animation.ObjectAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,10 +15,18 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.sdk.InMobiSdk;
+import com.inmobi.sdk.SdkInitializationListener;
 import com.termux.R;
 import com.termux.SkySharedPref;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -26,13 +35,18 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar loadingSpinner;
     private String url;
     private String isLocalPORT;
-    //    private static final String DEFAULT_URL = "http://localhost:5001/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTheme(R.style.DarkActivityTheme);
         setContentView(R.layout.activity_login_setup);
+
+
+
+//        InMobiBanner bannerAd = (InMobiBanner)findViewById(R.id.banner);
+//        bannerAd.load();
+
 
         // Enable the home button as an up button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
