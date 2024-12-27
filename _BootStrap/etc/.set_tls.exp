@@ -12,7 +12,7 @@ set org_unit "IT Department"
 set email "admin@example.com"    
 
 # Start the OpenSSL command
-spawn openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $HOME/.jiotv_go/bin/$key_file -out $HOME/.jiotv_go/bin/$cert_file
+spawn openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $key_file -out $cert_file
 
 # Handle prompts
 expect "Country Name (2 letter code) \[.*\]:"
