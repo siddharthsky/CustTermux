@@ -779,6 +779,28 @@ termuxinfo() {
 }
 
 
+drm_on() {
+	echo "-----------------------"
+	echo "DRM Utility"
+	echo "-----------------------"
+ 	echo "Generating EPG for the first time."
+ 	$HOME/.jiotv_go/bin/jiotv_go epg gen
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value Yes
+	sleep 1
+ 	exit 0
+}
+
+drm_off() {
+	echo "-----------------------"
+	echo "DRM Utility"
+	echo "-----------------------"
+ 	$HOME/.jiotv_go/bin/jiotv_go epg del
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isEPG --es value No
+	sleep 1
+ 	exit 0
+ }
+
+
 
 
 
