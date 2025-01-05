@@ -826,9 +826,8 @@ drm_off() {
 	DRM_FOLDER="$HOME/.jiotv_go/bin/jiotv_go/drm"
 
 	    if [ -d "$DRM_FOLDER" ]; then
+     		rm -rf "$DRM_FOLDER"/*
 	        rm -rf "$DRM_FOLDER"
-	    else
-	        echo "Disabled DRM"
 	    fi
    
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value No
