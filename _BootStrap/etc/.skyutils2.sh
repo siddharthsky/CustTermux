@@ -796,7 +796,7 @@ drm_on() {
 	echo "-----------------------"
  	echo "Enabling DRM"
 
-	DRM_FOLDER="$HOME/.jiotv_go/bin/jiotv_go/drm"
+	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
 	DRM_FILE="$DRM_FOLDER/on.drm"
 	
 	if [ ! -d "$DRM_FOLDER" ]; then
@@ -823,7 +823,7 @@ drm_off() {
 	echo "-----------------------"
  	echo "Disabling DRM"
 
-	DRM_FOLDER="$HOME/.jiotv_go/bin/jiotv_go/drm"
+	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
 
 	    if [ -d "$DRM_FOLDER" ]; then
      		rm -rf "$DRM_FOLDER"/*
