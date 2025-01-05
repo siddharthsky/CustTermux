@@ -69,7 +69,7 @@ TheShowRunner() {
         port_to_use=$default_port
     fi
 
-    FILE_PATHX="$HOME/.jiotv_go/bin/jiotv_go/drm/on.drm"
+    FILE_PATHX="$HOME/.jiotv_go/bin/drm/on.drm"
 
     if [ -f "$FILE_PATHX" ]; then
         echo "DRM is enabled"
@@ -115,7 +115,7 @@ TheShowRunner_onetime() {
     a_username=$(whoami)
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
 
-    FILE_PATHX="$HOME/.jiotv_go/bin/jiotv_go/drm/on.drm"
+    FILE_PATHX="$HOME/.jiotv_go/bin/drm/on.drm"
 
     if [ -f "$FILE_PATHX" ]; then
         echo "DRM is enabled"
