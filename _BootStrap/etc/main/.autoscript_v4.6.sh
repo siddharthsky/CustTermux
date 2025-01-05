@@ -69,6 +69,16 @@ TheShowRunner() {
         port_to_use=$default_port
     fi
 
+    FILE_PATHX="$HOME/.jiotv_go/bin/jiotv_go/drm/on.drm"
+
+    if [ -f "$FILE_PATHX" ]; then
+        echo "DRM is enabled"
+        export JIOTV_DRM=true
+    else
+        echo "DRM is disabled"
+        export JIOTV_DRM=false
+    fi
+
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
     if [ "$VARIABLE03" == "Yes" ]; then
