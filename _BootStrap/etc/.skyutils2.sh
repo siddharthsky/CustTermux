@@ -795,12 +795,20 @@ drm_on() {
 	echo "DRM Utility"
 	echo "-----------------------"
  	echo "Enabling DRM"
- 	export JIOTV_DRM=true
 
-  	echo "DRM: $JIOTV_DRM"
-
- #   	pkg install openssh -y
- #        pkg install expect -y
+	DRM_FOLDER="$HOME/.jiotv_go/bin/jiotv_go/drm"
+	DRM_FILE="$DRM_FOLDER/on.drm"
+	
+	if [ ! -d "$DRM_FOLDER" ]; then
+	    mkdir -p "$DRM_FOLDER"
+	fi
+	
+	if [ ! -f "$DRM_FILE" ]; then
+	    touch "$DRM_FILE"
+	fi
+  	
+	# pkg install openssh -y
+	# pkg install expect -y
 
 	# ssh_tls_intent
  
@@ -814,9 +822,14 @@ drm_off() {
 	echo "DRM Utility"
 	echo "-----------------------"
  	echo "Disabling DRM"
- 	export JIOTV_DRM=false
 
-  	echo "DRM: $JIOTV_DRM"
+	DRM_FOLDER="$HOME/.jiotv_go/bin/jiotv_go/drm"
+
+	    if [ -d "$DRM_FOLDER" ]; then
+	        rm -rf "$DRM_FOLDER"
+	    else
+	        echo "Disabled DRM"
+	    fi
    
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value No
 	sleep 2
