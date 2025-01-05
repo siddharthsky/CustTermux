@@ -118,11 +118,12 @@ TheShowRunner_onetime() {
     FILE_PATHX="$HOME/.jiotv_go/bin/drm/on.drm"
 
     if [ -f "$FILE_PATHX" ]; then
-        echo "DRM is enabled"
         export JIOTV_DRM=true
+        echo "DRM is enabled [$JIOTV_DRM]"
+        
     else
-        echo "DRM is disabled"
         export JIOTV_DRM=false
+        echo "DRM is disabled [$JIOTV_DRM]"
     fi
 
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
