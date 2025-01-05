@@ -115,6 +115,16 @@ TheShowRunner_onetime() {
     a_username=$(whoami)
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
 
+    FILE_PATHX="$HOME/.jiotv_go/bin/jiotv_go/drm/on.drm"
+
+    if [ -f "$FILE_PATHX" ]; then
+        echo "DRM is enabled"
+        export JIOTV_DRM=true
+    else
+        echo "DRM is disabled"
+        export JIOTV_DRM=false
+    fi
+
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
     if [ "$VARIABLE03" == "Yes" ]; then
@@ -192,17 +202,17 @@ Setup_Prerequisites() {
 
 Setup_Postrequisites() {
 
-    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_tls.exp"
-    echo "Setting tls files"
-    sleep 3
-    curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_tls.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
-    chmod 755 "$HOME/.set_tls.exp"
+    # FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_tls.exp"
+    # echo "Setting tls files"
+    # sleep 3
+    # curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_tls.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
+    # chmod 755 "$HOME/.set_tls.exp"
 
-    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/config.json"
-    echo "Setting cofig file"
-    sleep 3
-    curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/config.json" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
-    chmod 755 "$HOME/.jiotv_go/bin/config.json"
+    # FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/config.json"
+    # echo "Setting cofig file"
+    # sleep 3
+    # curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/config.json" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
+    # chmod 755 "$HOME/.jiotv_go/bin/config.json"
 
 }
 
