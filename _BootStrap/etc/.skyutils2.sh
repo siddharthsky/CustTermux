@@ -797,10 +797,10 @@ drm_on() {
  	echo "Enabling DRM"
  	export JIOTV_DRM=true
 
-   	pkg install openssh -y
-        pkg install expect -y
+ #   	pkg install openssh -y
+ #        pkg install expect -y
 
-	ssh_tls_intent
+	# ssh_tls_intent
  
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value Yes
 	sleep 1
@@ -812,7 +812,7 @@ drm_off() {
 	echo "DRM Utility"
 	echo "-----------------------"
  	echo "Disabling DRM"
- 	
+ 	export JIOTV_DRM=false
   	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value No
 	sleep 1
  	exit 0
