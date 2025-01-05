@@ -38,6 +38,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchAutobootBG;
     private SwitchCompat switchLoginCheck;
     private SwitchCompat switchEPG;
+    private SwitchCompat switchDRM;
     private SwitchCompat switchBANNER;
     private SwitchCompat switchSSH;
     private TextView textSSH;
@@ -94,6 +95,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchAutobootBG = findViewById(R.id.switchAutobootBG);
         switchLoginCheck = findViewById(R.id.switchLoginCheck);
         switchEPG = findViewById(R.id.switchEPG);
+        switchDRM = findViewById(R.id.switchDRM);
         switchBANNER = findViewById(R.id.switchBANNER);
         switchSSH = findViewById(R.id.switchSSH);
         textSSH = findViewById(R.id.textSSH);
@@ -254,6 +256,9 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsEPG = preferenceManager.getKey("server_setup_isEPG");
         switchEPG.setChecked("Yes".equals(serverSetupIsEPG));
 
+        String serverSetupIsDRM = preferenceManager.getKey("server_setup_isDRM");
+        switchDRM.setChecked("Yes".equals(serverSetupIsDRM));
+
         String serverSetupIsGenericBanner = preferenceManager.getKey("server_setup_isGenericBanner");
         switchBANNER.setChecked("Yes".equals(serverSetupIsGenericBanner));
 
@@ -277,6 +282,7 @@ public class SetupActivityApp extends AppCompatActivity {
         preferenceManager.setKey("server_setup_isAutoboot", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isLoginCheck", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isEPG", switchAutoboot.isChecked() ? "Yes" : "No");
+        preferenceManager.setKey("server_setup_isDRM", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isGenericBanner", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isSSH", switchSSH.isChecked() ? "Yes" : "No");
     }
@@ -376,6 +382,21 @@ public class SetupActivityApp extends AppCompatActivity {
                     Utils.showCustomToast(SetupActivityApp.this, ("EPG will not be generated"));
                     preferenceManager.setKey("server_setup_isEPG", "No");
                     Utils.sky_epg_off(SetupActivityApp.this);
+                }
+            }
+        });
+
+        switchDRM.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("DRM is enabled [works only on chrome/firefox]"));
+                    preferenceManager.setKey("server_setup_isDRM", "Yes");
+                    Utils.sky_drm_on(SetupActivityApp.this);
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("DRM is disabled"));
+                    preferenceManager.setKey("server_setup_isDRM", "No");
+                    Utils.sky_drm_off(SetupActivityApp.this);
                 }
             }
         });

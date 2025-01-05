@@ -154,6 +154,7 @@ public class Utils {
         preferenceManager.setKey("app_launchactivity", "null");
         preferenceManager.setKey("isExit", "noExit");
         preferenceManager.setKey("server_setup_isEPG", "Yes");
+        preferenceManager.setKey("server_setup_isDRM", "No");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
         preferenceManager.setKey("isDelayTime", "5");
@@ -962,6 +963,30 @@ public class Utils {
         intentC.setAction("com.termux.RUN_COMMAND");
         intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
         intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"custominstall2"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+    }
+
+    public static void sky_drm_on(Context context) {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"drm_on"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+    }
+
+    public static void sky_drm_off(Context context) {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"drm_off"});
         intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
