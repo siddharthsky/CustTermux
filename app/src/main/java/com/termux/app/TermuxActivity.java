@@ -1396,6 +1396,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("app_launchactivity", "null");
             preferenceManager.setKey("isExit", "noExit");
             preferenceManager.setKey("server_setup_isEPG", "Yes");
+            preferenceManager.setKey("server_setup_isDRM", "No");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
             preferenceManager.setKey("isDelayTime", "5");
