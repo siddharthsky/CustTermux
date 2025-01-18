@@ -11,7 +11,7 @@
 <p align="center">A customized version of Termux for TV streaming.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.8.3-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-4.8.5-blue" alt="Version">
   <img src="https://img.shields.io/badge/build-stable-brightgreen" alt="Build Status">
   <img src="https://img.shields.io/badge/license-GPLv3-orange" alt="License">
 </p>
