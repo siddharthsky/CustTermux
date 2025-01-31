@@ -835,6 +835,22 @@ drm_off() {
  	exit 0
  }
 
+zee_on() {
+    echo "-----------------------"
+    echo "ZEE ON"
+    echo "-----------------------"
+    echo "Enabling ZEE"
+
+    pkg install php -y
+    
+    mkdir -p zeeON
+    
+    cd zeeON || exit
+
+    git clone https://github.com/yuvraj824/zee5 .
+
+}
+
 
 
 
@@ -873,6 +889,8 @@ elif [ "$1" == "epg_off" ]; then
 	drm_on
 elif [ "$1" == "drm_off" ]; then
 	drm_off
+elif [ "$1" == "zee_on" ]; then
+	zee_on
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
