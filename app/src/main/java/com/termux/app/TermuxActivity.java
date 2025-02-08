@@ -1399,6 +1399,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             preferenceManager.setKey("server_setup_isDRM", "No");
             preferenceManager.setKey("server_setup_isGenericBanner", "No");
             preferenceManager.setKey("server_setup_isSSH", "No");
+            preferenceManager.setKey("server_setup_isZEE", "No");
             preferenceManager.setKey("isDelayTime", "5");
             preferenceManager.setKey("permissionRequestCount", "0");
             preferenceManager.setKey("isFlagSetForMinimize", "No");

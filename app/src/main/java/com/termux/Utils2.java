@@ -155,6 +155,7 @@ public class Utils2 {
         preferenceManager.setKey("server_setup_isEPG", "Yes");
         preferenceManager.setKey("server_setup_isGenericBanner", "No");
         preferenceManager.setKey("server_setup_isSSH", "No");
+        preferenceManager.setKey("server_setup_isZEE", "No");
         preferenceManager.setKey("isDelayTime", "5");
         preferenceManager.setKey("permissionRequestCount", "0");
         preferenceManager.setKey("isFlagSetForMinimize", "No");
@@ -318,6 +319,30 @@ public class Utils2 {
 //        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/siddharthsky/CustTermux/releases"));
 //        context.startActivity(browserIntent);
 //    }
+
+    public static void sky_zee_on(Context context) {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils2.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"zee_on"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+    }
+
+    public static void sky_zee_off(Context context) {
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils2.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"zee_off"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+    }
 
     public static void updateCustTermux(Context context) {
         File downloadDir = Utils2.getDownloadDirectory(context);

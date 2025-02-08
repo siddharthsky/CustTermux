@@ -72,6 +72,7 @@
 - **EPG Generation Settings**: Configurable EPG settings.
 - **Generic TV Banner**: Option to enable/disable.
 - **SSH Access Settings**: Added for secure access.
+- **ZEE Network Settings**: Added for Zee network.
 
 <table>
   <tr>

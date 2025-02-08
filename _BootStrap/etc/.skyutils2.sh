@@ -841,18 +841,52 @@ zee_on() {
     echo "-----------------------"
     echo "Enabling ZEE"
 
-    pkg install php -y
-    
-    mkdir -p zeeON
-    
-    cd zeeON || exit
+    # Install PHP if not installed
+    if ! command -v php &>/dev/null; then
+        echo "PHP not found. Installing..."
+        pkg update -y && pkg install -y php
+    fi
 
-    git clone https://github.com/yuvraj824/zee5 .
+    # Ensure the zee folder exists
+    if [ ! -d "zee" ]; then
+        echo "Creating zee folder..."
+        mkdir -p zee
+    fi
 
+    cd zee || exit
+
+    git clone https://github.com/yuvraj824/zee5 ./zee
+
+    # Start PHP server on port 5050
+    echo "Starting PHP server on port $PHP_PORT..."
+    cd zee || exit
+    php -S 0.0.0.0:5050 &
+
+    echo "zee is running at http://localhost:5050"
 }
 
+zee_off() {
+    echo "Stopping zee_on server..."
 
+    # Find and terminate PHP server running on port 5050
+    PID=$(lsof -t -i:5050)
+    if [ -n "$PID" ]; then
+        kill -9 "$PID"
+        echo "Stopped PHP server on port 5050."
+    else
+        echo "No PHP server running on port 5050."
+    fi
 
+    # Remove zee directory
+    if [ -d "zee" ]; then
+        rm -rf "zee"
+        echo "Removed zee folder."
+    else
+        echo "zee folder does not exist."
+    fi
+
+    echo "zee_off completed."
+}
 
 
 if [ "$1" == "login" ]; then
@@ -890,7 +924,9 @@ elif [ "$1" == "epg_off" ]; then
 elif [ "$1" == "drm_off" ]; then
 	drm_off
 elif [ "$1" == "zee_on" ]; then
-	zee_on
+    zee_on
+elif [ "$1" == "zee_off" ]; then
+    zee_off
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then

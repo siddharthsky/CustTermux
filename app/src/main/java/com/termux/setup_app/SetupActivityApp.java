@@ -41,6 +41,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchDRM;
     private SwitchCompat switchBANNER;
     private SwitchCompat switchSSH;
+    private SwitchCompat switchZEE;
     private TextView textSSH;
     private TextView textselectedAPP;
     private Button IPTVbtn;
@@ -98,6 +99,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchDRM = findViewById(R.id.switchDRM);
         switchBANNER = findViewById(R.id.switchBANNER);
         switchSSH = findViewById(R.id.switchSSH);
+        switchZEE = findViewById(R.id.switchZEE);
         textSSH = findViewById(R.id.textSSH);
         textselectedAPP = findViewById(R.id.textselectedAPP);
         restartButton = findViewById(R.id.restartButton);
@@ -265,6 +267,9 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsSSH = preferenceManager.getKey("server_setup_isSSH");
         switchSSH.setChecked("Yes".equals(serverSetupIsSSH));
 
+        String serverSetupIsZEE = preferenceManager.getKey("server_setup_isZEE");
+        switchZEE.setChecked("Yes".equals(serverSetupIsZEE));
+
         String b_username = preferenceManager.getKey("server_setup_username");
         String b_ip = preferenceManager.getKey("server_setup_wifiip");
         String c_usage = "Username: "+ b_username +" \nPassword: letmein \nUsage: ssh "+b_username+"@"+b_ip+" -p 8022";
@@ -285,6 +290,7 @@ public class SetupActivityApp extends AppCompatActivity {
         preferenceManager.setKey("server_setup_isDRM", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isGenericBanner", switchAutoboot.isChecked() ? "Yes" : "No");
         preferenceManager.setKey("server_setup_isSSH", switchSSH.isChecked() ? "Yes" : "No");
+        preferenceManager.setKey("server_setup_isZEE", switchZEE.isChecked() ? "Yes" : "No");
     }
 
     private void setupSwitchListeners() {
@@ -433,6 +439,22 @@ public class SetupActivityApp extends AppCompatActivity {
                     Utils.sky_ssh_off(SetupActivityApp.this);
 //                    String c_usage = "Remote access terminal from other device";
 //                    textSSH.setText(c_usage);
+                }
+            }
+        });
+
+        switchZEE.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    preferenceManager.setKey("server_setup_isZEE", "Yes");
+                    Utils2.sky_zee_on(SetupActivityApp.this);
+                    Utils.showCustomToast(SetupActivityApp.this, ("Enabled ZEE"));
+
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Disabled ZEE"));
+                    preferenceManager.setKey("server_setup_isZEE", "No");
+                    Utils2.sky_zee_off(SetupActivityApp.this);
                 }
             }
         });
