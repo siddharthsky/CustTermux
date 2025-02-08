@@ -1,0 +1,40 @@
+#!/usr/bin/expect
+
+# Set variables
+set key_file "tls.key"
+set cert_file "tls.crt"
+set common_name "example.com"    
+set country "IN"                 
+set state "Mumbattan"           
+set city "San Francisco"         
+set organization "MyCompany"     
+set org_unit "IT Department"     
+set email "admin@example.com"    
+
+# Start the OpenSSL command
+spawn openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $key_file -out $cert_file
+
+# Handle prompts
+expect "Country Name (2 letter code) \[.*\]:"
+send "$country\r"
+
+expect "State or Province Name (full name) \[.*\]:"
+send "$state\r"
+
+expect "Locality Name (eg, city) \[.*\]:"
+send "$city\r"
+
+expect "Organization Name (eg, company) \[.*\]:"
+send "$organization\r"
+
+expect "Organizational Unit Name (eg, section) \[.*\]:"
+send "$org_unit\r"
+
+expect "Common Name (e.g. server FQDN or YOUR name) \[.*\]:"
+send "$common_name\r"
+
+expect "Email Address \[.*\]:"
+send "$email\r"
+
+# Wait for the end of the process
+expect eof

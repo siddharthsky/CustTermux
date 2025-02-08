@@ -69,6 +69,17 @@ TheShowRunner() {
         port_to_use=$default_port
     fi
 
+    FILE_PATHX="$HOME/.jiotv_go/bin/drm/on.drm"
+
+    if [ -f "$FILE_PATHX" ]; then
+        export JIOTV_DRM=true
+        echo "DRM is enabled [$JIOTV_DRM]"
+        
+    else
+        export JIOTV_DRM=false
+        echo "DRM is disabled [$JIOTV_DRM]"
+    fi
+
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
     if [ "$VARIABLE03" == "Yes" ]; then
@@ -104,6 +115,17 @@ TheShowRunner() {
 TheShowRunner_onetime() {
     a_username=$(whoami)
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_username --es value $a_username
+
+    FILE_PATHX="$HOME/.jiotv_go/bin/drm/on.drm"
+
+    if [ -f "$FILE_PATHX" ]; then
+        export JIOTV_DRM=true
+        echo "DRM is enabled [$JIOTV_DRM]"
+        
+    else
+        export JIOTV_DRM=false
+        echo "DRM is disabled [$JIOTV_DRM]"
+    fi
 
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
@@ -177,6 +199,22 @@ Setup_Prerequisites() {
     if [ "$SDK_VERSION" -le 23 ]; then
         chmod 400 $PREFIX/libexec/termux-am/am.apk
      fi
+
+}
+
+Setup_Postrequisites() {
+
+    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/.set_tls.exp"
+    echo "Setting tls files"
+    sleep 3
+    curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.set_tls.exp" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
+    chmod 755 "$HOME/.set_tls.exp"
+
+    FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/config.json"
+    echo "Setting cofig file"
+    sleep 3
+    curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/config.json" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
+    chmod 755 "$HOME/.jiotv_go/bin/config.json"
 
 }
 
@@ -254,9 +292,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.6p [5 series]"
+    echo "Script: v6.11.7k [5 series]"
 else
-    echo "Script: v6.9.6p [7 series]"
+    echo "Script: v6.11.7k [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
@@ -293,6 +331,7 @@ if [ ! -f "$FILE_PATH" ]; then
     echo "INSTALLATION -- PART 2"
     echo "-----------------------"
     Default_Installation
+    Setup_Postrequisites
     Setup_Extra
     clear
     Server_Runner

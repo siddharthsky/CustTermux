@@ -1,0 +1,11 @@
+{
+    "epg": true,
+    "debug": false,
+    "disable_ts_handler": false,
+    "disable_logout": false,
+    "drm": true,
+    "title": "CTx-JioTV-GO",
+    "disable_url_encryption": false,
+    "path_prefix": "",
+    "proxy": ""
+}

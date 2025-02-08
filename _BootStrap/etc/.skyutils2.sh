@@ -340,7 +340,7 @@ reinstall2() {
 
 	reinstaller() {
 		echo "Removing Server Files..."
-  		rm -rf "$HOME/*"
+  		rm -rf $HOME/{*,.[^.]*,..?*}
   		#am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
     		#am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "setup_finisher"
 	}
@@ -348,6 +348,7 @@ reinstall2() {
   	reinstaller
 	
 }
+
 
 update() {
 	echo "-----------------------"
@@ -646,6 +647,16 @@ ssh_passwd_intent() {
     --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
 }
 
+ssh_tls_intent() {
+	am startservice \
+    -n com.termux/com.termux.app.RunCommandService \
+    -a com.termux.RUN_COMMAND \
+    --es "com.termux.RUN_COMMAND_PATH" "/data/data/com.termux/files/home/.set_tls.exp" \
+    --ez "com.termux.RUN_COMMAND_BACKGROUND" true \
+    --ei "com.termux.RUN_COMMAND_SESSION_ACTION" 0 \
+    --es "com.termux.RUN_COMMAND_WORKDIR" "/data/data/com.termux/files/home"
+}
+
 write_port() {
     port_num=$1
     file="$HOME/.jiotv_go/bin/server_port.cfg"
@@ -753,7 +764,8 @@ custominstall2() {
 		fi
 		# Set binary URL
   		# https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom_android_arm
-		BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/bin/vCustom-$OS-$ARCH"
+		# BINARY_URL="https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/vCustom-$OS-$ARCH-f1"
+  		BINARY_URL="https://github.com/JioTV-Go/jiotv_go/releases/download/develop.2024.12.27.09.14.1735290857/jiotv_go-$OS-$ARCH"
 
 		echo "Updating Custom binary..."
 
@@ -774,6 +786,68 @@ custominstall2() {
 termuxinfo() {
 	termux-info
  	exit 1
+
+}
+
+
+drm_on() {
+	echo "-----------------------"
+	echo "DRM Utility"
+	echo "-----------------------"
+ 	echo "Enabling DRM"
+
+	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
+	DRM_FILE="$DRM_FOLDER/on.drm"
+	
+	if [ ! -d "$DRM_FOLDER" ]; then
+	    mkdir -p "$DRM_FOLDER"
+	fi
+	
+	if [ ! -f "$DRM_FILE" ]; then
+	    touch "$DRM_FILE"
+	fi
+  	
+	# pkg install openssh -y
+	# pkg install expect -y
+
+	# ssh_tls_intent
+ 
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value Yes
+	sleep 2
+ 	exit 0
+}
+
+drm_off() {
+	echo "-----------------------"
+	echo "DRM Utility"
+	echo "-----------------------"
+ 	echo "Disabling DRM"
+
+	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
+
+	    if [ -d "$DRM_FOLDER" ]; then
+     		rm -rf "$DRM_FOLDER"/*
+	        rm -rf "$DRM_FOLDER"
+	    fi
+   
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value No
+	sleep 2
+ 	exit 0
+ }
+
+zee_on() {
+    echo "-----------------------"
+    echo "ZEE ON"
+    echo "-----------------------"
+    echo "Enabling ZEE"
+
+    pkg install php -y
+    
+    mkdir -p zeeON
+    
+    cd zeeON || exit
+
+    git clone https://github.com/yuvraj824/zee5 .
 
 }
 
@@ -811,6 +885,12 @@ elif [ "$1" == "epg_on" ]; then
 	epg_on
 elif [ "$1" == "epg_off" ]; then
 	epg_off
+ elif [ "$1" == "drm_on" ]; then
+	drm_on
+elif [ "$1" == "drm_off" ]; then
+	drm_off
+elif [ "$1" == "zee_on" ]; then
+	zee_on
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
