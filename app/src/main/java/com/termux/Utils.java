@@ -992,5 +992,13 @@ public class Utils {
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         context.startService(intentC);
     }
+
+    public static void sky_extra_on(SetupActivityApp setupActivityApp) {
+        Log.d("Utils","EXTRA ON");
+    }
+
+    public static void sky_extra_off(SetupActivityApp setupActivityApp) {
+        Log.d("Utils","EXTRA OFF");
+    }
 }
 
