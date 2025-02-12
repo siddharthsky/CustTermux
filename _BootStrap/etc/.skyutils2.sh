@@ -842,7 +842,7 @@ extra_on() {
     echo "Enabling Channels"
     
     if command -v php >/dev/null 2>&1; then
-        echo "PHP is already installed."
+        echo "PHP is already installed"
     else
         echo "PHP is not installed. Installing now..."
         pkg install php -y
@@ -854,7 +854,7 @@ extra_on() {
     if [ ! -d ".git" ]; then
         git clone https://github.com/yuvraj824/zee5 .
     else
-        echo "Repository already cloned."
+        echo "Repository already cloned"
     fi
 
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value Yes
@@ -870,7 +870,11 @@ extra_off() {
     echo "Disabling Channels"
 
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value No
-
+    
+    if [ -d "zeeON" ]; then
+        rm -rf "zeeON"
+        echo "Removed scripts"
+    fi
 	
 }
 
