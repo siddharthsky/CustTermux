@@ -39,6 +39,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchLoginCheck;
     private SwitchCompat switchEPG;
     private SwitchCompat switchDRM;
+    private SwitchCompat switchEXTRA;
     private SwitchCompat switchBANNER;
     private SwitchCompat switchSSH;
     private TextView textSSH;
@@ -96,6 +97,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchLoginCheck = findViewById(R.id.switchLoginCheck);
         switchEPG = findViewById(R.id.switchEPG);
         switchDRM = findViewById(R.id.switchDRM);
+        switchEXTRA = findViewById(R.id.switchEXTRA);
         switchBANNER = findViewById(R.id.switchBANNER);
         switchSSH = findViewById(R.id.switchSSH);
         textSSH = findViewById(R.id.textSSH);
@@ -259,6 +261,9 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsDRM = preferenceManager.getKey("server_setup_isDRM");
         switchDRM.setChecked("Yes".equals(serverSetupIsDRM));
 
+        String serverSetupIsEXTRA = preferenceManager.getKey("server_setup_isEXTRA");
+        switchEXTRA.setChecked("Yes".equals(serverSetupIsEXTRA));
+
         String serverSetupIsGenericBanner = preferenceManager.getKey("server_setup_isGenericBanner");
         switchBANNER.setChecked("Yes".equals(serverSetupIsGenericBanner));
 
@@ -397,6 +402,21 @@ public class SetupActivityApp extends AppCompatActivity {
                     Utils.showCustomToast(SetupActivityApp.this, ("DRM is disabled"));
                     preferenceManager.setKey("server_setup_isDRM", "No");
                     Utils.sky_drm_off(SetupActivityApp.this);
+                }
+            }
+        });
+
+        switchEXTRA.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Enabling support for extra channels"));
+                    preferenceManager.setKey("server_setup_isEXTRA", "Yes");
+                    Utils.sky_extra_on(SetupActivityApp.this);
+                } else {
+                    Utils.showCustomToast(SetupActivityApp.this, ("Disabling support for extra channels"));
+                    preferenceManager.setKey("server_setup_isEXTRA", "No");
+                    Utils.sky_extra_off(SetupActivityApp.this);
                 }
             }
         });
