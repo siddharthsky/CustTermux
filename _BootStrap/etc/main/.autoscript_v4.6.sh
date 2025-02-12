@@ -82,6 +82,9 @@ TheShowRunner() {
 
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
+    get_value_from_key "server_setup_EX_done" "VARIABLE04"
+
+
     if [ "$VARIABLE03" == "Yes" ]; then
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
@@ -90,6 +93,11 @@ TheShowRunner() {
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
         echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+    fi
+
+    if [ "$VARIABLE04" == "Yes" ]; then
+        echo -e "\e[32mStarting PHP server on port 5349\e[0m"
+        php -S 0.0.0.0:5349 -t ~/zeeON > /dev/null 2>&1 &
     fi
 
     # Wait for the server to be live, with a maximum of 5 tries
