@@ -835,11 +835,12 @@ drm_off() {
  	exit 0
  }
 
-zee_on() {
+extra_on() {
     echo "-----------------------"
-    echo "ZEE ON"
+    echo "EXTRA CHANNELS ON"
     echo "-----------------------"
-    echo "Enabling ZEE"
+    echo "Enabling Channels"
+   
 
     pkg install php -y
     
@@ -848,6 +849,14 @@ zee_on() {
     cd zeeON || exit
 
     git clone https://github.com/yuvraj824/zee5 .
+
+}
+
+extra_on() {
+    echo "-----------------------"
+    echo "EXTRA CHANNELS OFF"
+    echo "-----------------------"
+    echo "Disabling Channels"
 
 }
 
@@ -889,8 +898,10 @@ elif [ "$1" == "epg_off" ]; then
 	drm_on
 elif [ "$1" == "drm_off" ]; then
 	drm_off
-elif [ "$1" == "zee_on" ]; then
-	zee_on
+elif [ "$1" == "extra_on" ]; then
+	extra_on
+ elif [ "$1" == "extra_off" ]; then
+	extra_off
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
