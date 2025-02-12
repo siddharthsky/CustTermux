@@ -97,6 +97,7 @@ TheShowRunner() {
 
     if [ "$VARIABLE04" == "Yes" ]; then
         echo -e "\e[32mStarting PHP server on port 5349\e[0m"
+        cd $HOME/zeeON
         php -S 0.0.0.0:5349 -t ~/zeeON > /dev/null 2>&1 &
     fi
 
