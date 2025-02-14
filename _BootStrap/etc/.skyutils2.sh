@@ -875,6 +875,11 @@ extra_off() {
         rm -rf "zeeON"
         echo "Removed scripts"
     fi
+
+    echo "Restarting CustTermux Session"
+    sleep 2
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
 	
 }
 
