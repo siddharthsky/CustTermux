@@ -835,6 +835,7 @@ drm_off() {
  	exit 0
  }
 
+ 
 extra_on() {
     echo "-----------------------"
     echo "EXTRA CHANNELS ON"
@@ -848,6 +849,11 @@ extra_on() {
         pkg install php -y
     fi
 
+    if [ -d "zeeON" ]; then
+        echo "Removing existing zeeON directory..."
+        rm -rf zeeON
+    fi
+
     mkdir -p zeeON
     cd zeeON || exit
 
@@ -858,7 +864,11 @@ extra_on() {
     fi
 
     am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value Yes
-    
+
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
 }
 
 
@@ -877,7 +887,7 @@ extra_off() {
     fi
 
     echo "Restarting CustTermux Session"
-    sleep 2
+    sleep 5
     am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
     exit 0
 	
