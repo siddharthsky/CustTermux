@@ -1,5 +1,6 @@
 package com.termux.setup_app;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.Image;
@@ -28,6 +29,7 @@ import com.termux.setup.SetupActivity;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.crash.TermuxCrashUtils;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class SetupActivityApp extends AppCompatActivity {
@@ -39,7 +41,6 @@ public class SetupActivityApp extends AppCompatActivity {
     private SwitchCompat switchLoginCheck;
     private SwitchCompat switchEPG;
     private SwitchCompat switchDRM;
-    private SwitchCompat switchEXTRA;
     private SwitchCompat switchBANNER;
     private SwitchCompat switchSSH;
     private TextView textSSH;
@@ -47,6 +48,7 @@ public class SetupActivityApp extends AppCompatActivity {
     private Button IPTVbtn;
     private Button IPTVtim;
     private Button PORTbtn;
+    private Button ExtraChannelsbtn;
     private Button WEBbtn;
     private Button restartButton;
     private View IPTVbtnlay;
@@ -87,7 +89,7 @@ public class SetupActivityApp extends AppCompatActivity {
         setContentView(R.layout.activity_setup_app);
 
         // Enable the home button as an up button
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         switchisLocal = findViewById(R.id.switchisLocal);
@@ -97,13 +99,13 @@ public class SetupActivityApp extends AppCompatActivity {
         switchLoginCheck = findViewById(R.id.switchLoginCheck);
         switchEPG = findViewById(R.id.switchEPG);
         switchDRM = findViewById(R.id.switchDRM);
-        switchEXTRA = findViewById(R.id.switchEXTRA);
         switchBANNER = findViewById(R.id.switchBANNER);
         switchSSH = findViewById(R.id.switchSSH);
         textSSH = findViewById(R.id.textSSH);
         textselectedAPP = findViewById(R.id.textselectedAPP);
         restartButton = findViewById(R.id.restartButton);
         PORTbtn = findViewById(R.id.PORTbtn);
+        ExtraChannelsbtn = findViewById(R.id.ExtraChannelsbtn);
         WEBbtn = findViewById(R.id.WEBbtn);
         IPTVbtn = findViewById(R.id.IPTVbtn);
         IPTVbtnlay = findViewById(R.id.IPTVbtnlay);
@@ -261,8 +263,6 @@ public class SetupActivityApp extends AppCompatActivity {
         String serverSetupIsDRM = preferenceManager.getKey("server_setup_isDRM");
         switchDRM.setChecked("Yes".equals(serverSetupIsDRM));
 
-        String serverSetupIsEXTRA = preferenceManager.getKey("server_setup_isEXTRA");
-        switchEXTRA.setChecked("Yes".equals(serverSetupIsEXTRA));
 
         String serverSetupIsGenericBanner = preferenceManager.getKey("server_setup_isGenericBanner");
         switchBANNER.setChecked("Yes".equals(serverSetupIsGenericBanner));
@@ -406,21 +406,6 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
-        switchEXTRA.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Utils.showCustomToast(SetupActivityApp.this, ("Enabling support for extra channels"));
-                    preferenceManager.setKey("server_setup_isEXTRA", "Yes");
-                    Utils.sky_extra_on(SetupActivityApp.this);
-                } else {
-                    Utils.showCustomToast(SetupActivityApp.this, ("Disabling support for extra channels"));
-                    preferenceManager.setKey("server_setup_isEXTRA", "No");
-                    Utils.sky_extra_off(SetupActivityApp.this);
-                }
-            }
-        });
-
         switchBANNER.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -523,6 +508,17 @@ public class SetupActivityApp extends AppCompatActivity {
             }
         });
 
+        ExtraChannelsbtn.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onClick(View v) {
+                Utils.showCustomToast(SetupActivityApp.this, "Extra: Channels");
+                Intent intent = new Intent(SetupActivityApp.this, SetupActivityExtra.class);
+                startActivity(intent);
+
+            }
+        });
+
 
         restartButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -558,6 +554,7 @@ public class SetupActivityApp extends AppCompatActivity {
         switchAutoboot.setOnFocusChangeListener(focusChangeListener);
         switchAutobootBG.setOnFocusChangeListener(focusChangeListener);
         switchLoginCheck.setOnFocusChangeListener(focusChangeListener);
+        switchDRM.setOnFocusChangeListener(focusChangeListener);
         switchEPG.setOnFocusChangeListener(focusChangeListener);
         switchBANNER.setOnFocusChangeListener(focusChangeListener);
         switchSSH.setOnFocusChangeListener(focusChangeListener);
@@ -565,6 +562,7 @@ public class SetupActivityApp extends AppCompatActivity {
         IPTVtim.setOnFocusChangeListener(focusChangeListener);
         PORTbtn.setOnFocusChangeListener(focusChangeListener);
         WEBbtn.setOnFocusChangeListener(focusChangeListener);
+        ExtraChannelsbtn.setOnFocusChangeListener(focusChangeListener);
         restartButton.setOnFocusChangeListener(focusChangeListener);
         switchMINI.setOnFocusChangeListener(focusChangeListener);
     }
@@ -589,6 +587,7 @@ public class SetupActivityApp extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onResume() {
         super.onResume();
@@ -598,6 +597,12 @@ public class SetupActivityApp extends AppCompatActivity {
         textselectedAPP.setText(c_app_namex);
         String portid = preferenceManager.getKey("isLocalPORTonly");
         PORTbtn.setText(portid);
+        String isEXTRA = preferenceManager.getKey("server_setup_isEXTRA");
+        if (Objects.equals(isEXTRA, "Yes")) {
+            ExtraChannelsbtn.setText("✅ Enabled");
+        } else {
+            ExtraChannelsbtn.setText("📴 Disabled");
+        }
     }
 
 }
