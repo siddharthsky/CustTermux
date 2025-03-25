@@ -29,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.termux.setup_app.SetupActivityApp;
+import com.termux.setup_app.SetupActivity_Extra;
 import com.termux.view.TerminalView;
 
 import java.io.File;

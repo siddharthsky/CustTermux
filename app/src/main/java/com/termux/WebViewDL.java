@@ -125,9 +125,9 @@ public class WebViewDL extends AppCompatActivity {
             }
 
             if (url.startsWith("blob:")) {
-                handleBlobUrl(webView, url, "CED.m3u");
+                handleBlobUrl(webView, url, "Combined_Playlist.m3u");
             } else {
-                handleHttpUrl(url, "CED.m3u");
+                handleHttpUrl(url, "Combined_Playlist.m3u");
             }
         };
     }
