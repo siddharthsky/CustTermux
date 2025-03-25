@@ -281,7 +281,7 @@ public class SetupActivity_Extra extends AppCompatActivity {
         PackageManager pm = getPackageManager();
         try {
             pm.getPackageInfo(chromePackage, PackageManager.GET_ACTIVITIES);
-            return false;
+            return true;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
