@@ -29,7 +29,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.termux.setup_app.SetupActivityApp;
-import com.termux.setup_app.SetupActivityExtra;
 import com.termux.view.TerminalView;
 
 import java.io.File;
@@ -1034,7 +1033,7 @@ public class Utils {
         dialog.show();
     }
 
-    public static void sky_changeportzee(final Context context, final SetupActivityExtra.OnPortChangeListener listener) {
+    public static void sky_changeportzee(final Context context, final SetupActivity_Extra.OnPortChangeListener listener) {
 
         final EditText input = new EditText(context);
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);

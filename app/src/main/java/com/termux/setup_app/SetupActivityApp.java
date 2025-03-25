@@ -3,7 +3,6 @@ package com.termux.setup_app;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,10 +22,6 @@ import com.termux.R;
 import com.termux.SkySharedPref;
 import com.termux.Utils;
 import com.termux.Utils2;
-import com.termux.app.TermuxActivity;
-import com.termux.setup.SetupActivity;
-import com.termux.shared.logger.Logger;
-import com.termux.shared.termux.crash.TermuxCrashUtils;
 
 import java.util.Objects;
 import java.util.Random;
@@ -513,7 +507,7 @@ public class SetupActivityApp extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Utils.showCustomToast(SetupActivityApp.this, "Extra: Channels");
-                Intent intent = new Intent(SetupActivityApp.this, SetupActivityExtra.class);
+                Intent intent = new Intent(SetupActivityApp.this, SetupActivity_Extra.class);
                 startActivity(intent);
 
             }
