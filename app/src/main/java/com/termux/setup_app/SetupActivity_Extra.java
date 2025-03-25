@@ -135,13 +135,13 @@ public class SetupActivity_Extra extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/kZ4ts"));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/zee_playlist"));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setPackage("com.android.chrome");
                     startActivity(intent);
                 } else {
                     Utils.showCustomToast(SetupActivity_Extra.this, "Downloading ZEE playlist");
-                    String fileUrl = "https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/golang/data.json";
+                    String fileUrl = "https://bit.ly/zee_playlist";
                     downloadFile(fileUrl);
                 }
             }
@@ -152,13 +152,13 @@ public class SetupActivity_Extra extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/kZ4ts"));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/sony_playlist"));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setPackage("com.android.chrome");
                     startActivity(intent);
                 } else {
                     Utils.showCustomToast(SetupActivity_Extra.this, "Downloading SONY playlist");
-                    String fileUrl = "https://sky.fol.com/do.m3u";
+                    String fileUrl = "https://bit.ly/sony_playlist";
                     downloadFile(fileUrl);
                 }
             }
@@ -167,22 +167,20 @@ public class SetupActivity_Extra extends AppCompatActivity {
         AllOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String server_setup_wifiip = preferenceManager.getKey("server_setup_wifiip");
+                String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
+                String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly;
+
                 if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/kZ4ts"));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setPackage("com.android.chrome");
                     startActivity(intent);
                 } else {
                     Utils.showCustomToast(SetupActivity_Extra.this, "Downloading Combined playlist");
 
-                    String server_setup_wifiip = preferenceManager.getKey("server_setup_wifiip");
-                    String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
-
-
                     Intent intent = new Intent(SetupActivity_Extra.this, WebViewDL.class);
-                    String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly;
                     intent.putExtra("url", url);
-
                     startActivity(intent);
 
                 }
@@ -293,10 +291,10 @@ public class SetupActivity_Extra extends AppCompatActivity {
         String fileName = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
 
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(fileUrl));
-        request.setTitle("File Download");
+        request.setTitle(fileName+" Download");
         request.setDescription("Downloading " + fileName);
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName+".m3u");
 
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         downloadManager.enqueue(request);
