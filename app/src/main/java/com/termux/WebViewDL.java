@@ -37,6 +37,9 @@ public class WebViewDL extends AppCompatActivity {
     private String pendingFileName;
     private boolean isPendingBlob;
 
+    private String filen;
+    
+
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,9 @@ public class WebViewDL extends AppCompatActivity {
 
         String url = getIntent().getStringExtra("url");
         if (url != null) webView.loadUrl(url);
+
+        filen = getIntent().getStringExtra("filen");
+        
     }
 
     // Modified DownloadListener creation
@@ -70,7 +76,7 @@ public class WebViewDL extends AppCompatActivity {
                 return;
             }
 
-            this.pendingFileName = "Combined_Playlist.m3u"; // Force filename as in original
+            this.pendingFileName = filen;
             this.pendingUrl = url;
             this.isPendingBlob = url.startsWith("blob:");
 
@@ -125,9 +131,9 @@ public class WebViewDL extends AppCompatActivity {
             }
 
             if (url.startsWith("blob:")) {
-                handleBlobUrl(webView, url, "Combined_Playlist.m3u");
+                handleBlobUrl(webView, url, filen);
             } else {
-                handleHttpUrl(url, "Combined_Playlist.m3u");
+                handleHttpUrl(url, filen);
             }
         };
     }

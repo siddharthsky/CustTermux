@@ -1,20 +1,28 @@
 package com.termux.setup_app;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.termux.R;
@@ -22,6 +30,7 @@ import com.termux.SkySharedPref;
 import com.termux.Utils;
 import com.termux.WebViewDL;
 
+import java.util.Base64;
 import java.util.Random;
 
 public class SetupActivity_Extra extends AppCompatActivity {
@@ -32,6 +41,8 @@ public class SetupActivity_Extra extends AppCompatActivity {
     private Button AllOption;
     private Button PORTbtn;
     private Button ZeeReset;
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
 
     private SkySharedPref preferenceManager;
@@ -134,31 +145,45 @@ public class SetupActivity_Extra extends AppCompatActivity {
         ZeeOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/zee_playlist"));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.setPackage("com.android.chrome");
-                    startActivity(intent);
-                } else {
-                    Utils.showCustomToast(SetupActivity_Extra.this, "Downloading ZEE playlist");
-                    String fileUrl = "https://bit.ly/zee_playlist";
-                    downloadFile(fileUrl);
-                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(SetupActivity_Extra.this);
+                builder.setTitle("Choose Connection Type");
+                builder.setMessage("Select localhost or IP for ZEE playlist download");
+
+                builder.setPositiveButton("Localhost", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        downloadZeePlaylistLocal();
+                    }
+                });
+
+                builder.setNegativeButton("IP", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d("d","dwad");
+                        downloadZeePlaylistIP();
+                    }
+                });
+
+                builder.show();
             }
         });
+
+
+
 
 
         SonyOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/sony_playlist"));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/sony_playlist_"));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setPackage("com.android.chrome");
                     startActivity(intent);
                 } else {
                     Utils.showCustomToast(SetupActivity_Extra.this, "Downloading SONY playlist");
-                    String fileUrl = "https://bit.ly/sony_playlist";
+                    String fileUrl = "https://bit.ly/sony-playlist";
                     downloadFile(fileUrl);
                 }
             }
@@ -167,24 +192,29 @@ public class SetupActivity_Extra extends AppCompatActivity {
         AllOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String server_setup_wifiip = preferenceManager.getKey("server_setup_wifiip");
-                String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
-                String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly;
+                AlertDialog.Builder builder = new AlertDialog.Builder(SetupActivity_Extra.this);
+                builder.setTitle("Choose Connection Type");
+                builder.setMessage("Select localhost or IP for Combined playlist download");
 
-                if (isChromeInstalled()) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    intent.setPackage("com.android.chrome");
-                    startActivity(intent);
-                } else {
-                    Utils.showCustomToast(SetupActivity_Extra.this, "Downloading Combined playlist");
+                builder.setPositiveButton("Localhost", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        downloadAIOPlaylistLocal();
+                    }
+                });
 
-                    Intent intent = new Intent(SetupActivity_Extra.this, WebViewDL.class);
-                    intent.putExtra("url", url);
-                    startActivity(intent);
+                builder.setNegativeButton("IP", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d("d","dwad");
+                        downloadAIOPlaylistIP();
+                    }
+                });
 
-                }
+                builder.show();
             }
+
+
         });
 
         ZeeReset.setOnClickListener(new View.OnClickListener() {
@@ -224,6 +254,125 @@ public class SetupActivity_Extra extends AppCompatActivity {
         });
 
 
+    }
+
+    private void downloadAIOPlaylistLocal() {
+        String server_setup_wifiip = "localhost";
+        String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
+        String prefix = "aHR0cHM6Ly9zaHJpbmttZS5pby9zdD9hcGk9YTc1OTY2NmY3YWZlNTJlYzY2OTk1NjhjMTVkYTZhODk4MWMwNDkzOSZ1cmw9";
+        @SuppressLint({"NewApi", "LocalSuppress"}) String decodedUrl = new String(Base64.getDecoder().decode(prefix));
+        String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly;
+        String finalUrl = decodedUrl + url;
+
+        if (isChromeInstalled()) {
+            Utils.showCustomToast(SetupActivity_Extra.this, "Downloading combined playlist");
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setPackage("com.android.chrome");
+            startActivity(intent);
+        } else {
+
+            if (checkPermission()) {
+                Utils.showCustomToast(SetupActivity_Extra.this, "Downloading combined playlist");
+                Intent intent = new Intent(SetupActivity_Extra.this, WebViewDL.class);
+                intent.putExtra("url", url);
+                intent.putExtra("filen", "Combined_Playlist.m3u");
+                startActivity(intent);
+            }
+            else{
+                requestPermission();
+            }
+
+
+        }
+    }
+
+    private void downloadAIOPlaylistIP() {
+        String server_setup_wifiip = preferenceManager.getKey("server_setup_wifiip");
+        String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
+        String prefix = "aHR0cHM6Ly9zaHJpbmttZS5pby9zdD9hcGk9YTc1OTY2NmY3YWZlNTJlYzY2OTk1NjhjMTVkYTZhODk4MWMwNDkzOSZ1cmw9";
+        @SuppressLint({"NewApi", "LocalSuppress"}) String decodedUrl = new String(Base64.getDecoder().decode(prefix));
+        String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly;
+        String finalUrl = decodedUrl + url;
+
+        if (isChromeInstalled()) {
+            Utils.showCustomToast(SetupActivity_Extra.this, "Downloading combined playlist");
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setPackage("com.android.chrome");
+            startActivity(intent);
+        } else {
+
+            if (checkPermission()) {
+                Utils.showCustomToast(SetupActivity_Extra.this, "Downloading combined playlist");
+                Intent intent = new Intent(SetupActivity_Extra.this, WebViewDL.class);
+                intent.putExtra("url", url);
+                intent.putExtra("filen", "Combined_Playlist.m3u");
+                startActivity(intent);
+            }
+            else{
+                requestPermission();
+            }
+
+
+        }
+    }
+
+
+
+    private void downloadZeePlaylistLocal() {
+        if (isChromeInstalled()) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shrinkme.ink/zee_playlist_"));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setPackage("com.android.chrome");
+            startActivity(intent);
+        } else {
+            Utils.showCustomToast(SetupActivity_Extra.this, "Downloading ZEE playlist");
+            String fileUrl = "https://bit.ly/zee-playlist";
+            downloadFile(fileUrl);
+        }
+
+    }
+
+    private void  downloadZeePlaylistIP() {
+        String server_setup_wifiip = preferenceManager.getKey("server_setup_wifiip");
+        String isLocalPORTonly = preferenceManager.getKey("isLocalPORTonly");
+        String prefix = "aHR0cHM6Ly9zaHJpbmttZS5pby9zdD9hcGk9YTc1OTY2NmY3YWZlNTJlYzY2OTk1NjhjMTVkYTZhODk4MWMwNDkzOSZ1cmw9";
+        @SuppressLint({"NewApi", "LocalSuppress"}) String decodedUrl = new String(Base64.getDecoder().decode(prefix));
+        String url = "https://sky7t.github.io/1/?ip="+server_setup_wifiip+":"+isLocalPORTonly+"&zee=true";
+        String finalUrl = decodedUrl + url;
+
+        if (isChromeInstalled()) {
+            Utils.showCustomToast(SetupActivity_Extra.this, "Downloading ZEE playlist");
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setPackage("com.android.chrome");
+            startActivity(intent);
+        } else {
+            if (checkPermission()) {
+                Utils.showCustomToast(SetupActivity_Extra.this, "Downloading ZEE playlist");
+                Intent intent = new Intent(SetupActivity_Extra.this, WebViewDL.class);
+                intent.putExtra("url", url);
+                intent.putExtra("filen", "Zee_Playlist.m3u");
+                startActivity(intent);
+            }
+            else{
+                requestPermission();
+            }
+        }
+        }
+
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this, "Storage permission is required. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
     }
 
     public interface OnPortChangeListener {
