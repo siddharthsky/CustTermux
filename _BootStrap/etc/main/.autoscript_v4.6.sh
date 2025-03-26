@@ -220,7 +220,7 @@ Setup_Postrequisites() {
     chmod 755 "$HOME/.set_tls.exp"
 
     FILE_URL="https://raw.githubusercontent.com/siddharthsky/CustTermux/main/_BootStrap/etc/config.json"
-    echo "Setting cofig file"
+    echo "Setting config file"
     sleep 3
     curl -SL --progress-bar --retry 2 --retry-delay 2 -o "$HOME/.jiotv_go/bin/config.json" "$FILE_URL" || { echo "Failed to download binary"; exit 1; }
     chmod 755 "$HOME/.jiotv_go/bin/config.json"
