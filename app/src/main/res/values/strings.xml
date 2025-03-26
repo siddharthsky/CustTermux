@@ -242,6 +242,23 @@
     <string name="donate_preference_title">Donate</string>
     <string name="app_icon_desc">App icon</string>
 
+    <string name="advanced_settings">
+    <font color="#FF0000">Disclaimer:</font> Our services are free, but development is time-intensive.\n
+    Choose your preferred method:\n
+    <font color="#87CEEB">A. Manual playlist creation</font>\n
+       \t• Generate at: <font color="#008000">localhost:5349/playlist.php</font>\n
+       \t• Integrate with main playlist\n
+    <font color="#87CEEB">B. Automatic download</font>\n
+       \t• Use above buttons for device-specific playlists\n
+    \n
+    <font color="#FFA500">Note:</font> Downloads are supported by ad-supported links (mobile devices only). We appreciate your support through ad clicks or manual playlist generation.
+</string>
+
+
+
+
+
+
 
 
 </resources>

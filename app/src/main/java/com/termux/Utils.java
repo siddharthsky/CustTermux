@@ -1,15 +1,11 @@
 package com.termux;
 
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -31,25 +27,12 @@ import android.content.pm.PackageManager;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.viewpager.widget.ViewPager;
 
-import com.termux.app.TermuxActivity;
 import com.termux.setup_app.SetupActivityApp;
+import com.termux.setup_app.SetupActivity_Extra;
 import com.termux.view.TerminalView;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class Utils {
@@ -991,6 +974,146 @@ public class Utils {
         intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
         context.startService(intentC);
+    }
+
+    public static void sky_extra_on(Context context, SkySharedPref preferenceManager) {
+        Log.d("Utils","EXTRA ON");
+
+        Utils.showAlertbox_extra(context, preferenceManager);
+
+    }
+
+    public static void sky_extra_off(Context context) {
+        Log.d("Utils","EXTRA OFF");
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"extra_off"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+    }
+
+
+    public static void showAlertbox_extra(Context context, SkySharedPref preferenceManager) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+
+        builder.setMessage("These channels are sourced from official providers. However, we cannot guarantee their functionality at all times. Proceed at your own discretion, and please do not report if they stop working in the future.")
+            .setTitle("Important Notice");
+
+        builder.setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+
+                Utils.showCustomToast(context, ("Enabling support for extra channels"));
+                preferenceManager.setKey("server_setup_isEXTRA", "Yes");
+
+                Intent intentC = new Intent();
+                intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+                intentC.setAction("com.termux.RUN_COMMAND");
+                intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+                intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"extra_on"});
+                intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+                intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+                intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+                context.startService(intentC);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        android.app.AlertDialog dialog = builder.create();
+
+        dialog.show();
+    }
+
+    public static void sky_changeportzee(final Context context, final SetupActivity_Extra.OnPortChangeListener listener) {
+
+        final EditText input = new EditText(context);
+        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+
+        input.setTextColor(ContextCompat.getColor(context, R.color.text_color_white));
+        input.setBackground(ContextCompat.getDrawable(context, R.drawable.edittext_underline_green));
+
+        // Restrict input to 4 digits
+        input.setFilters(new InputFilter[]{
+            new InputFilter.LengthFilter(4),
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                    // Allow only digits
+                    if (TextUtils.isEmpty(source)) {
+                        return null;
+                    }
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+            }
+        });
+
+        SkySharedPref preferenceManager = new SkySharedPref(context);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context)
+            .setTitle("Enter Port Number")
+            .setMessage("Please enter a 4-digit port number:")
+            .setView(input)
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String portStr = input.getText().toString();
+
+                    if (portStr.matches("\\d{4}")) {
+                        int port = Integer.parseInt(portStr);
+
+                        preferenceManager.setKey("isZEEPORTonly", String.valueOf(port));
+
+                        Utils.showCustomToast(context, "Port number updated to: " + port);
+                        // Notify the listener about the port change
+                        if (listener != null) {
+                            listener.onPortChanged(portStr);
+                        }
+                    } else {
+                        Utils.showCustomToast(context, "Please enter a valid 4-digit port number.");
+                    }
+                }
+            })
+            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                // Request focus for the EditText
+                input.requestFocus();
+                // Show the keyboard automatically
+                input.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                }, 200); // Delay to ensure the keyboard shows up
+            }
+        });
+
+        dialog.show();
     }
 }
 
