@@ -846,7 +846,7 @@ extra_on() {
         echo "PHP is already installed"
     else
         echo "PHP is not installed. Installing now..."
-        pkg install php -y
+        pkg install php git -y
     fi
 
     if [ -d "zeeON" ]; then
