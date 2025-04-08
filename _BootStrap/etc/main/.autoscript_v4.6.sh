@@ -107,9 +107,10 @@ TheShowRunner() {
         echo -e "\e[32mStarting ZEE5 PHP server on port 5349\e[0m"
         cd $HOME/zeeON
         php -S 0.0.0.0:5349 > /dev/null 2>&1 &
-    
+    fi
 
-    
+
+        
 
     # Wait for the server to be live, with a maximum of 5 tries
     attempts=0
