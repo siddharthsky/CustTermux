@@ -84,22 +84,32 @@ TheShowRunner() {
 
     get_value_from_key "server_setup_EX_done" "VARIABLE04"
 
+    get_value_from_key "server_setup_isTATA" "VARIABLE05"
+
 
     if [ "$VARIABLE03" == "Yes" ]; then
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
-        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
+        echo -e "\e[32mRunning JioTV GO Server Locally on port $port_to_use\e[0m"
     else
         termux-wake-lock
         $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
-        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+        echo -e "\e[32mRunning JioTV GO Server on port $port_to_use\e[0m"
+    fi
+
+     if [ "$VARIABLE05" == "Yes" ]; then
+        echo -e "\e[32mStarting TATA PLAY PHP server on port 5353\e[0m"
+        cd $HOME/tataON
+        php -S 0.0.0.0:5353 > /dev/null 2>&1 &
     fi
 
     if [ "$VARIABLE04" == "Yes" ]; then
-        echo -e "\e[32mStarting PHP server on port 5349\e[0m"
+        echo -e "\e[32mStarting ZEE5 PHP server on port 5349\e[0m"
         cd $HOME/zeeON
         php -S 0.0.0.0:5349 > /dev/null 2>&1 &
-    fi
+    
+
+    
 
     # Wait for the server to be live, with a maximum of 5 tries
     attempts=0
