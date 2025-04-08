@@ -893,6 +893,61 @@ extra_off() {
 	
 }
 
+tata_on() {
+    echo "-----------------------"
+    echo "TATA PLAY PHP SCRIPT"
+    echo "-----------------------"
+    echo "Installing Script"
+    
+    if command -v php >/dev/null 2>&1; then
+        echo "PHP is already installed"
+    else
+        echo "PHP is not installed. Installing now..."
+        pkg install php git -y
+    fi
+
+    if [ -d "tataON" ]; then
+        echo "Removing existing zeeON directory..."
+        rm -rf tataON
+    fi
+
+    mkdir -p tataON
+    cd tataON || exit
+
+    if [ ! -d ".git" ]; then
+        git clone https://github.com/yuvraj824/tataplay-m3u .
+    else
+        echo "Repository already cloned"
+    fi
+
+    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA --es value Yes
+
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
+}
+
+tata_off() {
+     echo "-----------------------"
+    echo "TATA PLAY PHP SCRIPT"
+    echo "-----------------------"
+    echo "Disabling Script"
+
+    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA --es value No
+    
+    if [ -d "tataON" ]; then
+        rm -rf "tataON"
+        echo "Removed scripts"
+    fi
+
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
+	
+}
+
 
 
 
@@ -935,6 +990,10 @@ elif [ "$1" == "extra_on" ]; then
 	extra_on
  elif [ "$1" == "extra_off" ]; then
 	extra_off
+ elif [ "$1" == "tata_on" ]; then
+	tata_on
+ elif [ "$1" == "tata_off" ]; then
+	tata_off
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
