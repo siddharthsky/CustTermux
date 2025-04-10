@@ -41,6 +41,8 @@ public class SetupActivity_Extra extends AppCompatActivity {
     private Button AllOption;
     private Button PORTbtn;
     private Button ZeeReset;
+    private SwitchCompat switchTATA;
+
 
     private static final int PERMISSION_REQUEST_CODE = 1;
 
@@ -72,6 +74,9 @@ public class SetupActivity_Extra extends AppCompatActivity {
         ZeeOption = findViewById(R.id.ZeeOption);
         SonyOption = findViewById(R.id.SonyOption);
         AllOption = findViewById(R.id.AllOption);
+
+        switchTATA = findViewById(R.id.switchTATA);
+
         ZeeReset = findViewById(R.id.ZeeReset);
 
         PORTbtn = findViewById(R.id.PORTbtn);
@@ -123,6 +128,8 @@ public class SetupActivity_Extra extends AppCompatActivity {
         String serverSetupIsEXTRA = preferenceManager.getKey("server_setup_isEXTRA");
         switchEXTRA.setChecked("Yes".equals(serverSetupIsEXTRA));
 
+        String serverSetupIsTATA = preferenceManager.getKey("server_setup_isTATA");
+        switchTATA.setChecked("Yes".equals(serverSetupIsTATA));
 
     }
 
@@ -216,6 +223,20 @@ public class SetupActivity_Extra extends AppCompatActivity {
 
 
         });
+
+        switchTATA.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Utils.sky_tata_on(SetupActivity_Extra.this, preferenceManager);
+                } else {
+                    Utils.showCustomToast(SetupActivity_Extra.this, "Disabling support for TATA Play");
+                    preferenceManager.setKey("server_setup_isTATA", "No");
+                    Utils.sky_tata_off(SetupActivity_Extra.this);
+                }
+            }
+        });
+
 
         ZeeReset.setOnClickListener(new View.OnClickListener() {
             @Override

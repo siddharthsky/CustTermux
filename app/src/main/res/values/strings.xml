@@ -251,7 +251,33 @@
     \n
     <font color="#FFA500">Note:</font> Downloads are supported by ad-supported links (mobile devices only). We appreciate your support through ad clicks or manual playlist generation.
 </string>
-
+    <string name="tata_play_instructions">
+   \n
+    ➡️ Requirements:\n
+    • Active Tataplay Account\n
+    \n
+    🎯 HOW TO USE\n
+    1️⃣ Toggle the switch to enable TATA Play.\n
+    \n
+    2️⃣ Access the M3U Playlist through the following link:\n
+    http://localhost:5353/playlist.php\n
+    \n
+    💡 Network Access Tip:\n
+    If the device running this service has a specific IP address on your network (e.g., 192.168.1.100), you can replace \'localhost\' with that IP address (e.g., http://192.168.1.100:5353/playlist.php) to access the service from other devices on the same network. This is particularly useful if the device has a static IP.\n
+    \n
+    How to Login:\n
+    Open the Login page at:\n
+    http://localhost:5353/login.php (or use your device\'s IP as mentioned above)\n
+    \n
+    Login using your TATAPLAY subscriber ID and enter the OTP received on your registered mobile number.\n
+    Note: Ensure your account is active for successful login.\n
+    \n
+    How to Use with IPTV:\n
+    In your IPTV application (like Tivimate or OTT Navigator), use the following link to access your playlist:\n
+    http://localhost:5353/playlist.php (or use your device\'s IP)\n
+    \n
+    Script by yuvraj824 : https://github.com/yuvraj824/tataplay-m3u 🎉\n
+</string>
 
 
 

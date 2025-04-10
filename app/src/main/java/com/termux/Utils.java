@@ -1115,5 +1115,63 @@ public class Utils {
 
         dialog.show();
     }
+
+    public static void sky_tata_on(Context context, SkySharedPref preferenceManager) {
+
+        Utils.showAlertbox_extra_tata(context, preferenceManager);
+
+    }
+
+    private static void showAlertbox_extra_tata(Context context, SkySharedPref preferenceManager) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+
+        builder.setMessage("The TATA script is a PHP script for grabbing M3U playlists. However, we cannot guarantee their functionality at all times. Proceed at your own discretion, and please do not report if they stop working in the future.")
+            .setTitle("Important Notice");
+
+        builder.setPositiveButton("Proceed", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                Utils.showCustomToast(context, "Enabling support for TATA Play");
+
+                preferenceManager.setKey("server_setup_isTATA", "Yes");
+
+                Log.d("Utils","TATA ON");
+
+                Intent intentC = new Intent();
+                intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+                intentC.setAction("com.termux.RUN_COMMAND");
+                intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+                intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"tata_on"});
+                intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+                intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+                intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+                context.startService(intentC);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+
+        android.app.AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public static void sky_tata_off(Context context) {
+        Log.d("Utils","TATA OFF");
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"tata_off"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        context.startService(intentC);
+
+    }
 }
 
