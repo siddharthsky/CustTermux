@@ -907,7 +907,7 @@ tata_on() {
     fi
 
     if [ -d "tataON" ]; then
-        echo "Removing existing zeeON directory..."
+        echo "Removing existing tataON directory..."
         rm -rf tataON
     fi
 
@@ -938,6 +938,61 @@ tata_off() {
     
     if [ -d "tataON" ]; then
         rm -rf "tataON"
+        echo "Removed scripts"
+    fi
+
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
+	
+}
+
+tata2_on() {
+    echo "-----------------------"
+    echo "TATA PLAY ALT PHP SCRIPT"
+    echo "-----------------------"
+    echo "Installing Script"
+    
+    if command -v php >/dev/null 2>&1; then
+        echo "PHP is already installed"
+    else
+        echo "PHP is not installed. Installing now..."
+        pkg install php git -y
+    fi
+
+    if [ -d "tataON" ]; then
+        echo "Removing existing tataON2 directory..."
+        rm -rf tataON2
+    fi
+
+    mkdir -p tataON2
+    cd tataON2 || exit
+
+    if [ ! -d ".git" ]; then
+        git clone https://github.com/drmlive/tataplay .
+    else
+        echo "Repository already cloned"
+    fi
+
+    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA2 --es value Yes
+
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
+}
+
+tata2_off() {
+     echo "-----------------------"
+    echo "TATA PLAY ALT PHP SCRIPT"
+    echo "-----------------------"
+    echo "Disabling Script"
+
+    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA2 --es value No
+    
+    if [ -d "tataON2" ]; then
+        rm -rf "tataON2"
         echo "Removed scripts"
     fi
 
@@ -994,6 +1049,10 @@ elif [ "$1" == "extra_on" ]; then
 	tata_on
  elif [ "$1" == "tata_off" ]; then
 	tata_off
+ elif [ "$1" == "tata2_on" ]; then
+	tata2_on
+ elif [ "$1" == "tata2_off" ]; then
+	tata2_off
 elif [ "$1" == "termuxinfo" ]; then
 	termuxinfo
  elif [ "$1" == "ssh_on" ]; then
