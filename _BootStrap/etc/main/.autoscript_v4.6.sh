@@ -86,6 +86,8 @@ TheShowRunner() {
 
     get_value_from_key "server_setup_isTATA" "VARIABLE05"
 
+    get_value_from_key "server_setup_isTATA2" "VARIABLE06"
+
 
     if [ "$VARIABLE03" == "Yes" ]; then
         termux-wake-lock
@@ -101,6 +103,12 @@ TheShowRunner() {
         echo -e "\e[32mStarting TATA PLAY PHP server on port 5353\e[0m"
         cd $HOME/tataON
         php -S 0.0.0.0:5353 > /dev/null 2>&1 &
+    fi
+
+     if [ "$VARIABLE06" == "Yes" ]; then
+        echo -e "\e[32mStarting TATA PLAY ALT PHP server on port 5399\e[0m"
+        cd $HOME/tataON2
+        php -S 0.0.0.0:5399 > /dev/null 2>&1 &
     fi
 
     if [ "$VARIABLE04" == "Yes" ]; then
