@@ -43,7 +43,7 @@ android {
 //        implementation "com.google.android.exoplayer:exoplayer:2.16.0"
 
 
-
+        implementation 'com.github.marcinmoskala:VideoPlayView:0.0.2'
         implementation project(":terminal-view")
         implementation project(":termux-shared")
     }

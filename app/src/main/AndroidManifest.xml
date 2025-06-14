@@ -269,6 +269,12 @@
         </activity>
 
         <activity
+            android:name=".KickStartWEB"
+            android:theme="@style/AppThemex3"
+            android:exported="true">
+        </activity>
+
+        <activity
             android:name=".setup_app.SetupActivity_Extra"
             android:theme="@style/AppThemex3"
             android:exported="true">

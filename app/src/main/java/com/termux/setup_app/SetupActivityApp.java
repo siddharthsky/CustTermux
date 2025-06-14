@@ -593,7 +593,8 @@ public class SetupActivityApp extends AppCompatActivity {
         PORTbtn.setText(portid);
         String isEXTRA = preferenceManager.getKey("server_setup_isEXTRA");
         String isTATA = preferenceManager.getKey("server_setup_isTATA");
-        if (Objects.equals(isEXTRA, "Yes") || Objects.equals(isTATA, "Yes")) {
+        String isTATA2 = preferenceManager.getKey("server_setup_isTATA2");
+        if (Objects.equals(isEXTRA, "Yes") || Objects.equals(isTATA, "Yes") || Objects.equals(isTATA2, "Yes")) {
             ExtraChannelsbtn.setText("✅ Enabled");
         } else {
             ExtraChannelsbtn.setText("📴 Disabled");

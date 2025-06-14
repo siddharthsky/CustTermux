@@ -42,6 +42,7 @@ public class SetupActivity_Extra extends AppCompatActivity {
     private Button PORTbtn;
     private Button ZeeReset;
     private SwitchCompat switchTATA;
+    private SwitchCompat switchTATA2;
 
 
     private static final int PERMISSION_REQUEST_CODE = 1;
@@ -76,6 +77,7 @@ public class SetupActivity_Extra extends AppCompatActivity {
         AllOption = findViewById(R.id.AllOption);
 
         switchTATA = findViewById(R.id.switchTATA);
+        switchTATA2 = findViewById(R.id.switchTATA2);
 
         ZeeReset = findViewById(R.id.ZeeReset);
 
@@ -130,6 +132,9 @@ public class SetupActivity_Extra extends AppCompatActivity {
 
         String serverSetupIsTATA = preferenceManager.getKey("server_setup_isTATA");
         switchTATA.setChecked("Yes".equals(serverSetupIsTATA));
+
+        String serverSetupIsTATA2 = preferenceManager.getKey("server_setup_isTATA2");
+        switchTATA2.setChecked("Yes".equals(serverSetupIsTATA2));
 
     }
 
@@ -233,6 +238,19 @@ public class SetupActivity_Extra extends AppCompatActivity {
                     Utils.showCustomToast(SetupActivity_Extra.this, "Disabling support for TATA Play");
                     preferenceManager.setKey("server_setup_isTATA", "No");
                     Utils.sky_tata_off(SetupActivity_Extra.this);
+                }
+            }
+        });
+
+        switchTATA2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Utils.sky_tata2_on(SetupActivity_Extra.this, preferenceManager);
+                } else {
+                    Utils.showCustomToast(SetupActivity_Extra.this, "Disabling support for TATA Play Alt");
+                    preferenceManager.setKey("server_setup_isTATA2", "No");
+                    Utils.sky_tata2_off(SetupActivity_Extra.this);
                 }
             }
         });

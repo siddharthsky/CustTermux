@@ -17,6 +17,8 @@ import android.widget.ProgressBar;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.termux.app.TermuxActivity;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -296,6 +298,11 @@ public class WebPlayerActivity extends AppCompatActivity {
                 String newUrl = url.replace("/play/", "/player/");
                 Log.d(TAG, "Loading new player URL: " + newUrl);
                 webView.loadUrl(newUrl);
+
+//                Intent intent = new Intent(WebPlayerActivity.this, KickStartWEB.class);
+//                startActivity(intent);
+
+
                 return true; // URL has been overridden
             } else if (url.contains(initURL)) {
                 initURL = url;
