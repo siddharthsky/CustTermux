@@ -1,5 +1,5 @@
 {
-    "epg": false,
+    "epg": true,
     "debug": false,
     "disable_ts_handler": false,
     "disable_logout": false,
