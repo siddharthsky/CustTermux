@@ -893,6 +893,37 @@ extra_off() {
 	
 }
 
+extra_reset() {
+    echo "-----------------------"
+    echo "RESET SCRIPTS"
+    echo "-----------------------"
+    echo "Disabling Channels"
+
+    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value No
+    
+    if [ -d "zeeON" ]; then
+        rm -rf "zeeON"
+        echo "Removed scripts P1"
+    fi
+
+  	if [ -d "tataON" ]; then
+        rm -rf "tataON"
+        echo "Removed scripts P2"
+    fi
+
+  	if [ -d "tataON2" ]; then
+        rm -rf "tataON2"
+        echo "Removed scripts P3"
+    fi
+
+	echo "Cleared All Scripts Successfully"
+    echo "Restarting CustTermux Session"
+    sleep 5
+    am startservice -n com.termux/.app.TermuxService -a com.termux.service_execute
+    exit 0
+	
+}
+
 tata_on() {
     echo "-----------------------"
     echo "TATA PLAY PHP SCRIPT"
@@ -961,7 +992,7 @@ tata2_on() {
         pkg install php git -y
     fi
 
-    if [ -d "tataON" ]; then
+    if [ -d "tataON2" ]; then
         echo "Removing existing tataON2 directory..."
         rm -rf tataON2
     fi
