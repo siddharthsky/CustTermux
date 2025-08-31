@@ -898,8 +898,6 @@ extra_reset() {
     echo "RESET SCRIPTS"
     echo "-----------------------"
     echo "Disabling Channels"
-
-    am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value No
     
     if [ -d "zeeON" ]; then
         rm -rf "zeeON"
@@ -915,6 +913,10 @@ extra_reset() {
         rm -rf "tataON2"
         echo "Removed scripts P3"
     fi
+
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_EX_done --es value No
+ 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA --es value No
+ 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isTATA2 --es value No
 
 	echo "Cleared All Scripts Successfully"
     echo "Restarting CustTermux Session"
