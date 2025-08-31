@@ -335,9 +335,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v7.01.5k [5 series]"
+    echo "Script: v7.02.5k [5 series]"
 else
-    echo "Script: v7.01.7k [7 series]"
+    echo "Script: v7.02.7k [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
