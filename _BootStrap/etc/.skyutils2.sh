@@ -1076,6 +1076,8 @@ elif [ "$1" == "extra_on" ]; then
 	extra_on
  elif [ "$1" == "extra_off" ]; then
 	extra_off
+ elif [ "$1" == "extra_reset" ]; then
+	extra_reset
  elif [ "$1" == "tata_on" ]; then
 	tata_on
  elif [ "$1" == "tata_off" ]; then
