@@ -41,6 +41,7 @@ public class SetupActivity_Extra extends AppCompatActivity {
     private Button AllOption;
     private Button PORTbtn;
     private Button ZeeReset;
+    private Button AllReset;
     private SwitchCompat switchTATA;
     private SwitchCompat switchTATA2;
 
@@ -80,6 +81,9 @@ public class SetupActivity_Extra extends AppCompatActivity {
         switchTATA2 = findViewById(R.id.switchTATA2);
 
         ZeeReset = findViewById(R.id.ZeeReset);
+        AllReset = findViewById(R.id.AllReset);
+
+
 
         PORTbtn = findViewById(R.id.PORTbtn);
 
@@ -266,6 +270,24 @@ public class SetupActivity_Extra extends AppCompatActivity {
                 intentC.setAction("com.termux.RUN_COMMAND");
                 intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
                 intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"extra_on"});
+                intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+                intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+                intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+                startService(intentC);
+            }
+
+        });
+
+        AllReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Utils.showCustomToast(SetupActivity_Extra.this, "Clearing all scripts");
+
+                Intent intentC = new Intent();
+                intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+                intentC.setAction("com.termux.RUN_COMMAND");
+                intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+                intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"extra_reset"});
                 intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
                 intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
                 intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
