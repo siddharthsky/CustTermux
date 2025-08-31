@@ -82,11 +82,26 @@ TheShowRunner() {
 
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
-    get_value_from_key "server_setup_EX_done" "VARIABLE04"
+    # get_value_from_key "server_setup_EX_done" "VARIABLE04"
 
-    get_value_from_key "server_setup_isTATA" "VARIABLE05"
+    # get_value_from_key "server_setup_isTATA" "VARIABLE05"
 
-    get_value_from_key "server_setup_isTATA2" "VARIABLE06"
+    # get_value_from_key "server_setup_isTATA2" "VARIABLE06"
+
+    # Check for VARIABLE04
+    if [[ -d "zeeON" ]]; then
+        get_value_from_key "server_setup_EX_done" "VARIABLE04"
+    fi
+    
+    # Check for VARIABLE05
+    if [[ -d "tataON" ]]; then
+        get_value_from_key "server_setup_isTATA" "VARIABLE05"
+    fi
+    
+    # Check for VARIABLE06
+    if [[ -d "tataON2" ]]; then
+        get_value_from_key "server_setup_isTATA2" "VARIABLE06"
+    fi
 
 
     if [ "$VARIABLE03" == "Yes" ]; then
