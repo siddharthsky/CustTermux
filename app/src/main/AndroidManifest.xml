@@ -4,12 +4,6 @@
     package="com.termux"
     android:installLocation="internalOnly">
 
-<!--    android:sharedUserId="${TERMUX_PACKAGE_NAME}"-->
-<!--    android:sharedUserLabel="@string/shared_user_label">-->
-<!--    android:sharedUserLabel="@string/shared_user_label"-->
-<!--    tools:ignore="LeanbackUsesWifi"-->
-<!--    android:hardwareAccelerated="true">-->
-
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -20,7 +14,7 @@
     <permission
         android:name="${TERMUX_PACKAGE_NAME}.permission.RUN_COMMAND"
         android:description="@string/permission_run_command_description"
-        android:icon="@mipmap/ic_launcher_neo"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/permission_run_command_label"
         android:protectionLevel="dangerous" />
 
@@ -33,81 +27,28 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_LOGS" />
     <uses-permission android:name="android.permission.DUMP" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
-    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"
-        tools:ignore="LeanbackUsesWifi" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
-        tools:ignore="LeanbackUsesWifi" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove" tools:ignore="QueryAllPackagesPermission" />
 
     <application
         android:name=".app.TermuxApplication"
         android:allowBackup="false"
-        android:banner="@mipmap/ic_banner_neo"
+        android:banner="@drawable/banner"
         android:extractNativeLibs="true"
-        android:icon="@mipmap/ic_launcher_neo"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/application_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_neo_round"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar"
-        tools:targetApi="n"
-        android:networkSecurityConfig="@xml/network_security_config">
-
-<!--        <meta-data-->
-<!--            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"-->
-<!--            android:value="com.termux.app.CastOptionsProvider"/>-->
-
-
-        <activity
-            android:name=".KickStart"
-            android:configChanges="orientation|screenSize|smallestScreenSize|density|screenLayout|keyboard|keyboardHidden|navigation"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:resizeableActivity="true"
-            android:theme="@style/Theme.TermuxActivity.DayNight.NoActionBar"
-            tools:targetApi="n">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
-        </activity>
-
-
-        <activity-alias
-            android:name=".KickStartAlias"
-            android:exported="true"
-            android:targetActivity=".KickStart"
-            android:icon="@mipmap/ic_launcher_alias2"
-            android:roundIcon="@mipmap/ic_launcher_alias2_round"
-            android:banner="@mipmap/ic_banner_alias"
-            android:label="@string/application_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
-
+        tools:targetApi="m">
 
         <activity
             android:name=".app.TermuxActivity"
@@ -120,30 +61,19 @@
             tools:targetApi="n">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-<!--                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />-->
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
 
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
-
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
-
 
         <activity-alias
             android:name=".HomeActivity"
@@ -158,8 +88,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>
-
-
 
         <activity
             android:name=".app.activities.HelpActivity"
@@ -191,127 +119,10 @@
         </activity>
 
         <activity
-            android:name=".LoginReceiverActivity"
-            android:theme="@style/AppTheme.Transparent"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.temux.ACTION_RECEIVE_LOGIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".SkyActionActivity"
-            android:theme="@style/AppTheme.Transparent"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.temux.SKY_ACTION" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".app.sky.SkyTVz"
-            android:theme="@style/AppTheme.Transparent"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.temux.SKYTVUI" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".SkySharedPrefActivity"
-            android:theme="@style/AppTheme.Transparent"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.temux.GetReceiver" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.temux.SaveReceiver" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <activity android:name=".VideoPlayerActivity"
-            android:exported="true"/>
-
-        <activity android:name=".app.AnotherActivityCast"
-            android:exported="true"/>
-
-        <activity android:name=".tv_ui.TVPlayer"
-            android:exported="true"/>
-        <activity android:name=".tv_ui.PlaybackActivity"
-            android:exported="true"/>
-
-        <activity android:name=".WebPlayerActivity"
-            android:theme="@style/AppThemex"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.temux.URLPLAYER" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-
-        </activity>
-
-        <activity android:name=".VideoActivity"
-            android:theme="@style/AppThemex"
-            android:exported="true">
-        </activity>
-
-        <activity android:name=".AppSelectorActivity" />
-
-        <activity
-            android:name=".setup_app.SetupActivityApp"
-            android:theme="@style/AppThemex3"
-            android:exported="true">
-        </activity>
-
-        <activity
-            android:name=".setup_app.SetupActivity_Extra"
-            android:theme="@style/AppThemex3"
-            android:exported="true">
-        </activity>
-
-        <activity android:name=".WebViewDL"
-            android:exported="false" />
-
-        <activity
-            android:name=".setup.SetupActivity"
-            android:exported="true">
-        </activity>
-
-        <activity
-            android:name=".LoginErrorActivity"
-            android:theme="@style/AppTheme.Transparent"
-            android:exported="true">
-        </activity>
-
-        <activity android:name=".setup_login.LoginActivity"
-            android:exported="true">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <receiver android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter android:priority="999">
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.HOME" />
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-
-        <activity
-            android:name=".setup_login.LoginActivity2"
-            android:windowSoftInputMode="adjustResize">
-        </activity>
-
-
+            android:name=".sky.ui.PlayAct"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:ignore="DiscouragedApi" />
 
         <activity-alias
             android:name=".app.api.file.FileShareReceiverActivity"

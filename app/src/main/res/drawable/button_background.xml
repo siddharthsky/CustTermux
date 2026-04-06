@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/blue"/>
+            <solid android:color="@color/button_background_selector"/>
             <stroke
                 android:width="4dp"
                 android:color="@android:color/white"/>
@@ -10,7 +10,7 @@
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/blue"/>
+            <solid android:color="@color/button_background_selector"/>
             <stroke
                 android:width="0dp"
                 android:color="@android:color/white"/>

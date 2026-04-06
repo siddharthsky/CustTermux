@@ -223,11 +223,6 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         mWantsToStop = true;
         killAllTermuxExecutionCommands();
         requestStopService();
-
-        // Exit the process
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(0);
-
     }
 
     /** Kill all TermuxSessions and TermuxTasks by sending SIGKILL to their processes.

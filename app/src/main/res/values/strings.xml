@@ -13,13 +13,6 @@
 
 <resources>
 
-    <string name="category_1">Category 1</string>
-    <string name="category_2">Category 2</string>
-    <string name="category_3">Category 3</string>
-    <string name="category_1_text">Categorys 3</string>
-    <string name="app_icon_description">Categorys 3</string>
-
-
     <string name="application_name">&TERMUX_APP_NAME;</string>
     <string name="shared_user_label">&TERMUX_APP_NAME; user</string>
 
@@ -34,10 +27,18 @@
 
     <!-- Termux Bootstrap Packages Installation -->
     <string name="bootstrap_installer_body">Installing bootstrap packages…</string>
-    <string name="bootstrap_error_title">Unable to install bootstrap</string>
+    <string name="bootstrap_error_title">&TERMUX_APP_NAME; Bootstrap Error</string>
     <string name="bootstrap_error_body">&TERMUX_APP_NAME; was unable to install the bootstrap packages.</string>
     <string name="bootstrap_error_abort">Abort</string>
     <string name="bootstrap_error_try_again">Try again</string>
+    <string name="bootstrap_error_apk_bootstrap_variant_min_sdk_incompatible">The APK bootstrap variant %1$s
+        of currently installed &TERMUX_APP_NAME; app is not compatible with the Android version %2$s
+        (sdk `%3$d`) of the device and it requires minimum Android version %4$s (sdk `%5$d`).
+        \n\nUninstall the &TERMUX_APP_NAME; app and reinstall the correct APK build variant.</string>
+    <string name="bootstrap_error_apk_bootstrap_variant_max_sdk_incompatible">The APK bootstrap variant %1$s
+        of currently installed &TERMUX_APP_NAME; app is not compatible with the Android version %2$s
+        (sdk `%3$d`) of the device and it requires maximum Android version %4$s (sdk `%5$d`).
+        \n\nUninstall the &TERMUX_APP_NAME; app and reinstall the correct APK build variant.</string>
     <string name="bootstrap_error_not_primary_user_message">&TERMUX_APP_NAME; can only be run as the primary user.
         \nBootstrap binaries compiled for &TERMUX_APP_NAME; have hardcoded $PREFIX path and cannot be installed
         under any path other than:\n%1$s.</string>
@@ -80,6 +81,7 @@
     <string name="title_share_selected_text">Terminal Text</string>
     <string name="title_share_selected_text_with">Send selected text to:</string>
 
+    <string name="action_autofill_username">Autofill username</string>
     <string name="action_autofill_password">Autofill password</string>
 
     <string name="action_reset_terminal">Reset</string>
@@ -240,25 +242,5 @@
 
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
-    <string name="app_icon_desc">App icon</string>
-
-    <string name="advanced_settings">
-    <font color="#FF0000">Disclaimer:</font> Our services are free, but development is time-intensive.\n
-    Choose your preferred method:\n
-    <font color="#87CEEB">A. Manual playlist creation</font>\n
-       \t• Generate at: <font color="#008000">localhost:5349/playlist.php</font>\n
-       \t• Integrate with main playlist\n
-    <font color="#87CEEB">B. Automatic download</font>\n
-       \t• Use above buttons for device-specific playlists\n
-    \n
-    <font color="#FFA500">Note:</font> Downloads are supported by ad-supported links (mobile devices only). We appreciate your support through ad clicks or manual playlist generation.
-</string>
-
-
-
-
-
-
-
 
 </resources>

@@ -1,8 +1,5 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Want to add new mirrors? Mirror related issues?
-    url: https://github.com/termux/termux-tools/issues
-    about: Visit termux-tools issues page
-  - name: Want to ask questions about the project?
-    url: https://github.com/termux/termux-packages/discussions
+  - name: Want ask questions about the project?
+    url: https://github.com/termux/termux-app/discussions
     about: Join GitHub Discussions

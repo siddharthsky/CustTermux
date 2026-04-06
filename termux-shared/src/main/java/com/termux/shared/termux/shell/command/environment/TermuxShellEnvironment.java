@@ -1,9 +1,12 @@
 package com.termux.shared.termux.shell.command.environment;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 
 import androidx.annotation.NonNull;
 
+import com.termux.shared.android.PackageUtils;
 import com.termux.shared.errors.Error;
 import com.termux.shared.file.FileUtils;
 import com.termux.shared.logger.Logger;
@@ -63,22 +66,33 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
     @NonNull
     @Override
     public HashMap<String, String> getEnvironment(@NonNull Context currentPackageContext, boolean isFailSafe) {
-        
+
         // Termux environment builds upon the Android environment
         HashMap<String, String> environment = super.getEnvironment(currentPackageContext, isFailSafe);
 
         HashMap<String, String> termuxAppEnvironment = TermuxAppShellEnvironment.getEnvironment(currentPackageContext);
         if (termuxAppEnvironment != null)
             environment.putAll(termuxAppEnvironment);
+
         /*
         HashMap<String, String> termuxApiAppEnvironment = TermuxAPIShellEnvironment.getEnvironment(currentPackageContext);
         if (termuxApiAppEnvironment != null)
             environment.putAll(termuxApiAppEnvironment);
-
          */
 
+        ApplicationInfo applicationInfo = PackageUtils.getApplicationInfoForPackage(currentPackageContext, TermuxConstants.TERMUX_PACKAGE_NAME);
+        if (applicationInfo != null && !applicationInfo.enabled) {
+            applicationInfo = null;
+        }
+
+        if (applicationInfo != null) {
+            environment.put("TERMUX__APPS_DIR", applicationInfo.dataDir + "/termux/apps");
+        }
+        environment.put("TERMUX__ROOTFS_DIR", TermuxConstants.TERMUX_FILES_DIR_PATH);
         environment.put(ENV_HOME, TermuxConstants.TERMUX_HOME_DIR_PATH);
+        environment.put("TERMUX__HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
         environment.put(ENV_PREFIX, TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+        environment.put("TERMUX__PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
 
         // If failsafe is not enabled, then we keep default PATH and TMPDIR so that system binaries can be used
         if (!isFailSafe) {

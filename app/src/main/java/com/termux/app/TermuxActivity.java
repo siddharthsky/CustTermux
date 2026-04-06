@@ -1,30 +1,17 @@
 package com.termux.app;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,10 +19,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.text.InputFilter;
-import android.text.InputType;
-import android.text.format.Formatter;
-import android.util.Base64;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -45,43 +28,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.LinearInterpolator;
-import android.view.autofill.AutofillManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.webkit.WebView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.cast.framework.CastSession;
-import com.termux.AppSelectorActivity;
-import com.termux.BuildConfig;
-import com.termux.SkyActionActivity;
-import com.termux.Utils2;
-import com.termux.app.sky.SkyTVz;
-import com.termux.setup_login.LoginActivity2;
-import com.termux.LoginStatusChecker;
+import com.termux.sky.MoreOptions;
 import com.termux.R;
-import com.termux.ServerStatusChecker;
-import com.termux.TermuxActivityResume;
-import com.termux.Utils;
-import com.termux.app.activities.HelpActivity;
-import com.termux.app.activities.SettingsActivity;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
-import com.termux.app.terminal.TermuxSessionsListViewController;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
-import com.termux.app.terminal.TermuxTerminalViewClient;
-import com.termux.app.terminal.io.TerminalToolbarViewPager;
 import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
-import com.termux.setup.SetupActivity;
-import com.termux.SkySharedPref;
-import com.termux.WebPlayerActivity;
-import com.termux.setup_app.SetupActivityApp;
 import com.termux.shared.activities.ReportActivity;
 import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.activity.media.AppCompatActivityUtils;
@@ -90,8 +50,13 @@ import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
 import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.TermuxConstants.TERMUX_APP.TERMUX_ACTIVITY;
+import com.termux.app.activities.HelpActivity;
+import com.termux.app.activities.SettingsActivity;
 import com.termux.shared.termux.crash.TermuxCrashUtils;
 import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
+import com.termux.app.terminal.TermuxSessionsListViewController;
+import com.termux.app.terminal.io.TerminalToolbarViewPager;
+import com.termux.app.terminal.TermuxTerminalViewClient;
 import com.termux.shared.termux.extrakeys.ExtraKeysView;
 import com.termux.shared.termux.interact.TextInputDialogUtils;
 import com.termux.shared.logger.Logger;
@@ -100,39 +65,22 @@ import com.termux.shared.termux.settings.properties.TermuxAppSharedProperties;
 import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
+import com.termux.sky.TermuxController;
+import com.termux.sky.TermuxStartup;
+import com.termux.sky.ui.PlayAct;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
-import com.termux.tv_ui.TVPlayer;
 import com.termux.view.TerminalView;
 import com.termux.view.TerminalViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.mediarouter.app.MediaRouteButton;
 import androidx.viewpager.widget.ViewPager;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Objects;
 
 /**
  * A terminal emulator activity.
@@ -246,7 +194,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final int CONTEXT_MENU_SELECT_URL_ID = 0;
     private static final int CONTEXT_MENU_SHARE_TRANSCRIPT_ID = 1;
     private static final int CONTEXT_MENU_SHARE_SELECTED_TEXT = 10;
-    private static final int CONTEXT_MENU_AUTOFILL_ID = 2;
+    private static final int CONTEXT_MENU_AUTOFILL_USERNAME = 11;
+    private static final int CONTEXT_MENU_AUTOFILL_PASSWORD = 2;
     private static final int CONTEXT_MENU_RESET_TERMINAL_ID = 3;
     private static final int CONTEXT_MENU_KILL_PROCESS_ID = 4;
     private static final int CONTEXT_MENU_STYLING_ID = 5;
@@ -260,62 +209,22 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private static final String LOG_TAG = "TermuxActivity";
 
-    private Handler handler;
+    private Handler handler = new Handler();
+    private TermuxStartup startup;
 
-    private Runnable runnable;
 
-    private String phoneNumber;
+    TermuxController termuxController = new TermuxController(this);
+    TermuxStartup termuxStartup = new TermuxStartup(this);
 
-    private String otp;
+    private TextView ipAddressText;
+    private TextView storageStatus;
+    private TextView overlayStatus;
 
-    private WebView webView;
-
-    private ImageView imageView;
-
-    private boolean isWebViewVisible = false;
-
-    private static final int REQUEST_CODE_MANAGE_OVERLAY_PERMISSION = 1;
-    private static final int REQUEST_CODE_INSTALL_PACKAGES_PERMISSION = 2;
-
-    private ImageView downloadIcon;
-    private ImageView copyIcon;
-
-    private static final int PERMISSION_REQUEST_CODE = 1;
-    private static String DOWNLOAD_URL;
-
-    private TextView ipAddressTextView;
-    private TextView textplay;
-    private TextView serverStatusTextView;
-    private ServerStatusChecker serverStatusChecker;
-    private LoginStatusChecker loginStatusChecker;
-
-    private boolean isCanceled = false;
-
-    private Runnable autoDismissRunnable;
-
-    private AlertDialog alertDialog;
-
-    private TermuxActivityResume termuxActivityResume;
-
-    private Runnable stopRunnable;
-    private String urlport;
-    private String urlportonly;
-    private String downloadUrl;
-    private String copy_text;
-    private String ipport;
-
-//    private CastHelper castHelper;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
         mIsOnResumeAfterOnCreate = true;
-
-        // Initialize SkySharedPref and other member variables
-        SkySharedPref preferenceManager = new SkySharedPref(this);
-        DOWNLOAD_URL = preferenceManager.getKey("isLocalPORT");
-
-
 
         if (savedInstanceState != null)
             mIsActivityRecreated = savedInstanceState.getBoolean(ARG_ACTIVITY_RECREATED, false);
@@ -334,39 +243,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//        // Initialize CastHelper
-//        castHelper = new CastHelper(this);
-//
-//        // Setup MediaRouteButton
-//        MediaRouteButton mediaRouteButton = findViewById(R.id.media_route_button);
-//        castHelper.setupMediaRouteButton(mediaRouteButton);
+        startup = new TermuxStartup(this);
+        startup.startPermissionFlow();
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.d("SkyLog", "All files access = " + Environment.isExternalStorageManager());
+        }
 
-
-        TextView serverStatusTextView = findViewById(R.id.server_status);
-        TextView loginStatusTextView = findViewById(R.id.login_status);
-        serverStatusChecker = new ServerStatusChecker(TermuxActivity.this, serverStatusTextView);
-        loginStatusChecker = new LoginStatusChecker(TermuxActivity.this, loginStatusTextView);
-
-
-
-        termuxActivityResume = new TermuxActivityResume(this);
 
         Button button1 = findViewById(R.id.button1);
-        Button button1_5 = findViewById(R.id.button1_5);
         Button button2 = findViewById(R.id.button2);
         Button button3 = findViewById(R.id.button3);
-//        Button button4 = findViewById(R.id.button4);
-//        Button button5 = findViewById(R.id.button5);
-        Button button6 = findViewById(R.id.button6);
-        Button button6_5 = findViewById(R.id.button6_5);
-        Button button7 = findViewById(R.id.button7);
-        Button button8 = findViewById(R.id.button8);
-        ImageView downloadIconx = findViewById(R.id.ic_download);
-        ImageView copyIcon = findViewById(R.id.ic_copycat);
-        ImageView iptvIcon = findViewById(R.id.ic_iptvIcon);
+        Button button4 = findViewById(R.id.button4);
+        Button button5 = findViewById(R.id.button5);
 
-        button1.requestFocus();
+        ipAddressText = findViewById(R.id.ip_address);
+        storageStatus = findViewById(R.id.storage_permission_status);
+        overlayStatus = findViewById(R.id.overlay_permission_status);
+
+        handler.post(refreshRunnable);
 
         View.OnFocusChangeListener tooltipFocusListener = new View.OnFocusChangeListener() {
             @Override
@@ -380,281 +275,48 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         };
 
         button1.setOnFocusChangeListener(tooltipFocusListener);
-//        button1_5.setOnFocusChangeListener(tooltipFocusListener);
         button2.setOnFocusChangeListener(tooltipFocusListener);
-//        button3.setOnFocusChangeListener(tooltipFocusListener);
-//        button4.setOnFocusChangeListener(tooltipFocusListener);
-//        button5.setOnFocusChangeListener(tooltipFocusListener);
-        button6.setOnFocusChangeListener(tooltipFocusListener);
-        button6_5.setOnFocusChangeListener(tooltipFocusListener);
-        button7.setOnFocusChangeListener(tooltipFocusListener);
-        button8.setOnFocusChangeListener(tooltipFocusListener);
-        downloadIconx.setOnFocusChangeListener(tooltipFocusListener);
-        copyIcon.setOnFocusChangeListener(tooltipFocusListener);
+        button3.setOnFocusChangeListener(tooltipFocusListener);
+        button5.setOnFocusChangeListener(tooltipFocusListener);
+
 
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sky_rerun();
-            }
-        });
-
-        button1_5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        button1_5.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                //Utils.lake_alert_WEBTV(TermuxActivity.this);
-                Utils2.lake_alert_WEBTV(TermuxActivity.this);
-                return false;
+                moveTaskToBack(true);
             }
         });
 
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //termuxController.killProcess("/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go");
+                termuxController.rerunCustTermux();
+            }
+        });
 
-                Intent intent = new Intent(TermuxActivity.this, LoginActivity2.class);
+        MoreOptions.setButtonClickListener(TermuxActivity.this, button3);
+
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(TermuxActivity.this, PlayAct.class);
                 startActivity(intent);
             }
         });
 
-        button3.setOnClickListener(new View.OnClickListener() {
+        button4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Handle button3 click
-                SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                String apppkg = preferenceManager.getKey("app_name");
-                String appclass = preferenceManager.getKey("app_launchactivity");
-
-                if (apppkg != null && !apppkg.isEmpty()) {
-                    try {
-                        if (apppkg.equals("null")) {
-                            System.out.println("A11");
-                            Toast.makeText(TermuxActivity.this, "IPTV is not set up. Please setup.", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
-                            startActivity(intent);
-                        } else if (apppkg.equals("sky_web_tv")) {
-                            System.out.println("A12");
-                            Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
-                            startActivity(intent);
-                        } else {
-                            System.out.println("A13");
-                            Intent intent = new Intent();
-                            intent.setComponent(new ComponentName(apppkg, appclass));
-                            startActivity(intent);
-                        }
-                    } catch (ActivityNotFoundException e) {
-                        System.out.println("Unable to open the specified app.");
-                        Toast.makeText(TermuxActivity.this, "Unable to open the specified app.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
-
-
-        button3.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent(TermuxActivity.this, AppSelectorActivity.class);
-                startActivity(intent);
-                return true;
-            }
-        });
-
-        ButtonClick6ListenerUtil.setButtonClickListener(TermuxActivity.this, button6);
-
-
-        ButtonClick6_5ListenerUtil.setButtonClickListener(TermuxActivity.this, button6_5);
-
-
-//        button6_5.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(TermuxActivity.this, WebPlayerActivity.class);
-//                startActivity(intent);
-//            }
-//        });
-
-
-        button7.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sky_exit();
-//                Intent intent = new Intent(TermuxActivity.this, AnotherActivityCast.class);
-//                startActivity(intent);
-            }
-        });
-
-
-        button8.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sky_config();
-            }
-        });
-
-
-        imageView = findViewById(R.id.imageView);
-        //webView = findViewById(R.id.webview_tv);
-
-        //webView.setVisibility(View.GONE); // Initially hide the WebView
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("SetJavaScriptEnabled")
-            @Override
-            public void onClick(View v) {
-//                if (isWebViewVisible) {
-//                    webView.setVisibility(View.GONE);
-//                } else {
-//                    webView.setVisibility(View.VISIBLE);
-//                    webView.setWebChromeClient(new WebChromeClient());
-//
-//                    WebSettings webSettings = webView.getSettings();
-//                    webSettings.setJavaScriptEnabled(true);
-//                    webView.loadUrl("http://localhost:5001");
-//                }
-//                isWebViewVisible = !isWebViewVisible;
-
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(DOWNLOAD_URL));
-                startActivity(browserIntent);
-            }
-        });
-
-        String permissionRequestCountStr = preferenceManager.getKey("permissionRequestCount");
-
-        int permissionRequestCount = 0;
-        if (permissionRequestCountStr != null && !permissionRequestCountStr.isEmpty()) {
-            permissionRequestCount = Integer.parseInt(permissionRequestCountStr);
-        }
-
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            if (!Settings.canDrawOverlays(this)) {
-//                if (permissionRequestCount < 2) {
-//                    overapp_confirmation(this);
-//                    permissionRequestCount++;
-//                    preferenceManager.setKey("permissionRequestCount", String.valueOf(permissionRequestCount));
-//                } else {
-//                    Toast.makeText(this, "Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
-//                    Toast.makeText(this, "To show permission dialog, Extra > Fix CustTermux", Toast.LENGTH_SHORT).show();
-//                }
-//            } else {
-//                // Permission already granted, reset the count and proceed with the app logic
-//                preferenceManager.setKey("permissionRequestCount", "0");
-//                proceedWithAppLogic();
-//            }
-//        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) { // Android 10 (API level 29)
-            if (!Settings.canDrawOverlays(this)) {
-                if (permissionRequestCount < 2) {
-                    overapp_confirmation(this);
-                    permissionRequestCount++;
-                    preferenceManager.setKey("permissionRequestCount", String.valueOf(permissionRequestCount));
-                } else {
-                    Toast.makeText(this, "Draw Over Apps Permission not granted. App may not function correctly.", Toast.LENGTH_SHORT).show();
-                    Toast.makeText(this, "To show permission dialog, Extra > Fix CustTermux", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                // Permission already granted, reset the count and proceed with the app logic
-                preferenceManager.setKey("permissionRequestCount", "0");
-                proceedWithAppLogic();
-            }
-        }
-
-        ipAddressTextView = findViewById(R.id.ip_address);
-        textplay = findViewById(R.id.textplay);
-
-        String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
-
-        if (Objects.equals(isLOCAL, "Yes")) {
-            Log.d("d", "Server is Local!");
-            ipAddressTextView.setText("localhost");
-
-            String ipport = preferenceManager.getKey("isLocalPORTonly");
-            String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist url: "+a_playlink;
-            textplay.setBackgroundResource(R.drawable.border);
-            textplay.setText(b_playlink);
-            preferenceManager.setKey("temp_playlist",a_playlink);
-            //startFlashingEffect(textplay);
-
-        } else {
-            // Get and display Wi-Fi IP address
-            String wifiIpAddress = getWifiIpAddress(this);
-            preferenceManager.setKey("server_setup_wifiip",wifiIpAddress);
-            ipAddressTextView.setText(wifiIpAddress);
-
-            String ipport = preferenceManager.getKey("isLocalPORTonly");
-            String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist url: "+a_playlink;
-            textplay.setBackgroundResource(R.drawable.border);
-            textplay.setText(b_playlink);
-            preferenceManager.setKey("temp_playlist",a_playlink);
-            //startFlashingEffect(textplay);
-        }
-
-        textplay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startCOPY();
+                termuxController.exitApp();
             }
         });
 
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-        String IPTVsetflag = preferenceManager.getKey("app_name");
-
-        if (IPTVsetflag != null && !IPTVsetflag.equals("null") ) {
-            iptvIcon.setVisibility(View.VISIBLE);
-            String base64Image = preferenceManager.getKey("app_icon");
-            if (base64Image != null && !base64Image.isEmpty()) {
-                byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-                Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                iptvIcon.setImageBitmap(decodedBitmap);
-            }
-        } else {
-            iptvIcon.setVisibility(View.GONE);
-        }
-
-
-
-        ipAddressTextView = findViewById(R.id.ip_address);
-        downloadIcon = findViewById(R.id.ic_download);
-//        copyIcon = findViewById(R.id.ic_copycat);
-        
-        downloadIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onDownloadButtonClick();
-            }
-        });
-
-        copyIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startCOPY();
-            }
-        });
-
-
-        preferenceManager.setKey("isExit", "noExit");
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Load termux shared preferences
         // This will also fail if TermuxConstants.TERMUX_PACKAGE_NAME does not equal applicationId
         mPreferences = TermuxAppSharedPreferences.build(this, true);
@@ -705,7 +367,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             if (!bindService(serviceIntent, this, 0))
                 throw new RuntimeException("bindService() failed");
         } catch (Exception e) {
-            Logger.logStackTraceWithMessage(LOG_TAG, "TermuxActivity failed to start TermuxService", e);
+            Logger.logStackTraceWithMessage(LOG_TAG,"TermuxActivity failed to start TermuxService", e);
             Logger.showToast(this,
                 getString(e.getMessage() != null && e.getMessage().contains("app is in background") ?
                     R.string.error_termux_service_start_failed_bg : R.string.error_termux_service_start_failed_general),
@@ -718,726 +380,101 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // app has been opened.
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
-    ///////////////////////////////////////////////////////////////
 
-//    // Example method to change media
-//    public void changeMedia(String mediaUrl, String title) {
-//        CastSession session = castHelper.getCastSession(); // Provide a method in CastHelper to get session if needed
-//        castHelper.loadMedia(session, mediaUrl, title);
-//    }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///
+private final Runnable refreshRunnable = new Runnable() {
+    @Override
+    public void run() {
+        updateIpAddress();
+        updatePermissionStatus();
 
-
-    private void startFlashingEffect(TextView textView) {
-        ObjectAnimator animator = ObjectAnimator.ofInt(textView, "textColor", Color.WHITE, Color.RED);
-        animator.setDuration(750);
-        animator.setEvaluator(new android.animation.ArgbEvaluator());
-        animator.setRepeatCount(ObjectAnimator.INFINITE);
-        animator.setRepeatMode(ObjectAnimator.REVERSE);
-        animator.start();
+        handler.postDelayed(this, 2000); // refresh every 2 sec
     }
+};
 
-    private void startIP() {
-        SkySharedPref preferenceManager = new SkySharedPref(this);
-        String isLOCAL = preferenceManager.getKey("server_setup_isLocal");
-
-        if (Objects.equals(isLOCAL, "Yes")) {
-            Log.d("d", "Server is Local!");
-            ipAddressTextView.setText("localhost");
-
-            String ipport = preferenceManager.getKey("isLocalPORTonly");
-            String a_playlink = "http://localhost:"+ipport+ "/playlist.m3u";
-            String b_playlink = "Playlist url: "+a_playlink;
-            textplay.setBackgroundResource(R.drawable.border);
-            textplay.setText(b_playlink);
-            preferenceManager.setKey("temp_playlist",a_playlink);
-            //startFlashingEffect(textplay);
-
-        } else {
-            // Get and display Wi-Fi IP address
-            String wifiIpAddress = getWifiIpAddress(this);
-            preferenceManager.setKey("server_setup_wifiip",wifiIpAddress);
-            ipAddressTextView.setText(wifiIpAddress);
-
-            String ipport = preferenceManager.getKey("isLocalPORTonly");
-
-            if (Objects.equals(wifiIpAddress, "Error")){
-                String x_playlink = "Network Error: "+ipport;
-                textplay.setText(x_playlink);
-                preferenceManager.setKey("temp_playlist",x_playlink);
-            } else {
-                String a_playlink = "http://"+wifiIpAddress+":"+ipport+ "/playlist.m3u";
-                String b_playlink = "Playlist url: "+a_playlink;
-                textplay.setText(b_playlink);
-                preferenceManager.setKey("temp_playlist",a_playlink);
-            }
-            textplay.setBackgroundResource(R.drawable.border);
-
-            //startFlashingEffect(textplay);
-        }
-    }
-
-
-
-    private void startCOPY() {
-        SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-        copy_text = preferenceManager.getKey("temp_playlist");
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("playlist_link", copy_text);
-        clipboard.setPrimaryClip(clip);
-
-        // Show a toast message
-        Toast.makeText(getApplicationContext(), "Playlist link copied to clipboard", Toast.LENGTH_SHORT).show();
-
-
-    }
-
-
-    private void sky_config() {
-        Intent intent = new Intent(TermuxActivity.this, SetupActivityApp.class);
-        startActivity(intent);
-    }
-
-
-    private void proceedWithAppLogic() {
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void requestOverlayPermission() {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            Uri.parse("package:" + getPackageName()));
-        startActivityForResult(intent, REQUEST_CODE_MANAGE_OVERLAY_PERMISSION);
-    }
-
-//////////////////////////////////////////////////////////////
-
-
-
-    private void lake_alert_confirmation(Context context) {
-        // Create an AlertDialog Builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
-
-        // Set the message and the title
-        builder.setMessage("Do you want to proceed?\n[Note: To exit press back button, reopen]")
-            .setTitle("Confirmation");
-
-        // Add the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // User clicked OK button
-                sky_terminal();
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // User cancelled the dialog
-                dialog.dismiss();
-            }
-        });
-
-        // Create the AlertDialog
-        AlertDialog dialog = builder.create();
-
-        // Show the AlertDialog
-        dialog.show();
-    }
-
-    private void overapp_confirmation(Context context) {
-        // Create an AlertDialog Builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
-
-        // Set the message and the title
-        builder.setMessage("Draw over other apps permission required. To run server in background.")
-            .setTitle("Permission Required");
-
-        // Add the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // User clicked OK button
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestOverlayPermission();
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // User cancelled the dialog
-                dialog.dismiss();
-            }
-        });
-
-        // Create the AlertDialog
-        AlertDialog dialog = builder.create();
-
-        // Show the AlertDialog
-        dialog.show();
-    }
-
-
-    private void coderun_alert_confirmation(Context context) {
-        // Create an AlertDialog Builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
-
-        // Create an EditText view to get user input
-        final EditText input = new EditText(context);
-        input.setTextColor(context.getResources().getColor(R.color.text_color_black));
-        input.setBackgroundTintList(ColorStateList.valueOf(000000));
-
-
-
-        // Set the message and the title
-        builder.setMessage("Enter code to run in terminal.")
-            .setTitle("CodeRunner")
-            .setView(input);  // Add the EditText to the dialog
-
-        // Add the buttons
-        builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                String codeinput = input.getText().toString();
-                Intent intentC = new Intent();
-                intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
-                intentC.setAction("com.termux.RUN_COMMAND");
-                intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-                intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"runcode",codeinput});
-                intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-                intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-                intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-                startService(intentC);
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                // User cancelled the dialog
-                dialog.dismiss();
-            }
-        });
-
-        // Create the AlertDialog
-        AlertDialog dialog = builder.create();
-
-        // Show the AlertDialog
-        dialog.show();
-    }
-
-
-
-    //////////////////////////////////////////////////////////////////////////////////////
-
-
-
-    private void handleOverlayPermissionResult() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(this);
-        }
-    }
-
-    private void handleInstallPackagesPermissionResult() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkSelfPermission("android.permission.INSTALL_PACKAGES");
-
-        }
-    }
-
-
-    public void wait_() {
-        Handler handler1 = new Handler();
-        Runnable runnable1 = new Runnable() {
-            @Override
-            public void run() {
-                //EMPTY
-            }
-        };
-        handler1.postDelayed(runnable1, 100);
-    }
-
-
-
-    private void XpkillIntent() {
-        // Pkill Termux service
-        Intent pkillIntent = new Intent();
-        pkillIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
-        pkillIntent.setAction("com.termux.RUN_COMMAND");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/pkill");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-f","/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go"});
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        startService(pkillIntent);
-        wait_();
-    }
-
-    private void XpkillIntentbg() {
-        // Pkill Termux service
-        Intent pkillIntent = new Intent();
-        pkillIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
-        pkillIntent.setAction("com.termux.RUN_COMMAND");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/pkill");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-f","/data/data/com.termux/files/home/.jiotv_go/bin/jiotv_go"});
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-        pkillIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        startService(pkillIntent);
-        wait_();
-    }
-
-    private void XStopTermux() {
-        // Stop the Termux service
-        Intent termuxServiceStopIntent = new Intent();
-        termuxServiceStopIntent.setClassName("com.termux", "com.termux.app.TermuxService");
-        termuxServiceStopIntent.setAction("com.termux.service_stop");
-        startService(termuxServiceStopIntent);
-        //wait_();
-    }
-
-    private void XStartTermux() {
-        // Start the Termux service
-        Intent termuxServiceStartIntent = new Intent();
-        termuxServiceStartIntent.setClassName("com.termux", "com.termux.app.TermuxService");
-        termuxServiceStartIntent.setAction("com.termux.service_execute");
-        startService(termuxServiceStartIntent);
-        //wait_();
-    }
-
-    private void XStartTermuxAct() {
-        // Start the Termux ACT service
-        Intent IPTVIntent = new Intent();
-        IPTVIntent.setClassName("com.Termux", "com.termux.app.TermuxActivity");
-        startActivity(IPTVIntent);
-        wait_();
-    }
-
-    private void XStartIPTV() {
-        // Start the Start IPTV service
-        Intent intentC = new Intent();
-        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
-        intentC.setAction("com.termux.RUN_COMMAND");
-        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"iptvrunner"});
-        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        startService(intentC);
-    }
-
-    private void XStartEMPTY() {
-        // Start the EMPTY
-        Intent intentCz = new Intent();
-        intentCz.setClassName("com.termux", "com.termux.app.RunCommandService");
-        intentCz.setAction("com.termux.RUN_COMMAND");
-        intentCz.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
-        intentCz.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"iptvrunner2"});
-        intentCz.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intentCz.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        intentCz.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-        startService(intentCz);
-    }
-
-    public void launchTermux() {
-        Intent intent = getPackageManager().getLaunchIntentForPackage("com.termux");
-        if (intent != null) {
-            //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // This flag is required if you're launching from outside an activity
-            //startActivity(intent);
-            Intent IPTVIntent = new Intent();
-            IPTVIntent.setClassName("com.termux", "com.termux.app.TermuxActivity");
-            startActivity(IPTVIntent);
-        } else {
-            // Termux app is not installed
-            Toast.makeText(this, "Termux app is not installed.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-
-    private int rerunCountx = 0; // Class-level variable to track the rerun count
-    private static final int MAX_RERUN_COUNTx = 2; // Maximum number of times to rerun
-
-    private void sky_rerun() {
-        Toast.makeText(this, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
-        XStartTermux();
-        // Increment the rerun count
-        rerunCountx++;
-
-        // Check if the rerun count has reached the maximum limit
-        if (rerunCountx >= MAX_RERUN_COUNTx) {
-            LMN();
-            rerunCountx = 0;
-        }
-    }
-
-    private void LMN() {
-        // Your logic for function LMN()
-        Toast.makeText(this, "Restarting after 2 reruns", Toast.LENGTH_SHORT).show();
-        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-        if (intent != null) {
-            // Finish current activity
-            finish();
-            Log.d("SkyLog", "Out Of The App");
-            // Restart the app
-            startActivity(intent);
-
-            // Exit the app
-            System.exit(0);
-        }
-    }
-
-
-
-    private void sky_exit() {
-        // Finish current activity
-        finish();
-
-        // Exit the process
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(0);
-
-        // Official killer
-        XStopTermux();
-        System.exit(0);
-    }
-
-
-    // Array to store media URLs and titles
-    String[][] mediaList = {
-        {"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", "THE CHROMA CASTER"},
-        {"http://192.168.1.91/player/143", "THE M3U URL ip"},
-        {"http://localhost:5001/player/143", "THE M3U URL local"},
-        {"https://www.youtube.com/watch?v=QPLy0vHEXSA", "THE YT WAY"}
-    };
-
-    // Variable to track the current media index
-    int currentMediaIndex = 0;
-
-    private void sky_exit2() {
-        // Increment the index to switch to the next media
-        currentMediaIndex = (currentMediaIndex + 1) % mediaList.length;
-
-        // Get the next media URL and title
-        String newMediaUrl = mediaList[currentMediaIndex][0];
-        String newTitle = mediaList[currentMediaIndex][1];
-
-        Toast.makeText(TermuxActivity.this, "Playing" + newTitle, Toast.LENGTH_SHORT).show();
-
-        // Load the new media
-//        castHelper.loadMedia(castHelper.getCastSession(), newMediaUrl, newTitle);
-    }
-
-
-
-    private void sky_getter(){
-        Intent intent = new Intent();
-        intent.setAction("com.termux.GetReceiver");
-        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
-        intent.putExtra("key", "exampleKey");
-        startActivity(intent);
-
-        // Register a receiver to get the response
-        BroadcastReceiver responseReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String key = intent.getStringExtra("key");
-                String value = intent.getStringExtra("value");
-                // Use the key and value as needed
-                Toast.makeText(TermuxActivity.this, "Server not available."+key+"---"+value, Toast.LENGTH_SHORT).show();
-            }
-        };
-
-        IntentFilter filter = new IntentFilter("com.termux.GetResponse");
-        registerReceiver(responseReceiver, filter);
-    }
-
-    private void sky_saver(){
-        Intent intent = new Intent();
-        intent.setAction("com.termux.SaveReceiver");
-        intent.setComponent(new ComponentName("com.termux", "com.termux.SkySharedPrefActivity"));
-        intent.putExtra("key", "exampleKey");
-        intent.putExtra("value", "exampleValue2");
-        startActivity(intent);
-    }
-
-
-    public void sky_terminal() {
-        TerminalView terminalView = findViewById(R.id.terminal_view);
-
-        // Change focusable properties
-        terminalView.setFocusableInTouchMode(true);
-        terminalView.setFocusable(true);
-    }
-
-
-
-    private void sky_tv() {
-        Intent intent = new Intent();
-        intent.setAction("com.termux.SkyTV");
-        intent.putExtra("call", "start");
-        intent.setPackage("com.termux");
-        startActivity(intent);
-    }
-
-    private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return result == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(this, "Storage permission is required. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-
-    private void downloadFile(String fileUrl, String extraString) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL(fileUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.connect();
-
-                    InputStream inputStream = new BufferedInputStream(connection.getInputStream());
-
-                    // Define the file name with the extra string
-                    String fileName = "playlist";
-                    if (extraString != null && !extraString.isEmpty()) {
-                        fileName += "_" + extraString;
-                    }
-                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                    ipport = preferenceManager.getKey("isLocalPORTonly");
-                    fileName += "_" + ipport;
-                    fileName += ".m3u";
-
-
-                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-                    FileOutputStream outputStream = new FileOutputStream(file);
-
-                    byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = inputStream.read(buffer)) > 0) {
-                        outputStream.write(buffer, 0, length);
-                    }
-
-                    outputStream.close();
-                    inputStream.close();
-
-                    // Update UI on the main thread
-                    String finalFileName = fileName;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(TermuxActivity.this, "Playlist downloaded to Downloads folder as " + finalFileName, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    // Update UI on the main thread
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(TermuxActivity.this, "Download failed", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }).start();
-    }
-
-    public void onDownloadButtonClick() {
-        if (checkPermission()) {
-            SkySharedPref preferenceManager = new SkySharedPref(this);
-            String isLocal = preferenceManager.getKey("server_setup_isLocal");
-
-            // Define the listeners
-            DialogInterface.OnClickListener localListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    urlport = preferenceManager.getKey("isLocalPORT");
-                    downloadUrl = urlport+"playlist.m3u";
-                    downloadFile(downloadUrl, "local");
-                }
-            };
-
-            DialogInterface.OnClickListener publicListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    String wifiIpAddress = getWifiIpAddress();
-                    SkySharedPref preferenceManager = new SkySharedPref(TermuxActivity.this);
-                    urlportonly = preferenceManager.getKey("isLocalPORTonly");
-                    downloadUrl = "http://" + wifiIpAddress + ":"+urlportonly+"/playlist.m3u";
-                    downloadFile(downloadUrl, wifiIpAddress);
-                }
-            };
-
-            if (isLocal != null && !isLocal.isEmpty()) {
-                if (isLocal.equals("Yes")) {
-                    urlport = preferenceManager.getKey("isLocalPORT");
-                    downloadUrl = urlport+"playlist.m3u";
-                    downloadFile(downloadUrl, "local");
-                } else {
-                    Utils.showAlertbox_playlist(this, localListener, publicListener);
-                }
-            } else {
-                Utils.showAlertbox_playlist(this, localListener, publicListener);
-            }
-        } else {
-            requestPermission();
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//    private void clearAppData() {
-//        try {
-//            // Clearing app data
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//                boolean success = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).clearApplicationUserData();
-//                Log.d("ClearAppData", "Clear user data success: " + success);
-//            } else {
-//                String packageName = getApplicationContext().getPackageName();
-//                Runtime runtime = Runtime.getRuntime();
-//                runtime.exec("pm clear " + packageName);
-//                Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
-//            }
-//
-//            // Restart the app
-//            Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-//            if (intent != null) {
-//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                startActivity(intent);
-//                finish(); // Optional: finish the current activity
-//            } else {
-//                Log.e("ClearAppData", "Failed to get launch intent for package: " + getPackageName());
-//            }
-//        } catch (Exception e) {
-//            Log.e("ClearAppData", "Failed to clear app data", e);
-//        }
-//    }
-
-    private void clearAppData() {
+    private void updateIpAddress() {
         try {
-            // Clearing app data for SDK version KITKAT and above
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-
-                if (activityManager != null) {
-                    boolean success = activityManager.clearApplicationUserData();
-                    Log.d("ClearAppData", "Clear user data success: " + success);
-                } else {
-                    Log.e("ClearAppData", "ActivityManager is null, unable to clear data.");
-                }
-
+            String ipAddress = getIPAddress();
+            if (ipAddress == null) {
+                ipAddressText.setText("No Network");
             } else {
-                // Clearing app data via pm clear command for older Android versions
-                String packageName = getApplicationContext().getPackageName();
-                try {
-                    Runtime.getRuntime().exec("pm clear " + packageName);
-                    Log.d("ClearAppData", "App data cleared via pm clear for package: " + packageName);
-                } catch (IOException e) {
-                    Log.e("ClearAppData", "Failed to execute pm clear command", e);
-                }
-            }
-
-            // Restart the app
-            restartApp();
-
-        } catch (Exception e) {
-            Log.e("ClearAppData", "Failed to clear app data", e);
-        }
-    }
-
-    private void restartApp() {
-        try {
-            // Get the launch intent for restarting the app
-            Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-
-            if (intent != null) {
-                // Clear all activities and restart the app from the root activity
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finishAffinity(); // Ensure all activities are finished
-            } else {
-                Log.e("ClearAppData", "Failed to get launch intent for package: " + getPackageName());
+                ipAddressText.setText(ipAddress);
             }
         } catch (Exception e) {
-            Log.e("ClearAppData", "Failed to restart the app", e);
+            ipAddressText.setText("Unavailable");
         }
     }
 
+    private String getIPAddress() {
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces =
+                java.net.NetworkInterface.getNetworkInterfaces();
+
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface networkInterface = interfaces.nextElement();
+
+                if (!networkInterface.isUp() || networkInterface.isLoopback())
+                    continue;
+
+                java.util.Enumeration<java.net.InetAddress> addresses =
+                    networkInterface.getInetAddresses();
+
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress address = addresses.nextElement();
+
+                    if (!address.isLoopbackAddress() && address instanceof java.net.Inet4Address) {
+                        return address.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private void updatePermissionStatus() {
+
+        boolean storageGranted;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            storageGranted = Environment.isExternalStorageManager();
+        } else {
+            storageGranted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        if (storageGranted) {
+            storageStatus.setText("Granted");
+            storageStatus.setTextColor(0xFF00C853);
+        } else {
+            storageStatus.setText("Not Granted");
+            storageStatus.setTextColor(0xFFFF5252);
+        }
+
+        boolean overlayGranted = Settings.canDrawOverlays(this);
+
+        if (overlayGranted) {
+            overlayStatus.setText("Granted");
+            overlayStatus.setTextColor(0xFF00C853);
+        } else {
+            overlayStatus.setText("Not Granted");
+            overlayStatus.setTextColor(0xFFFF5252);
+        }
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     @Override
     public void onStart() {
         super.onStart();
-        SkySharedPref preferenceManager = new SkySharedPref(this);
-        String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
-
-        if (serverSetupDone != null && serverSetupDone.equals("Done")) {
-            //sky_exit();
-        } else {
-            preferenceManager.setKey("tag_name", "0.121x");
-
-            preferenceManager.setKey("isLocalNOPORT", "http://localhost:");
-            preferenceManager.setKey("isLocalPORT", "http://localhost:5001/");
-            preferenceManager.setKey("isLocalPORTchannel", "live/144.m3u8");
-            preferenceManager.setKey("isLocalPORTonly", "5001");
-            preferenceManager.setKey("server_setup_isLoginCheck", "Yes");
-            preferenceManager.setKey("server_setup_isAutoboot", "No");
-            preferenceManager.setKey("server_setup_isAutobootBG", "No");
-            preferenceManager.setKey("server_setup_isLocal", "No");
-            preferenceManager.setKey("app_name", "null");
-            preferenceManager.setKey("app_launchactivity", "null");
-            preferenceManager.setKey("isExit", "noExit");
-            preferenceManager.setKey("server_setup_isEPG", "Yes");
-            preferenceManager.setKey("server_setup_isDRM", "No");
-            preferenceManager.setKey("server_setup_isGenericBanner", "No");
-            preferenceManager.setKey("server_setup_isSSH", "No");
-            preferenceManager.setKey("isDelayTime", "5");
-            preferenceManager.setKey("permissionRequestCount", "0");
-            preferenceManager.setKey("isFlagSetForMinimize", "No");
-            preferenceManager.setKey("isWEBTVconfig", "");
-            preferenceManager.setKey("versionCustScript", BuildConfig.VERSION_CUST_SCRIPT);
-
-            Utils.changeIconTOFirst(this);
-
-            Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
-            startActivity(intent);
-        }
-//        Toast.makeText(TermuxActivity.this, "Don't make us famous", Toast.LENGTH_SHORT).show();
-
-
-        String custVar = BuildConfig.VERSION_CUST_SCRIPT; //4.4
-        String versionCustScript = preferenceManager.getKey("versionCustScript"); //null or 4.3
-
-
-        //preferenceManager.setKey("versionCustScript", "4.3");
-        if (!custVar.equals(versionCustScript)) {
-            Utils.showAlertbox(this, "CTx Reset Required",
-                "To function properly, please clear the app's data.",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        preferenceManager.setKey("versionCustScript", custVar);
-                        Toast.makeText(TermuxActivity.this, "Clearing App Data", Toast.LENGTH_SHORT).show();
-                        clearAppData();
-                    }
-                });
-        }
-
-
-
-
 
         Logger.logDebug(LOG_TAG, "onStart");
 
-        //System.out.println("Error occurred while checking status code.");
         if (mIsInvalidState) return;
 
         mIsVisible = true;
@@ -1451,41 +488,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mPreferences.isTerminalMarginAdjustmentEnabled())
             addTermuxActivityRootViewGlobalLayoutListener();
 
-
         registerTermuxActivityBroadcastReceiver();
     }
-
-
-
-
-    public void onPause() {
-        super.onPause();
-        termuxActivityResume.onPause();
-
-        serverStatusChecker.stopChecking();
-        loginStatusChecker.stopChecking();
-
-//        castHelper.removeSessionManagerListener();
-    }
-
-
-
-    private int openIptvCount = 0;
-    private final int maxOpenIptvCalls = 10;
-
-
 
     @Override
     public void onResume() {
         super.onResume();
-        SkySharedPref preferenceManager = new SkySharedPref(this);
-        String serverSetupDone = preferenceManager.getKey("isServerSetupDone");
-        if (serverSetupDone != null && serverSetupDone.equals("Done")) {
-            //sky_exit();
-        } else {
-            Intent intent = new Intent(TermuxActivity.this, SetupActivity.class);
-            startActivity(intent);
-        }
+
+        startup.onResumeCheck();
 
         Logger.logVerbose(LOG_TAG, "onResume");
 
@@ -1502,139 +512,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
-
-        Button button1 = findViewById(R.id.button1);
-        button1.requestFocus();
-
-        termuxActivityResume.onResume();
-
-        serverStatusChecker.startChecking();
-        loginStatusChecker.startChecking();
-
-        startIP();
-
-//        castHelper.addSessionManagerListener();
     }
-
-
-
-
-//    public String getWifiIpAddress(Context context) {
-//        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-//        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-//        int ipAddress = wifiInfo.getIpAddress();
-//        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
-//
-//        try {
-//            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
-//            String ipAddressStr = inetAddress.getHostAddress();
-//
-//            SkySharedPref preferenceManager = new SkySharedPref(this);
-//            preferenceManager.setKey("wifi1", ipAddressStr);
-//
-//            return ipAddressStr;
-//        } catch (UnknownHostException e) {
-//            Log.e("WifiIP", "Failed to get host address", e);
-//            return null;
-//        }
-//    }
-
-    public String getWifiIpAddress(Context context) {
-        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-
-        if (wifiInfo != null && wifiInfo.getNetworkId() != -1) {
-            // Try getting Wi-Fi IP address
-            int wifiIpAddress = wifiInfo.getIpAddress();
-            byte[] wifiIpAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(wifiIpAddress).array();
-
-            try {
-                InetAddress inetAddress = InetAddress.getByAddress(wifiIpAddressBytes);
-                String wifiIpAddressStr = inetAddress.getHostAddress();
-
-                SkySharedPref preferenceManager = new SkySharedPref(context);
-                preferenceManager.setKey("wifi1", wifiIpAddressStr);
-
-                return wifiIpAddressStr;
-            } catch (UnknownHostException e) {
-                Log.e("IP", "Failed to get Wi-Fi host address", e);
-            }
-        }
-
-        // If Wi-Fi is not connected, try Ethernet
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = interfaces.nextElement();
-
-                if (!networkInterface.isLoopback() && networkInterface.isUp() &&
-                    (networkInterface.getName().contains("eth") || networkInterface.getName().contains("wlan"))) {
-
-                    Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-                    while (addresses.hasMoreElements()) {
-                        InetAddress inetAddress = addresses.nextElement();
-                        if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
-                            String ethernetIpAddressStr = inetAddress.getHostAddress();
-
-                            SkySharedPref preferenceManager = new SkySharedPref(context);
-                            preferenceManager.setKey("ethernet1", ethernetIpAddressStr);
-
-                            return ethernetIpAddressStr;
-                        }
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            Log.e("IP", "Failed to get Ethernet address", e);
-        }
-
-        // Check for mobile data connection and return localhost if active
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-        if (activeNetwork != null && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-            return "127.0.0.1";
-        }
-
-        // If neither Wi-Fi nor Ethernet nor mobile data is connected
-        return "Error";
-    }
-
-
-    public String getWifiIpAddress() {
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiManager == null) {
-            return "Wi-Fi Manager is null";
-        }
-
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        if (wifiInfo == null) {
-            return "Wi-Fi Info is null";
-        }
-
-        int ipAddress = wifiInfo.getIpAddress();
-        byte[] ipAddressBytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipAddress).array();
-
-        try {
-            InetAddress inetAddress = InetAddress.getByAddress(ipAddressBytes);
-            String ipAddressStr = inetAddress.getHostAddress();
-
-            // Save the IP address in shared preferences
-            SkySharedPref preferenceManager = new SkySharedPref(this);
-            preferenceManager.setKey("wifi2", ipAddressStr);
-
-            return ipAddressStr;
-        } catch (UnknownHostException e) {
-            Log.e("WifiIP", "Failed to get host address", e);
-            return "Unknown host exception";
-        }
-    }
-
-
-
-
-
-
-
 
     @Override
     protected void onStop() {
@@ -1661,16 +539,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (handler != null && autoDismissRunnable != null) {
-            handler.removeCallbacks(autoDismissRunnable);
-        }
-        openIptvCount = 0;
-
-        if (serverStatusChecker != null) {
-            serverStatusChecker.stopChecking();
-        }
 
         Logger.logDebug(LOG_TAG, "onDestroy");
+
+        handler.removeCallbacks(refreshRunnable);
 
         if (mIsInvalidState) return;
 
@@ -1685,7 +557,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         } catch (Exception e) {
             // ignore.
         }
-
     }
 
     @Override
@@ -1811,9 +682,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Set termux terminal view
         mTerminalView = findViewById(R.id.terminal_view);
-
-
-
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
 
         if (mTermuxTerminalViewClient != null)
@@ -1957,20 +825,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TerminalSession currentSession = getCurrentSession();
         if (currentSession == null) return;
 
-        boolean addAutoFillMenu = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AutofillManager autofillManager = getSystemService(AutofillManager.class);
-            if (autofillManager != null && autofillManager.isEnabled()) {
-                addAutoFillMenu = true;
-            }
-        }
+        boolean autoFillEnabled = mTerminalView.isAutoFillEnabled();
 
         menu.add(Menu.NONE, CONTEXT_MENU_SELECT_URL_ID, Menu.NONE, R.string.action_select_url);
         menu.add(Menu.NONE, CONTEXT_MENU_SHARE_TRANSCRIPT_ID, Menu.NONE, R.string.action_share_transcript);
         if (!DataUtils.isNullOrEmpty(mTerminalView.getStoredSelectedText()))
             menu.add(Menu.NONE, CONTEXT_MENU_SHARE_SELECTED_TEXT, Menu.NONE, R.string.action_share_selected_text);
-        if (addAutoFillMenu)
-            menu.add(Menu.NONE, CONTEXT_MENU_AUTOFILL_ID, Menu.NONE, R.string.action_autofill_password);
+        if (autoFillEnabled)
+            menu.add(Menu.NONE, CONTEXT_MENU_AUTOFILL_USERNAME, Menu.NONE, R.string.action_autofill_username);
+        if (autoFillEnabled)
+            menu.add(Menu.NONE, CONTEXT_MENU_AUTOFILL_PASSWORD, Menu.NONE, R.string.action_autofill_password);
         menu.add(Menu.NONE, CONTEXT_MENU_RESET_TERMINAL_ID, Menu.NONE, R.string.action_reset_terminal);
         menu.add(Menu.NONE, CONTEXT_MENU_KILL_PROCESS_ID, Menu.NONE, getResources().getString(R.string.action_kill_process, getCurrentSession().getPid())).setEnabled(currentSession.isRunning());
         menu.add(Menu.NONE, CONTEXT_MENU_STYLING_ID, Menu.NONE, R.string.action_style_terminal);
@@ -2001,8 +865,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             case CONTEXT_MENU_SHARE_SELECTED_TEXT:
                 mTermuxTerminalViewClient.shareSelectedText();
                 return true;
-            case CONTEXT_MENU_AUTOFILL_ID:
-                requestAutoFill();
+            case CONTEXT_MENU_AUTOFILL_USERNAME:
+                mTerminalView.requestAutoFillUsername();
+                return true;
+            case CONTEXT_MENU_AUTOFILL_PASSWORD:
+                mTerminalView.requestAutoFillPassword();
                 return true;
             case CONTEXT_MENU_RESET_TERMINAL_ID:
                 onResetTerminalSession(session);
@@ -2063,7 +930,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void showStylingDialog() {
         Intent stylingIntent = new Intent();
-        stylingIntent.setClassName(TermuxConstants.TERMUX_STYLING_PACKAGE_NAME, TermuxConstants.TERMUX_STYLING.TERMUX_STYLING_ACTIVITY_NAME);
+        stylingIntent.setClassName(TermuxConstants.TERMUX_STYLING_PACKAGE_NAME, TermuxConstants.TERMUX_STYLING_APP.TERMUX_STYLING_ACTIVITY_NAME);
         try {
             startActivity(stylingIntent);
         } catch (ActivityNotFoundException | IllegalArgumentException e) {
@@ -2082,15 +949,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         } else {
             mTerminalView.setKeepScreenOn(true);
             mPreferences.setKeepScreenOn(true);
-        }
-    }
-
-    private void requestAutoFill() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            AutofillManager autofillManager = getSystemService(AutofillManager.class);
-            if (autofillManager != null && autofillManager.isEnabled()) {
-                autofillManager.requestAutofill(mTerminalView);
-            }
         }
     }
 
@@ -2129,21 +987,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Logger.logVerbose(LOG_TAG, "onActivityResult: requestCode: " + requestCode + ", resultCode: "  + resultCode + ", data: "  + IntentUtils.getIntentString(data));
-        //if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
-        //    requestStoragePermission(true);
-        //}
-        //handleOverlayPermissionResult(requestCode);
-        //super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE_MANAGE_OVERLAY_PERMISSION) {
-            handleOverlayPermissionResult();
-        } else if (requestCode == REQUEST_CODE_INSTALL_PACKAGES_PERMISSION) {
-            handleInstallPackagesPermissionResult();}
-        else if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
+        if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
-
-
     }
 
     @Override
@@ -2153,15 +999,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                onDownloadButtonClick();
-            } else {
-                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
-
 
 
 
@@ -2313,7 +1151,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                         return;
                     case TERMUX_ACTIVITY.ACTION_REQUEST_PERMISSIONS:
                         Logger.logDebug(LOG_TAG, "Received intent to request storage permissions");
-                        requestStoragePermission(false);
+                        requestStoragePermission(true);
                         return;
                     default:
                 }

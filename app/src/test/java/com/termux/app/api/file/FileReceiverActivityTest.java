@@ -1,5 +1,7 @@
 package com.termux.app.api.file;
 
+import com.termux.app.api.file.FileReceiverActivity;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +26,8 @@ public class FileReceiverActivityTest {
 
         List<String> invalidUrls = new ArrayList<>();
         invalidUrls.add("a test with example.com");
+        invalidUrls.add("");
+        invalidUrls.add(null);
         for (String url : invalidUrls) {
             Assert.assertFalse(FileReceiverActivity.isSharedTextAnUrl(url));
         }
