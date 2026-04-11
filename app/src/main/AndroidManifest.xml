@@ -119,8 +119,8 @@
         </activity>
 
         <activity
-            android:name=".sky.ui.PlayAct"
-            android:screenOrientation="landscape"
+            android:name=".sky.ui.PluginManagerActivity"
+            android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi" />
 

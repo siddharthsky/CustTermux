@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -67,7 +66,7 @@ import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
 import com.termux.sky.TermuxController;
 import com.termux.sky.TermuxStartup;
-import com.termux.sky.ui.PlayAct;
+import com.termux.sky.ui.PluginManagerActivity;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
 import com.termux.view.TerminalView;
@@ -300,7 +299,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(TermuxActivity.this, PlayAct.class);
+                Intent intent = new Intent(TermuxActivity.this, PluginManagerActivity.class);
                 startActivity(intent);
             }
         });

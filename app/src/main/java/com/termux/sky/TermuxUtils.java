@@ -40,17 +40,17 @@ public class TermuxUtils {
     }
 
     public static void sky_update(Context context) {
-//        Intent intent = new Intent();
-//        intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
-//        intent.setAction(ACTION_RUN_COMMAND);
-//
-//        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
-//        intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"update"});
-//        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
-//        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-//        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-//
-//        context.startService(intent);
+        Intent intent = new Intent();
+        intent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intent.setAction(ACTION_RUN_COMMAND);
+
+        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"update"});
+        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+        context.startService(intent);
 
         Log.d("SkyLog","skyUpdate Demo");
     }
