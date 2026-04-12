@@ -16,12 +16,18 @@ import java.util.List;
 
 public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 
+    public interface OnDeleteClick {
+        void onDelete(Plugin plugin, int position);
+    }
+
     List<Plugin> list;
     Context ctx;
+    OnDeleteClick deleteListener;
 
-    public PluginAdapter(Context ctx, List<Plugin> list) {
+    public PluginAdapter(Context ctx, List<Plugin> list, OnDeleteClick listener) {
         this.ctx = ctx;
         this.list = list;
+        this.deleteListener = listener;
     }
 
     @NonNull
@@ -39,7 +45,6 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         h.name.setText(p.title);
         h.playlist.setText(p.playlist);
 
-        // 🔥 status check
         new Thread(() -> {
             boolean run = PluginUtils.isRunning(p.playlist);
 
@@ -50,7 +55,6 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 
         }).start();
 
-        // 🔥 copy playlist
         h.playlist.setOnClickListener(v -> {
             ClipboardManager cm =
                 (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -59,7 +63,6 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             Toast.makeText(ctx, "Copied", Toast.LENGTH_SHORT).show();
         });
 
-        // 🔥 start/stop
         h.toggle.setOnClickListener(v -> {
             new Thread(() -> {
                 boolean run = PluginUtils.isRunning(p.playlist);
@@ -72,11 +75,10 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             }).start();
         });
 
-        // 🔥 delete
         h.delete.setOnClickListener(v -> {
-            list.remove(pos);
-            PluginStorage.save(ctx, list);
-            notifyDataSetChanged();
+            if (deleteListener != null) {
+                deleteListener.onDelete(p, h.getAdapterPosition());
+            }
         });
     }
 

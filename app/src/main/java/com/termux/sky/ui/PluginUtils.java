@@ -3,6 +3,7 @@ package com.termux.sky.ui;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 public class PluginUtils {
@@ -14,6 +15,7 @@ public class PluginUtils {
             Plugin p = new Plugin();
             p.title = o.getString("title");
             p.repo = o.getString("repo");
+            p.bin_download = o.getString("bin_download");
             p.port = o.getInt("port");
             p.playlist = o.getString("playlist");
             p.start = o.getString("start");
@@ -26,13 +28,24 @@ public class PluginUtils {
         }
     }
 
-    // 🔥 Check running (like curl)
     public static boolean isRunning(String playlist) {
         try {
-            String base = playlist.replace("/playlist.php", "");
-            URL url = new URL(base);
+            URL url = new URL(playlist);
+            URI uri = url.toURI();
 
-            HttpURLConnection c = (HttpURLConnection) url.openConnection();
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            int port = uri.getPort();
+
+            String baseUrl = scheme + "://" + host;
+            if (port != -1) {
+                baseUrl += ":" + port;
+            }
+            baseUrl += "/";
+
+            URL checkUrl = new URL(baseUrl);
+
+            HttpURLConnection c = (HttpURLConnection) checkUrl.openConnection();
             c.setConnectTimeout(1000);
             c.connect();
 
@@ -43,7 +56,6 @@ public class PluginUtils {
         }
     }
 
-    // 🔥 Run shell command
     public static void run(String cmd) {
         try {
             Runtime.getRuntime().exec(new String[]{"sh","-c",cmd});

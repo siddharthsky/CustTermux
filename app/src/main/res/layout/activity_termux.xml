@@ -56,6 +56,22 @@
                 android:lineSpacingExtra="2dp"
                 android:tooltipText="Restart Server + IPTV" />
 
+            <!-- DEBUG -->
+            <Button
+                android:id="@+id/button5"
+                android:layout_width="100dp"
+                android:layout_height="62dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/button_card"
+                android:gravity="center"
+                android:text="📦\nPlugins"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:lineSpacingExtra="2dp"
+                android:tooltipText="DEBUG App" />
+
             <!-- More -->
             <Button
                 android:id="@+id/button3"
@@ -72,21 +88,7 @@
                 android:lineSpacingExtra="2dp"
                 android:tooltipText="Extra Options" />
 
-            <!-- DEBUG -->
-            <Button
-                android:id="@+id/button5"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
-                android:background="@drawable/button_card"
-                android:gravity="center"
-                android:text="💎\nDEBUG"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
-                android:tooltipText="DEBUG App" />
+
 
             <!-- Exit -->
             <Button

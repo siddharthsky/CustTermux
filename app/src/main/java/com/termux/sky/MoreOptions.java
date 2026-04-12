@@ -21,7 +21,7 @@ public class MoreOptions {
                 builder.setTitle("Choose an option");
 
                 String[] options = {
-                    "Update JioTV Go",
+//                    "Update JioTV Go",
                     "Switch to Terminal"
                 };
 
@@ -40,11 +40,11 @@ public class MoreOptions {
                     public void onClick(DialogInterface dialog, int which) {
 
                         switch (selectedOption[0]) {
-                            case 0:
+                            case 1:
                                 TermuxUtils.sky_update(context);
                                 break;
 
-                            case 1:
+                            case 0:
                                 TermuxUtils.terminal_switch_dialog(context);
                                 break;
 
