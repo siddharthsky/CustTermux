@@ -24,7 +24,8 @@ public class TxBootReceiver extends BroadcastReceiver {
                 serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
                 serviceIntent.setAction("com.termux.RUN_COMMAND");
 
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.init_run.sh");
+                serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutilz.sh");
+                serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--run", "boot"});
                 serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
                 serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
                 serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "1");
