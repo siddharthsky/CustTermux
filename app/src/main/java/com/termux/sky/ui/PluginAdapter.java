@@ -40,17 +40,26 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     @Override
     public void onBindViewHolder(@NonNull VH h, int pos) {
 
-        Plugin p = list.get(pos);
+        Plugin current = list.get(pos);
 
-        h.name.setText(p.title);
-        h.playlist.setText(p.playlist);
+        h.name.setText(current.title);
+        h.playlist.setText(current.playlist);
 
         new Thread(() -> {
-            boolean run = PluginUtils.isRunning(p.playlist);
 
-            ((Activity)ctx).runOnUiThread(() -> {
-                h.status.setText(run ? "Running" : "Stopped");
-                h.toggle.setText(run ? "Stop" : "Start");
+            String checkUrl = (current.server_check_url != null && !current.server_check_url.isEmpty())
+                ? current.server_check_url
+                : current.playlist;
+
+            boolean run = PluginUtils.isRunning(checkUrl);
+
+            ((Activity) ctx).runOnUiThread(() -> {
+                if (h.getAdapterPosition() != RecyclerView.NO_POSITION &&
+                    list.get(h.getAdapterPosition()) == current) {
+
+                    h.status.setText(run ? "Running" : "Stopped");
+//                    h.toggle.setText(run ? "Stop" : "Start");
+                }
             });
 
         }).start();
@@ -59,25 +68,25 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             ClipboardManager cm =
                 (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
 
-            cm.setPrimaryClip(ClipData.newPlainText("url", p.playlist));
+            cm.setPrimaryClip(ClipData.newPlainText("url", current.playlist));
             Toast.makeText(ctx, "Copied", Toast.LENGTH_SHORT).show();
         });
 
-        h.toggle.setOnClickListener(v -> {
-            new Thread(() -> {
-                boolean run = PluginUtils.isRunning(p.playlist);
-
-                if (!run) {
-                    PluginUtils.run(p.start);
-                } else {
-                    PluginUtils.run("pkill -f " + p.port);
-                }
-            }).start();
-        });
+//        h.toggle.setOnClickListener(v -> {
+//            new Thread(() -> {
+//                boolean run = PluginUtils.isRunning(current.playlist);
+//
+//                if (!run) {
+//                    PluginUtils.run(current.start);
+//                } else {
+//                    PluginUtils.run("pkill -f " + current.port);
+//                }
+//            }).start();
+//        });
 
         h.delete.setOnClickListener(v -> {
             if (deleteListener != null) {
-                deleteListener.onDelete(p, h.getAdapterPosition());
+                deleteListener.onDelete(current, h.getAdapterPosition());
             }
         });
     }
@@ -88,7 +97,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist;
-        Button toggle;
+//        Button toggle;
         Button delete;
 
         VH(View v) {
@@ -96,7 +105,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             name = v.findViewById(R.id.pluginName);
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
-            toggle = v.findViewById(R.id.toggleBtn);
+//            toggle = v.findViewById(R.id.toggleBtn);
             delete = v.findViewById(R.id.deleteBtn);
         }
     }

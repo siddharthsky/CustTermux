@@ -41,11 +41,11 @@ public class MoreOptions {
 
                         switch (selectedOption[0]) {
                             case 1:
-                                TermuxUtils.sky_update(context);
+                                TermuxUtilz.sky_update(context);
                                 break;
 
                             case 0:
-                                TermuxUtils.terminal_switch_dialog(context);
+                                TermuxUtilz.terminal_switch_dialog(context);
                                 break;
 
                             default:

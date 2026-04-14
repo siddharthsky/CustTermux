@@ -70,7 +70,7 @@
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
                 android:lineSpacingExtra="2dp"
-                android:tooltipText="DEBUG App" />
+                android:tooltipText="Manage plugins" />
 
             <!-- More -->
             <Button

@@ -1,0 +1,32 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Focused (TV) -->
+    <item android:state_focused="true">
+        <shape>
+            <corners android:radius="12dp"/>
+
+            <gradient
+                android:startColor="#0EA5E9"
+                android:endColor="#2563EB"
+                android:angle="45"/>
+
+            <stroke
+                android:width="3dp"
+                android:color="#60A5FA"/>
+        </shape>
+    </item>
+
+    <!-- Default -->
+    <item>
+        <shape>
+            <corners android:radius="12dp"/>
+
+            <gradient
+                android:startColor="#0EA5E9"
+                android:endColor="#2563EB"
+                android:angle="90"/>
+
+        </shape>
+    </item>
+
+</selector>

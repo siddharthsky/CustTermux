@@ -1,0 +1,22 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Focused (TV) -->
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#1e293b"/>
+            <stroke
+                android:width="3dp"
+                android:color="#FFD700"/> <!-- gold -->
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+
+    <!-- Default -->
+    <item>
+        <shape>
+            <solid android:color="#1e293b"/>
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+
+</selector>

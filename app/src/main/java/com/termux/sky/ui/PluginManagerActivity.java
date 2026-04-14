@@ -2,14 +2,16 @@ package com.termux.sky.ui;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.result.*;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.*;
 
@@ -25,7 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -107,11 +108,15 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void showPortInputDialog() {
 
-        android.widget.EditText input = new android.widget.EditText(this);
-        input.setHint("Enter port (e.g. 8383)");
+        EditText input = new EditText(this);
+        input.setHint("Enter plugin code (4-digits)");
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        input.setFocusable(true);
+        input.setFocusableInTouchMode(true);
+        input.setShowSoftInputOnFocus(true);
+
+        AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Add Plugin")
             .setView(input)
             .setPositiveButton("Load", (d, w) -> {
@@ -126,7 +131,23 @@ public class PluginManagerActivity extends AppCompatActivity {
                 fetchPluginFromServer(port);
             })
             .setNegativeButton("Cancel", null)
-            .show();
+            .create();
+
+        dialog.setOnShowListener(d -> {
+
+            input.requestFocus();
+
+            input.postDelayed(() -> {
+
+                InputMethodManager imm =
+                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+
+                imm.showSoftInput(input, InputMethodManager.SHOW_FORCED);
+
+            }, 150);
+        });
+
+        dialog.show();
     }
 
     private void fetchPluginFromServer(String port) {
@@ -172,7 +193,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                             }
                         }
 
-                        initPlugin(p.port, p.repo, p.start, p.bin_download, Arrays.toString(p.pkg));
+                        initPlugin(p.port, p.repo, p.start, p.bin_download, p.post_install_script, Arrays.toString(p.pkg));
 
                         list.add(p);
                         PluginStorage.save(this, list);
@@ -194,7 +215,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     public void initPlugin(int port, String repoUrl, String startComm,
-                           String binDownloadURL, String pkgList) {
+                           String binDownloadURL, String postInstallScript, String pkgList ) {
 
         String folderName = String.valueOf(port);
 
@@ -211,12 +232,16 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                 if (binDownloadURL != null && !binDownloadURL.trim().isEmpty()) {
 
-
-
                     File binFile = new File(pluginDir, "run.bin");
 
                     showProgress("Downloading binary...");
-                    downloadFile(binDownloadURL, binFile);
+
+                    try {
+                        downloadFile(binDownloadURL, binFile);
+                    } catch (Exception e) {
+                        handleError("Binary download failed", e);
+                        return;
+                    }
 
                     binFile.setExecutable(true);
 
@@ -224,38 +249,97 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                     hideProgress();
 
+                    if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
+                        postInstall(postInstallScript, pluginDir, port);
+                    }
 
-                    Log.d("Plugin", "Binary plugin installed: " + pluginDir.getAbsolutePath());
                     return;
                 }
-
-
 
                 String zipUrl = repoUrl.replace(".git", "") + "/archive/refs/heads/main.zip";
 
                 showProgress("Downloading repository...");
 
-                downloadZip(zipUrl, zipFile);
+                try {
+                    downloadZip(zipUrl, zipFile);
+                } catch (Exception e) {
+                    handleError("Repository download failed", e);
+                    return;
+                }
 
                 hideProgress();
 
                 showProgress("Extracting...");
 
-                fullUnzip(zipFile, pluginDir);
+                try {
+                    fullUnzip(zipFile, pluginDir);
+                } catch (Exception e) {
+                    handleError("Extraction failed", e);
+                    return;
+                }
 
                 createRunScript(pluginDir, port, startComm);
 
                 hideProgress();
 
-
-                Log.d("Plugin", "Repo plugin installed: " + pluginDir.getAbsolutePath());
+                if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
+                    postInstall(postInstallScript, pluginDir, port);
+                }
 
             } catch (Exception e) {
-                Log.e("PluginManager", "Plugin install error:", e);
+                handleError("Plugin install failed", e);
             }
         }).start();
     }
 
+    private void postInstall(String postInstallScript, File pluginDir, int port) {
+        new Thread(() -> {
+            try {
+                File postFile = new File(pluginDir, ".post_install_script.sh");
+
+                showProgress("Downloading script...");
+
+                downloadFile(postInstallScript, postFile);
+
+                postFile.setExecutable(true);
+
+                hideProgress();
+
+                run_script2(this, pluginDir, port);
+
+            } catch (Exception e) {
+                handleError("Post-install script failed", e);
+            }
+        }).start();
+    }
+
+    private void run_script2(PluginManagerActivity pluginManagerActivity, File pluginDir, int port) {
+        String TERMUX_PACKAGE = "com.termux";
+        String TERMUX_SERVICE = "com.termux.app.RunCommandService";
+        String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
+
+
+        String HOME_PATH = pluginDir.getAbsolutePath();
+
+        File scriptFile = new File(pluginDir, ".post_install_script.sh");
+        String SCRIPT_PATH = scriptFile.getAbsolutePath();
+        String port_no = String.valueOf(port);
+
+        Intent intent = new Intent();
+        intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
+        intent.setAction(ACTION_RUN_COMMAND);
+
+        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--port", port_no});
+        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+        pluginManagerActivity.startService(intent);
+
+        Log.d("SkyLog","skyUpdate Demo");
+
+    }
 
 
     private void downloadZip(String urlStr, File output) throws Exception {
@@ -420,32 +504,65 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void downloadFile(String urlStr, File output) throws Exception {
 
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.connect();
-
-        int fileLength = conn.getContentLength();
-
-        InputStream in = conn.getInputStream();
-        FileOutputStream out = new FileOutputStream(output);
-
-        byte[] buffer = new byte[8192];
-        int len;
-        int total = 0;
-
-        while ((len = in.read(buffer)) != -1) {
-            total += len;
-
-            if (fileLength > 0) {
-                int progress = (int) ((total * 100L) / fileLength);
-                updateProgress(progress);
-            }
-
-            out.write(buffer, 0, len);
+        // ✅ Skip if marked empty
+        if (urlStr == null || urlStr.trim().equals("empty_url")) {
+            Log.d("Download", "Skipping download (empty_url)");
+            return;
         }
 
-        out.close();
-        in.close();
+
+        HttpURLConnection conn = null;
+        InputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            URL url = new URL(urlStr);
+            conn = (HttpURLConnection) url.openConnection();
+
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(10000);
+            conn.connect();
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new Exception("Server returned: " + responseCode);
+            }
+
+            int fileLength = conn.getContentLength();
+
+            in = conn.getInputStream();
+            out = new FileOutputStream(output);
+
+            byte[] buffer = new byte[8192];
+            int len;
+            int total = 0;
+
+            while ((len = in.read(buffer)) != -1) {
+                total += len;
+
+                if (fileLength > 0) {
+                    int progress = (int) ((total * 100L) / fileLength);
+                    updateProgress(progress);
+                }
+
+                out.write(buffer, 0, len);
+            }
+
+        } catch (Exception e) {
+
+            if (output.exists()) {
+                output.delete();
+            }
+
+            throw e;
+
+        } finally {
+
+            try { if (out != null) out.close(); } catch (Exception ignored) {}
+            try { if (in != null) in.close(); } catch (Exception ignored) {}
+
+            if (conn != null) conn.disconnect();
+        }
     }
 
     private void showProgress(String title) {
@@ -488,9 +605,20 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void hideProgress() {
         runOnUiThread(() -> {
-            if (progressDialog != null && progressDialog.isShowing()) {
-                progressDialog.dismiss();
-            }
+            try {
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void handleError(String message, Exception e) {
+        Log.e("PluginManager", message, e);
+
+        runOnUiThread(() -> {
+            hideProgress();
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         });
     }
 }

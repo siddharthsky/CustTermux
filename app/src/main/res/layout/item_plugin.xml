@@ -1,7 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#1e293b"
+    android:background="@drawable/tv_plugin_card_bg"
     android:orientation="vertical"
     android:padding="12dp"
     android:layout_marginBottom="10dp">
@@ -24,6 +24,8 @@
         android:id="@+id/pluginPlaylist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:focusable="true"
+        android:text="http://localhost:111/playlist.m3u"
         android:textColor="#38bdf8"/>
 
     <LinearLayout
@@ -36,15 +38,11 @@
             android:id="@+id/deleteBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/tv_plugin_item_btns"
+            android:padding="10dp"
+            android:focusable="true"
             android:text="Remove" />
 
-        <Button
-            android:id="@+id/toggleBtn"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_delete"
-            android:layout_marginStart="16dp"
-            android:visibility="gone"/>
     </LinearLayout>
 
 </LinearLayout>

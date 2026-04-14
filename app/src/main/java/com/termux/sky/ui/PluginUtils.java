@@ -1,5 +1,7 @@
 package com.termux.sky.ui;
 
+import android.util.Log;
+
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
@@ -15,41 +17,50 @@ public class PluginUtils {
             Plugin p = new Plugin();
             p.title = o.getString("title");
             p.repo = o.getString("repo");
-            p.bin_download = o.getString("bin_download");
+            p.bin_download = o.has("bin_download") ? o.getString("bin_download") : null;
             p.port = o.getInt("port");
             p.playlist = o.getString("playlist");
+            p.server_check_url = o.has("server_check_url") ? o.getString("server_check_url") : null;
+            p.post_install_script = o.has("post_install_script") ? o.getString("post_install_script") : null;
             p.start = o.getString("start");
 
             return p;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.d("PluginUtils", "Error: ", e);
             return null;
         }
     }
 
-    public static boolean isRunning(String playlist) {
+    public static boolean isRunning(String urlStr) {
         try {
-            URL url = new URL(playlist);
-            URI uri = url.toURI();
+            URL url = new URL(urlStr);
+            HttpURLConnection c = (HttpURLConnection) url.openConnection();
 
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-            int port = uri.getPort();
+            c.setConnectTimeout(1500);
+            c.setReadTimeout(1500);
+            c.setInstanceFollowRedirects(true);
+            c.setRequestProperty("User-Agent", "Mozilla/5.0");
 
-            String baseUrl = scheme + "://" + host;
-            if (port != -1) {
-                baseUrl += ":" + port;
+            // Try HEAD first
+            c.setRequestMethod("HEAD");
+
+            int code = c.getResponseCode();
+
+            // fallback if HEAD not supported
+            if (code == 405 || code == 403) {
+                c.disconnect();
+
+                c = (HttpURLConnection) url.openConnection();
+                c.setConnectTimeout(1500);
+                c.setReadTimeout(1500);
+                c.setRequestMethod("GET");
+                c.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+                code = c.getResponseCode();
             }
-            baseUrl += "/";
 
-            URL checkUrl = new URL(baseUrl);
-
-            HttpURLConnection c = (HttpURLConnection) checkUrl.openConnection();
-            c.setConnectTimeout(1000);
-            c.connect();
-
-            return c.getResponseCode() == 200;
+            return code >= 200 && code < 400;
 
         } catch (Exception e) {
             return false;
@@ -60,7 +71,7 @@ public class PluginUtils {
         try {
             Runtime.getRuntime().exec(new String[]{"sh","-c",cmd});
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.d("PluginUtils", "Error: ", e);
         }
     }
 }

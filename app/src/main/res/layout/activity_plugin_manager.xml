@@ -1,47 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#0f172a">
+    android:background="#0F172A">
 
     <!-- Top Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="60dp"
         android:background="#111827"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="20dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Plugin Manager"
-            android:textColor="#ffffff"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
-    </LinearLayout>
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-    <!-- Buttons -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
+        <Button
+            android:id="@+id/btnAdd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="10dp">
-
-            <Button
-                android:id="@+id/btnAdd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+ Add Plugin"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-    </HorizontalScrollView>
+            android:text="+ Add Plugin"
+            android:background="@drawable/tv_plugin_add_btn"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:focusable="true" />
+    </LinearLayout>
 
     <!-- Plugin List -->
     <androidx.recyclerview.widget.RecyclerView
@@ -49,6 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="10dp"/>
+        android:padding="12dp"
+        android:clipToPadding="false" />
 
 </LinearLayout>

@@ -15,7 +15,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.termux.R;
 import com.termux.view.TerminalView;
 
-public class TermuxUtils {
+public class TermuxUtilz {
 
     // Termux constants
     private static final String TERMUX_PACKAGE = "com.termux";
@@ -88,5 +88,21 @@ public class TermuxUtils {
             terminalView.setFocusable(true);
             terminalView.requestFocus();
         }
+    }
+
+    public static void run_script(Context context) {
+        Intent intent = new Intent();
+        intent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intent.setAction(ACTION_RUN_COMMAND);
+
+        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"update"});
+        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+        context.startService(intent);
+
+        Log.d("SkyLog","skyUpdate Demo");
     }
 }
