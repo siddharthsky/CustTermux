@@ -21,8 +21,8 @@ public class MoreOptions {
                 builder.setTitle("Choose an option");
 
                 String[] options = {
-//                    "Update JioTV Go",
-                    "Switch to Terminal"
+                    "Switch to Terminal",
+                    "Auto start on boot"
                 };
 
                 final int[] selectedOption = {-1};
@@ -40,12 +40,13 @@ public class MoreOptions {
                     public void onClick(DialogInterface dialog, int which) {
 
                         switch (selectedOption[0]) {
-                            case 1:
-                                TermuxUtilz.sky_update(context);
-                                break;
 
                             case 0:
                                 TermuxUtilz.terminal_switch_dialog(context);
+                                break;
+
+                            case 1:
+                                TermuxUtilz.showAutoStartDialog(context);
                                 break;
 
                             default:

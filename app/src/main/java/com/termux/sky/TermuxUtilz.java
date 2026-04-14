@@ -105,4 +105,36 @@ public class TermuxUtilz {
 
         Log.d("SkyLog","skyUpdate Demo");
     }
+
+    static void showAutoStartDialog(Context context) {
+
+        String[] choices = {"Yes", "No"};
+        final int[] selected = {-1};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+            context,
+            R.style.CustomAlertDialogTheme
+        );
+
+        builder.setTitle("Auto start on boot?");
+
+        builder.setSingleChoiceItems(choices, -1, (dialog, which) -> {
+            selected[0] = which;
+        });
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+
+            boolean enable = selected[0] == 0; // 0 = Yes, 1 = No
+
+            SkySharedPref.setAutoStart(context, enable);
+
+            String msg = enable ? "Enabled on boot" : "Disabled on boot";
+
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        });
+
+        builder.setNegativeButton("Cancel", (d, w) -> d.dismiss());
+
+        builder.show();
+    }
 }
