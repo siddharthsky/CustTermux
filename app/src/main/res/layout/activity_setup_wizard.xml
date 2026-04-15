@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B0F14"
+    android:orientation="vertical"
+    android:padding="18dp">
+
+    <!-- Card Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <ViewFlipper
+            android:id="@+id/flipper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- STEP 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👋 Welcome"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome to your custom Termux fork setup wizard."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- STEP 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚡ Demo Feature 1"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Plugin loader demo functionality."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- STEP 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔧 Demo Feature 2"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Initialize shell environment."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- STEP 4 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🚀 Demo Feature 3"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Background service + auto start demo."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+            <!-- STEP 5 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎉 Finish Setup"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="You're ready to use your Termux fork."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+
+        </ViewFlipper>
+
+        <!-- Progress Dots -->
+        <LinearLayout
+            android:id="@+id/dots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp"/>
+    </LinearLayout>
+
+    <!-- Buttons (TV + Mobile optimized) -->
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingTop="10dp">
+
+        <!-- BACK -->
+        <Button
+            android:id="@+id/btnBack"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Back"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/tv_plugin_item_btns"
+            android:focusable="true"
+            android:nextFocusRight="@id/btnNext"
+            android:visibility="gone"
+            android:minWidth="120dp" />
+
+        <!-- NEXT -->
+        <Button
+            android:id="@+id/btnNext"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Next"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/tv_plugin_add_btn"
+            android:layout_marginStart="10dp"
+            android:focusable="true"
+            android:nextFocusLeft="@id/btnBack"
+            android:minWidth="120dp"/>
+    </LinearLayout>
+
+</LinearLayout>

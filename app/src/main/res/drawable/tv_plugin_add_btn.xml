@@ -12,11 +12,11 @@
 
             <stroke
                 android:width="3dp"
-                android:color="#60A5FA"/>
+                android:color="#FFD700"/>
         </shape>
     </item>
 
-    <!-- Default -->
+    <!-- Default  FFD700-->
     <item>
         <shape>
             <corners android:radius="12dp"/>

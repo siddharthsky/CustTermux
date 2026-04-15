@@ -124,6 +124,12 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi" />
 
+        <activity
+            android:name=".sky.wizard.SetupWizardActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true">
+        </activity>
+
         <activity-alias
             android:name=".app.api.file.FileShareReceiverActivity"
             android:exported="true"

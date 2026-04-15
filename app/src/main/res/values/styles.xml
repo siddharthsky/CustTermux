@@ -32,4 +32,25 @@
         <item name="android:textColor">#ffffff</item>
     </style>
 
+    <style name="Card">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">#111827</item>
+        <item name="android:padding">22dp</item>
+        <item name="android:layout_margin">10dp</item>
+        <item name="android:elevation">6dp</item>
+    </style>
+
+    <style name="Title">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="SubTitle">
+        <item name="android:textColor">#9CA3AF</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+
 </resources>
