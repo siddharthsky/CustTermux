@@ -70,6 +70,8 @@ import com.termux.sky.TermuxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.ui.PluginManagerActivity;
 import com.termux.sky.ui.WebViewPlayerActivity;
+import com.termux.sky.wizard.AutoAppRedirectDialog;
+import com.termux.sky.wizard.LaunchFileObserver;
 import com.termux.sky.wizard.SetupWizardActivity;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
@@ -83,6 +85,7 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -223,6 +226,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TextView storageStatus;
     private TextView overlayStatus;
 
+    private AutoAppRedirectDialog redirect;
+    private boolean redirectShown = false;
+
+    private LaunchFileObserver launchObserver;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -245,6 +252,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        redirectShown = (savedInstanceState != null && savedInstanceState.getBoolean("redirectShown", false));
+
 
         startup = new TxStartupChecker(this);
         startup.startPermissionFlow();
@@ -532,6 +543,16 @@ private final Runnable refreshRunnable = new Runnable() {
 
         startup.onResumeCheck();
 
+        File homeDir = new File(getFilesDir(), "home");
+        File launchFile = new File(homeDir, ".launch");
+
+        if (launchFile.exists()) {
+            showRedirectDialog();
+        }
+
+
+
+
         Logger.logVerbose(LOG_TAG, "onResume");
 
         if (mIsInvalidState) return;
@@ -549,9 +570,58 @@ private final Runnable refreshRunnable = new Runnable() {
         mIsOnResumeAfterOnCreate = false;
     }
 
+    private void showRedirectDialog() {
+        runOnUiThread(() -> {
+            if (redirect == null) {
+                redirect = new AutoAppRedirectDialog();
+            }
+
+            if (!redirect.isShowing()) {
+                redirect.show(TermuxActivity.this);
+            }
+        });
+    }
+
+    private void dismissRedirectDialog() {
+        try {
+            if (redirect != null && redirect.isShowing()) {
+                redirect.cancel();
+            }
+        } catch (Exception ignored) {}
+
+        redirect = null;
+    }
+
     @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (launchObserver != null) {
+            launchObserver.stopWatching();
+            launchObserver = null;
+        }
+
+        dismissRedirectDialog();
+    }
+
+    public void showRedirectOnce() {
+        if (redirectShown) return;
+
+        redirectShown = true;
+
+        runOnUiThread(() -> {
+            if (redirect == null) {
+                redirect = new AutoAppRedirectDialog();
+            }
+            redirect.show(TermuxActivity.this);
+        });
+    }
+
+        @Override
     protected void onStop() {
         super.onStop();
+
+        dismissRedirectDialog();
 
         Logger.logDebug(LOG_TAG, "onStop");
 
@@ -577,6 +647,11 @@ private final Runnable refreshRunnable = new Runnable() {
 
         Logger.logDebug(LOG_TAG, "onDestroy");
 
+        if (launchObserver != null) {
+            launchObserver.stopWatching();
+            launchObserver = null;
+        }
+
         handler.removeCallbacks(refreshRunnable);
 
         if (mIsInvalidState) return;
@@ -596,11 +671,14 @@ private final Runnable refreshRunnable = new Runnable() {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+
         Logger.logVerbose(LOG_TAG, "onSaveInstanceState");
 
-        super.onSaveInstanceState(savedInstanceState);
         saveTerminalToolbarTextInput(savedInstanceState);
         savedInstanceState.putBoolean(ARG_ACTIVITY_RECREATED, true);
+
+        savedInstanceState.putBoolean("redirectShown", redirectShown);
     }
 
 

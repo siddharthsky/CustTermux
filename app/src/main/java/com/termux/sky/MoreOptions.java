@@ -23,8 +23,8 @@ public class MoreOptions {
                 builder.setTitle("Choose an option");
 
                 String[] options = {
-                    "IPTV manager",
-                    "Auto start on boot",
+                    "IPTV Manager",
+                    "Auto-start on boot",
                     "Switch to Terminal"
                 };
 

@@ -11,41 +11,61 @@ public class TxBootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
 
-            boolean enabled = SkySharedPref.isAutoStartEnabled(context);
+        if (intent == null || intent.getAction() == null) return;
 
-            if (enabled) {
-                Log.d("BootReceiver", "Starting server in background");
+        if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
 
-                Toast.makeText(context, "[CTx] Running Server in Background", Toast.LENGTH_SHORT).show();
+        String mode = SkySharedPref.getAutoStartMode(context);
 
-                Intent serviceIntent = new Intent();
-                serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
-                serviceIntent.setAction("com.termux.RUN_COMMAND");
+        Log.d("BootReceiver", "AutoStart mode: " + mode);
 
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutilz.sh");
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--run", "boot"});
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-                serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "1");
+        switch (mode) {
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent);
-                } else {
-                    context.startService(serviceIntent);
-                }
+            case "background":
+                startTermuxService(context, true);
+                break;
 
-            }
+            case "foreground":
+                startTermuxActivity(context);
+                break;
 
-//            else {
-//                Log.d("BootReceiver", "Starting server in foreground");
-//                Toast.makeText(context, "[CTx] Running Server in Foreground", Toast.LENGTH_SHORT).show();
-//                Intent activityIntent = new Intent(context, TermuxActivity.class);
-//                activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                context.startActivity(activityIntent);
-//            }
-
+            case "disabled":
+            default:
+                Log.d("BootReceiver", "AutoStart disabled");
+                break;
         }
+    }
+
+    private void startTermuxService(Context context, boolean background) {
+
+        Intent serviceIntent = new Intent();
+        serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        serviceIntent.setAction("com.termux.RUN_COMMAND");
+
+        serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH",
+            "/data/data/com.termux/files/home/.skyutilz.sh");
+
+        serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS",
+            new String[]{"--run", "boot"});
+
+        serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR",
+            "/data/data/com.termux/files/home");
+
+        serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", background);
+        serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "1");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent);
+        } else {
+            context.startService(serviceIntent);
+        }
+    }
+
+    private void startTermuxActivity(Context context) {
+        Intent activityIntent = new Intent();
+        activityIntent.setClassName("com.termux", "com.termux.app.TermuxActivity");
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(activityIntent);
     }
 }

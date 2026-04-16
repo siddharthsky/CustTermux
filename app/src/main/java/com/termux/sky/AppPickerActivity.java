@@ -119,15 +119,9 @@ public class AppPickerActivity extends AppCompatActivity {
 
             Collections.sort(tempList, (a, b) -> a.appName.compareToIgnoreCase(b.appName));
 
-//            tempList.add(0, new AppModel(
-//                "⭐ Web TV",
-//                "web_tv",
-//                "custom_activity"
-//            ));
-
             handler.post(() -> {
                 progressBar.setVisibility(View.GONE);
-                adapter.submitList(tempList); // ✅ DiffUtil used here
+                adapter.submitList(tempList);
             });
         });
     }

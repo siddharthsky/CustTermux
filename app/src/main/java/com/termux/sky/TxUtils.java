@@ -108,8 +108,32 @@ public class TxUtils {
 
     static void showAutoStartDialog(Context context) {
 
-        String[] choices = {"Yes", "No"};
-        final int[] selected = {-1};
+        String[] choices = {
+            "Run on boot (in background)",
+            "Run on boot (open app)",
+            "Disable auto start"
+        };
+
+        String mode = SkySharedPref.getAutoStartMode(context);
+
+        int defaultIndex;
+
+        switch (mode) {
+            case "background":
+                defaultIndex = 0;
+                break;
+
+            case "foreground":
+                defaultIndex = 1;
+                break;
+
+            case "disabled":
+            default:
+                defaultIndex = 2;
+                break;
+        }
+
+        final int[] selected = {defaultIndex};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(
             context,
@@ -118,19 +142,27 @@ public class TxUtils {
 
         builder.setTitle("Auto start on boot?");
 
-        builder.setSingleChoiceItems(choices, -1, (dialog, which) -> {
+        builder.setSingleChoiceItems(choices, selected[0], (dialog, which) -> {
             selected[0] = which;
         });
 
         builder.setPositiveButton("Save", (dialog, which) -> {
 
-            boolean enable = selected[0] == 0; // 0 = Yes, 1 = No
+            if (selected[0] == 0) {
+                SkySharedPref.setAutoStart(context, true);
+                SkySharedPref.setAutoStartMode(context, "background");
+                Toast.makeText(context, "Enabled on boot (Background)", Toast.LENGTH_LONG).show();
 
-            SkySharedPref.setAutoStart(context, enable);
+            } else if (selected[0] == 1) {
+                SkySharedPref.setAutoStart(context, true);
+                SkySharedPref.setAutoStartMode(context, "foreground");
+                Toast.makeText(context, "Enabled on boot (Foreground)", Toast.LENGTH_LONG).show();
 
-            String msg = enable ? "Enabled on boot" : "Disabled on boot";
-
-            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+            } else {
+                SkySharedPref.setAutoStart(context, false);
+                SkySharedPref.setAutoStartMode(context, "disabled");
+                Toast.makeText(context, "Disabled auto start", Toast.LENGTH_LONG).show();
+            }
         });
 
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss());

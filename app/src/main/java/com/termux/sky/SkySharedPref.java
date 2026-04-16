@@ -25,4 +25,18 @@ public class SkySharedPref {
         return getPrefs(context)
             .getBoolean(KEY_AUTOSTART, false); // default OFF
     }
+
+    public static void setAutoStartMode(Context context, String mode) {
+
+        SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
+
+        prefs.edit()
+            .putString("auto_start_mode", mode)
+            .apply();
+    }
+
+    public static String getAutoStartMode(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
+        return prefs.getString("auto_start_mode", "disabled");
+    }
 }
