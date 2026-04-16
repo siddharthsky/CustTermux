@@ -56,7 +56,23 @@
                 android:lineSpacingExtra="2dp"
                 android:tooltipText="Restart Server + IPTV" />
 
-            <!-- DEBUG -->
+<!--            &lt;!&ndash; IPTV &ndash;&gt;-->
+<!--            <Button-->
+<!--                android:id="@+id/button6"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="62dp"-->
+<!--                android:layout_margin="3dp"-->
+<!--                android:background="@drawable/button_card"-->
+<!--                android:gravity="center"-->
+<!--                android:text="▶️\nIPTV"-->
+<!--                android:textSize="14sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@android:color/white"-->
+<!--                android:lineSpacingExtra="2dp"-->
+<!--                android:tooltipText="Start IPTV player" />-->
+
+            <!-- PLUGINS -->
             <Button
                 android:id="@+id/button5"
                 android:layout_width="100dp"

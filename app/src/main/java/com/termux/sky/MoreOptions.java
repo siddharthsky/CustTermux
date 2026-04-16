@@ -3,10 +3,12 @@ package com.termux.sky;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 
 import com.termux.R;
+import com.termux.app.TermuxActivity;
 
 public class MoreOptions {
 
@@ -21,8 +23,9 @@ public class MoreOptions {
                 builder.setTitle("Choose an option");
 
                 String[] options = {
-                    "Switch to Terminal",
-                    "Auto start on boot"
+                    "IPTV manager",
+                    "Auto start on boot",
+                    "Switch to Terminal"
                 };
 
                 final int[] selectedOption = {-1};
@@ -42,11 +45,16 @@ public class MoreOptions {
                         switch (selectedOption[0]) {
 
                             case 0:
-                                TxUtils.terminal_switch_dialog(context);
+                                Intent intent = new Intent(context, AppPickerActivity.class);
+                                context.startActivity(intent);
                                 break;
 
                             case 1:
-                                TxUtils.showAutoStartDialog(context);
+                                TxUtils.showAutoStartDialog(context);;
+                                break;
+
+                            case 2:
+                                TxUtils.terminal_switch_dialog(context);
                                 break;
 
                             default:

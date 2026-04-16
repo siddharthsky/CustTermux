@@ -36,6 +36,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.sky.AppPickerActivity;
 import com.termux.sky.MoreOptions;
 import com.termux.R;
 import com.termux.app.api.file.FileReceiverActivity;
@@ -68,6 +69,7 @@ import com.termux.shared.view.ViewUtils;
 import com.termux.sky.TermuxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.ui.PluginManagerActivity;
+import com.termux.sky.ui.WebViewPlayerActivity;
 import com.termux.sky.wizard.SetupWizardActivity;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
@@ -257,6 +259,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button3 = findViewById(R.id.button3);
         Button button4 = findViewById(R.id.button4);
         Button button5 = findViewById(R.id.button5);
+//        Button button6 = findViewById(R.id.button6);
 
         ipAddressText = findViewById(R.id.ip_address);
         storageStatus = findViewById(R.id.storage_permission_status);
@@ -279,6 +282,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button2.setOnFocusChangeListener(tooltipFocusListener);
         button3.setOnFocusChangeListener(tooltipFocusListener);
         button5.setOnFocusChangeListener(tooltipFocusListener);
+//        button6.setOnFocusChangeListener(tooltipFocusListener);
 
 
         button1.setOnClickListener(new View.OnClickListener() {
@@ -315,6 +319,29 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+//        button6.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+//                boolean isIptvSet = prefs.getBoolean("isIptvSet", false);
+//
+//                Intent intent;
+//                if (isIptvSet) {
+//                    intent = new Intent(TermuxActivity.this, AppPickerActivity.class);
+//                } else {
+////                    intent = new Intent(TermuxActivity.this, WebViewPlayerActivity.class);
+////                    intent.putExtra("url", "http://localhost:8181");
+//                    intent = new Intent(TermuxActivity.this, AppPickerActivity.class);
+//                }
+//                startActivity(intent);
+//
+//
+//            }
+//        });
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -331,7 +358,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         mTermuxActivityRootView = findViewById(R.id.activity_termux_root_view);
         mTermuxActivityRootView.setActivity(this);
-        mTermuxActivityBottomSpaceView = findViewById(R.id.activity_termux_bottom_space_view);
+//        mTermuxActivityBottomSpaceView = findViewById(R.id.activity_termux_bottom_space_view);
         mTermuxActivityRootView.setOnApplyWindowInsetsListener(new TermuxActivityRootView.WindowInsetsListener());
 
         View content = findViewById(android.R.id.content);
