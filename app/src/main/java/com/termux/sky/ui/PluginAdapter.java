@@ -20,13 +20,19 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         void onDelete(Plugin plugin, int position);
     }
 
+    public interface OnLoginClick {
+        void onLogin(Plugin plugin, int position);
+    }
+
     List<Plugin> list;
     Context ctx;
     OnDeleteClick deleteListener;
+    OnLoginClick loginListener;
 
-    public PluginAdapter(Context ctx, List<Plugin> list, OnDeleteClick listener) {
+    public PluginAdapter(Context ctx, List<Plugin> list, OnLoginClick login_listener, OnDeleteClick listener) {
         this.ctx = ctx;
         this.list = list;
+        this.loginListener = login_listener;
         this.deleteListener = listener;
     }
 
@@ -84,6 +90,18 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 //            }).start();
 //        });
 
+        if (current.login_url == null || current.login_url.trim().isEmpty()) {
+            h.login.setVisibility(View.GONE);
+        } else {
+            h.login.setVisibility(View.VISIBLE);
+
+            h.login.setOnClickListener(v -> {
+                if (loginListener != null) {
+                    loginListener.onLogin(current, h.getAdapterPosition());
+                }
+            });
+        }
+
         h.delete.setOnClickListener(v -> {
             if (deleteListener != null) {
                 deleteListener.onDelete(current, h.getAdapterPosition());
@@ -97,7 +115,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist;
-//        Button toggle;
+        Button login;
         Button delete;
 
         VH(View v) {
@@ -105,7 +123,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             name = v.findViewById(R.id.pluginName);
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
-//            toggle = v.findViewById(R.id.toggleBtn);
+            login = v.findViewById(R.id.loginBtn);
             delete = v.findViewById(R.id.deleteBtn);
         }
     }

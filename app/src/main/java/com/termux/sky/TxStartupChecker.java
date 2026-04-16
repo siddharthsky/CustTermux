@@ -1,5 +1,7 @@
 package com.termux.sky;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,7 +16,11 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
-public class TermuxStartup {
+import com.termux.app.TermuxActivity;
+import com.termux.sky.ui.WebViewLoginActivity;
+import com.termux.sky.wizard.SetupWizardActivity;
+
+public class TxStartupChecker {
 
     private final Activity activity;
 
@@ -25,13 +31,26 @@ public class TermuxStartup {
 
     private AlertDialog dialog;
 
-    public TermuxStartup(Activity activity) {
+    public TxStartupChecker(Activity activity) {
         this.activity = activity;
     }
 
     /* START FLOW */
     public void startPermissionFlow() {
-        checkOverlayPermission();
+
+//        Intent intent = new Intent(activity, WebViewPlayerActivity.class);
+//        intent.putExtra("url", "http://localhost:5350/play/143");
+//        activity.startActivity(intent);
+
+        SharedPreferences prefs = activity.getSharedPreferences("app", MODE_PRIVATE);
+        boolean isSetupDone = prefs.getBoolean("setup_done", false);
+
+        if (isSetupDone) {
+            checkOverlayPermission();
+        } else {
+            Log.d("SkyLog", "Setup not done, skipping permission flow");
+
+        }
     }
 
     /* ================= OVERLAY ================= */
@@ -49,7 +68,7 @@ public class TermuxStartup {
             return;
         }
 
-        SharedPreferences prefs = activity.getSharedPreferences(PREF, Activity.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
         int cancelCount = prefs.getInt(KEY_OVERLAY_CANCEL, 0);
 
         if (cancelCount >= MAX_CANCELS) {
@@ -78,7 +97,7 @@ public class TermuxStartup {
             })
 
             .setNegativeButton("Cancel", (d, w) -> {
-                SharedPreferences prefs = activity.getSharedPreferences(PREF, Activity.MODE_PRIVATE);
+                SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
                 prefs.edit().putInt(KEY_OVERLAY_CANCEL, cancelCount + 1).apply();
                 checkStoragePermission();
             })
@@ -91,7 +110,7 @@ public class TermuxStartup {
 
     private void checkStoragePermission() {
 
-        SharedPreferences prefs = activity.getSharedPreferences(PREF, Activity.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
         int cancelCount = prefs.getInt(KEY_STORAGE_CANCEL, 0);
 
         if (cancelCount >= MAX_CANCELS) return;
@@ -153,7 +172,7 @@ public class TermuxStartup {
             })
 
             .setNegativeButton("Cancel", (d, w) -> {
-                SharedPreferences prefs = activity.getSharedPreferences(PREF, Activity.MODE_PRIVATE);
+                SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
                 prefs.edit().putInt(KEY_STORAGE_CANCEL, cancelCount + 1).apply();
             })
             .create();

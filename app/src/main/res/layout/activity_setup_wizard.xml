@@ -41,7 +41,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome to your custom Termux fork setup wizard."
+                    android:text="Welcome to your CustTermux Engine."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
@@ -59,7 +59,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⚡ Demo Feature 1"
+                    android:text="📁 Storage Permission"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"/>
@@ -67,7 +67,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Plugin loader demo functionality."
+                    android:text="Give storage permission."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
@@ -85,7 +85,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔧 Demo Feature 2"
+                    android:text="🪟 Display Over Apps"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"/>
@@ -93,7 +93,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Initialize shell environment."
+                    android:text="Allow overlay permission."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
@@ -111,7 +111,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🚀 Demo Feature 3"
+                    android:text="📦 Plugin Manager"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"/>
@@ -119,7 +119,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Background service + auto start demo."
+                    android:text="Centralized plugin manager to add, update, and handle all plugins."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
@@ -145,7 +145,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="You're ready to use your Termux fork."
+                    android:text="Setup is now installing the necessary files."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>

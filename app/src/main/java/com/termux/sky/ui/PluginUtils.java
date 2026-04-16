@@ -16,11 +16,13 @@ public class PluginUtils {
 
             Plugin p = new Plugin();
             p.title = o.getString("title");
-            p.repo = o.getString("repo");
+            p.repo =o.has("repo") ? o.getString("repo") : null;
+            p.repo_branch =o.has("repo_branch") ? o.getString("repo_branch") : null;
             p.bin_download = o.has("bin_download") ? o.getString("bin_download") : null;
             p.port = o.getInt("port");
             p.playlist = o.getString("playlist");
             p.server_check_url = o.has("server_check_url") ? o.getString("server_check_url") : null;
+            p.login_url = o.has("login_url") ? o.getString("login_url") : null;
             p.post_install_script = o.has("post_install_script") ? o.getString("post_install_script") : null;
             p.start = o.getString("start");
 

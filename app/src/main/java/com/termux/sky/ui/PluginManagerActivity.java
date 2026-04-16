@@ -61,7 +61,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         list = PluginStorage.load(this);
 
-        adapter = new PluginAdapter(this, list, this::deletePlugin);
+        adapter = new PluginAdapter(this, list, this::loginPlugin, this::deletePlugin);
 
         listView.setLayoutManager(new LinearLayoutManager(this));
         listView.setAdapter(adapter);
@@ -193,7 +193,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                             }
                         }
 
-                        initPlugin(p.port, p.repo, p.start, p.bin_download, p.post_install_script, Arrays.toString(p.pkg));
+                        initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script, Arrays.toString(p.pkg));
 
                         list.add(p);
                         PluginStorage.save(this, list);
@@ -214,7 +214,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         }).start();
     }
 
-    public void initPlugin(int port, String repoUrl, String startComm,
+    public void initPlugin(int port, String repoUrl, String repoBranch, String startComm,
                            String binDownloadURL, String postInstallScript, String pkgList ) {
 
         String folderName = String.valueOf(port);
@@ -256,7 +256,14 @@ public class PluginManagerActivity extends AppCompatActivity {
                     return;
                 }
 
-                String zipUrl = repoUrl.replace(".git", "") + "/archive/refs/heads/main.zip";
+                String zipUrl;
+
+                if (repoUrl != null && repoUrl.endsWith(".zip")) {
+                    zipUrl = repoUrl;
+                } else {
+                    assert repoUrl != null;
+                    zipUrl = getRepoZipUrl(repoUrl, repoBranch);
+                }
 
                 showProgress("Downloading repository...");
 
@@ -272,7 +279,8 @@ public class PluginManagerActivity extends AppCompatActivity {
                 showProgress("Extracting...");
 
                 try {
-                    fullUnzip(zipFile, pluginDir);
+                    boolean isDirectZip = repoUrl.toLowerCase().endsWith(".zip");
+                    fullUnzip(zipFile, pluginDir, !isDirectZip);
                 } catch (Exception e) {
                     handleError("Extraction failed", e);
                     return;
@@ -292,6 +300,64 @@ public class PluginManagerActivity extends AppCompatActivity {
         }).start();
     }
 
+    public String getRepoZipUrl(String repoUrl, String repoBranch) throws Exception {
+
+        String repo = repoUrl.replace(".git", "").trim();
+
+        if (repoBranch != null && !repoBranch.trim().isEmpty()) {
+            return repo + "/archive/refs/heads/" + repoBranch.trim() + ".zip";
+        }
+
+        String apiUrl = repo.replace("https://github.com/", "https://api.github.com/repos/");
+
+        HttpURLConnection conn = null;
+        BufferedReader br = null;
+
+        try {
+            URL url = new URL(apiUrl);
+            conn = (HttpURLConnection) url.openConnection();
+
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
+
+            int code = conn.getResponseCode();
+
+            if (code == 200) {
+
+                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                StringBuilder sb = new StringBuilder();
+                String line;
+
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+
+                String json = sb.toString();
+
+                String branch = "main";
+
+                int index = json.indexOf("\"default_branch\":\"");
+                if (index != -1) {
+                    int start = index + 18;
+                    int end = json.indexOf("\"", start);
+                    branch = json.substring(start, end);
+                }
+
+                return repo + "/archive/refs/heads/" + branch + ".zip";
+            }
+
+        } catch (Exception e) {
+            // ignore → fallback below
+        } finally {
+            try { if (br != null) br.close(); } catch (Exception ignored) {}
+            if (conn != null) conn.disconnect();
+        }
+
+        return repo + "/archive/refs/heads/main.zip";
+    }
+
     private void postInstall(String postInstallScript, File pluginDir, int port) {
         new Thread(() -> {
             try {
@@ -305,7 +371,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                 hideProgress();
 
-                run_script2(this, pluginDir, port);
+                run_post_script(this, pluginDir, port);
 
             } catch (Exception e) {
                 handleError("Post-install script failed", e);
@@ -313,7 +379,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void run_script2(PluginManagerActivity pluginManagerActivity, File pluginDir, int port) {
+    private void run_post_script(PluginManagerActivity pluginManagerActivity, File pluginDir, int port) {
         String TERMUX_PACKAGE = "com.termux";
         String TERMUX_SERVICE = "com.termux.app.RunCommandService";
         String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
@@ -372,7 +438,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         in.close();
     }
 
-    public void fullUnzip(File zipFile, File targetDir) throws Exception {
+    public void fullUnzip(File zipFile, File targetDir, boolean stripTopLevel) throws Exception {
 
         if (!targetDir.exists()) targetDir.mkdirs();
 
@@ -386,9 +452,11 @@ public class PluginManagerActivity extends AppCompatActivity {
 
             String entryName = entry.getName();
 
-            int firstSlash = entryName.indexOf("/");
-            if (firstSlash != -1) {
-                entryName = entryName.substring(firstSlash + 1);
+            if (stripTopLevel) {
+                int firstSlash = entryName.indexOf("/");
+                if (firstSlash != -1) {
+                    entryName = entryName.substring(firstSlash + 1);
+                }
             }
 
             if (entryName.isEmpty()) {
@@ -460,6 +528,22 @@ public class PluginManagerActivity extends AppCompatActivity {
             .show();
     }
 
+    private void loginPlugin(Plugin plugin, int position) {
+
+        new AlertDialog.Builder(this)
+            .setTitle("Open Login WebPage")
+            .setMessage("URL: " + plugin.login_url)
+            .setPositiveButton("Open", (d, w) -> {
+
+                Intent intent = new Intent(this, WebViewLoginActivity.class);
+                intent.putExtra("url", plugin.login_url);
+                startActivity(intent);
+
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
 
     private void deleteRecursive(File file) {
         if (file == null || !file.exists()) return;
@@ -504,7 +588,6 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void downloadFile(String urlStr, File output) throws Exception {
 
-        // ✅ Skip if marked empty
         if (urlStr == null || urlStr.trim().equals("empty_url")) {
             Log.d("Download", "Skipping download (empty_url)");
             return;

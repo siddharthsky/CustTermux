@@ -122,7 +122,22 @@
             android:name=".sky.ui.PluginManagerActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
-            tools:ignore="DiscouragedApi" />
+            tools:ignore="DiscouragedApi"
+            android:exported="true"/>
+
+        <activity
+            android:name=".sky.ui.WebViewLoginActivity"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:ignore="DiscouragedApi"
+            android:exported="true"/>
+        <activity
+            android:name=".sky.ui.WebViewPlayerActivity"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:ignore="DiscouragedApi"
+            android:exported="true"/>
+
 
         <activity
             android:name=".sky.wizard.SetupWizardActivity"

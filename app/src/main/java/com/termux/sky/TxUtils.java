@@ -15,7 +15,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.termux.R;
 import com.termux.view.TerminalView;
 
-public class TermuxUtilz {
+public class TxUtils {
 
     // Termux constants
     private static final String TERMUX_PACKAGE = "com.termux";

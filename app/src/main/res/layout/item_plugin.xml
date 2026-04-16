@@ -32,8 +32,38 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical">
 
+        <!-- LEFT SIDE BUTTONS -->
+        <Button
+            android:id="@+id/loginBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/tv_plugin_item_btns"
+            android:padding="10dp"
+            android:layout_marginEnd="8dp"
+            android:focusable="true"
+            android:visibility="gone"
+            android:text="Login" />
+
+        <!-- Add more buttons here later -->
+        <!-- Example -->
+        <!--
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Extra"
+            android:layout_marginEnd="8dp"/>
+        -->
+
+        <!-- SPACER (pushes Remove to right) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- RIGHT SIDE BUTTON -->
         <Button
             android:id="@+id/deleteBtn"
             android:layout_width="wrap_content"
@@ -41,7 +71,7 @@
             android:background="@drawable/tv_plugin_item_btns"
             android:padding="10dp"
             android:focusable="true"
-            android:text="Remove" />
+            android:text="🗑️ Remove" />
 
     </LinearLayout>
 

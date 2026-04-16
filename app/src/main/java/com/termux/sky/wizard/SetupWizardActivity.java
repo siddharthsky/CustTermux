@@ -1,17 +1,22 @@
 package com.termux.sky.wizard;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GestureDetectorCompat;
 
 import com.termux.R;
 
@@ -22,11 +27,10 @@ public class SetupWizardActivity extends AppCompatActivity {
     LinearLayout dots;
 
     int step = 0;
-    int totalSteps = 5;
+    int totalSteps = 4;
 
-    GestureDetectorCompat gestureDetector;
+    ActivityResultLauncher<String> storagePermissionLauncher;
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,36 +44,110 @@ public class SetupWizardActivity extends AppCompatActivity {
         setupDots();
         updateUI();
 
-        // TOUCH SWIPE DETECTOR
-        gestureDetector = new GestureDetectorCompat(this, new GestureDetector.SimpleOnGestureListener() {
-
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-
-                if (e1.getX() - e2.getX() > 100) {
-                    next();
-                    return true;
+        // STORAGE PERMISSION
+        storagePermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    nextStep();
                 }
+            });
 
-                if (e2.getX() - e1.getX() > 100) {
-                    back();
-                    return true;
-                }
-
-                return false;
-            }
-        });
-
-        flipper.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
-
-        btnNext.setOnClickListener(v -> next());
-        btnBack.setOnClickListener(v -> back());
+        btnNext.setOnClickListener(v -> handleNext());
+        btnBack.setOnClickListener(v -> backStep());
     }
 
-    private void next() {
+    // MAIN FLOW CONTROLLER
+    private void handleNext() {
+
+        if (step == 0) {
+            nextStep();
+            return;
+        }
+
+        if (step == 1) {
+            requestStorage();
+            return;
+        }
+
+        if (step == 2) {
+            requestOverlay();
+            return;
+        }
+
+        nextStep();
+    }
+
+    // STORAGE
+    @SuppressLint("ObsoleteSdkInt")
+    private void requestStorage() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+            if (android.os.Environment.isExternalStorageManager()) {
+                nextStep();
+                return;
+            }
+
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            } catch (Exception e) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+            }
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+                nextStep();
+                return;
+            }
+
+            requestPermissions(
+                new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                },
+                101
+            );
+
+            return;
+        }
+
+        nextStep();
+    }
+
+    // OVERLAY
+    private void requestOverlay() {
+
+        if (!Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName())
+            );
+            startActivity(intent);
+        } else {
+            nextStep();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (step == 2 && Settings.canDrawOverlays(this)) {
+            nextStep();
+        }
+    }
+
+    private void nextStep() {
         if (step < totalSteps - 1) {
             step++;
-            animateNext();
             flipper.showNext();
             updateUI();
         } else {
@@ -77,23 +155,12 @@ public class SetupWizardActivity extends AppCompatActivity {
         }
     }
 
-    private void back() {
+    private void backStep() {
         if (step > 0) {
             step--;
-            animateBack();
             flipper.showPrevious();
             updateUI();
         }
-    }
-
-    private void animateNext() {
-        flipper.setInAnimation(this, R.anim.slide_in_right);
-        flipper.setOutAnimation(this, R.anim.slide_out_left);
-    }
-
-    private void animateBack() {
-        flipper.setInAnimation(this, R.anim.slide_in_left);
-        flipper.setOutAnimation(this, R.anim.slide_out_right);
     }
 
     private void updateUI() {
@@ -116,9 +183,7 @@ public class SetupWizardActivity extends AppCompatActivity {
     }
 
     private void updateDots() {
-        int count = dots.getChildCount();
-
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < dots.getChildCount(); i++) {
             TextView dot = (TextView) dots.getChildAt(i);
             dot.setTextColor(i == step ? 0xFFFFFFFF : 0x55FFFFFF);
         }

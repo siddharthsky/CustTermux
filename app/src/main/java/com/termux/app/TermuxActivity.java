@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -65,8 +66,9 @@ import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
 import com.termux.sky.TermuxController;
-import com.termux.sky.TermuxStartup;
+import com.termux.sky.TxStartupChecker;
 import com.termux.sky.ui.PluginManagerActivity;
+import com.termux.sky.wizard.SetupWizardActivity;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
 import com.termux.view.TerminalView;
@@ -209,11 +211,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final String LOG_TAG = "TermuxActivity";
 
     private Handler handler = new Handler();
-    private TermuxStartup startup;
+    private TxStartupChecker startup;
 
 
     TermuxController termuxController = new TermuxController(this);
-    TermuxStartup termuxStartup = new TermuxStartup(this);
+    TxStartupChecker txStartupChecker = new TxStartupChecker(this);
 
     private TextView ipAddressText;
     private TextView storageStatus;
@@ -242,7 +244,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         setContentView(R.layout.activity_termux);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        startup = new TermuxStartup(this);
+        startup = new TxStartupChecker(this);
         startup.startPermissionFlow();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -471,7 +473,6 @@ private final Runnable refreshRunnable = new Runnable() {
     @Override
     public void onStart() {
         super.onStart();
-
         Logger.logDebug(LOG_TAG, "onStart");
 
         if (mIsInvalidState) return;
@@ -488,6 +489,14 @@ private final Runnable refreshRunnable = new Runnable() {
             addTermuxActivityRootViewGlobalLayoutListener();
 
         registerTermuxActivityBroadcastReceiver();
+
+        SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+        boolean isSetupDone = prefs.getBoolean("setup_done", false);
+
+        if (!isSetupDone) {
+            Intent intent = new Intent(TermuxActivity.this, SetupWizardActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override
