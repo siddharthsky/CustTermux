@@ -842,11 +842,15 @@ drm_off() {
 
 	drm_on
 
+	export SHELL=/bin/bash
+
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 
 	curl -fsSL https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/5007_bin_script.sh | bash
 
 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRMINSTALL --es value Yes
+
+	sleep 3
 
 }
 
