@@ -846,6 +846,8 @@ drm_off() {
 
 	curl -fsSL https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/5007_bin_script.sh | bash
 
+	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRMINSTALL --es value Yes
+
 }
 
  
