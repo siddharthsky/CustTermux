@@ -840,7 +840,23 @@ drm_off() {
 
  drm_install(){
 
-	drm_on
+	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
+	DRM_FILE="$DRM_FOLDER/on.drm"
+	
+	if [ ! -d "$DRM_FOLDER" ]; then
+	    mkdir -p "$DRM_FOLDER"
+	fi
+	
+	if [ ! -f "$DRM_FILE" ]; then
+	    touch "$DRM_FILE"
+	fi
+  	
+	# pkg install openssh -y
+	# pkg install expect -y
+
+	# ssh_tls_intent
+ 
+  	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRM --es value Yes
 
 	export SHELL=/bin/bash
 
