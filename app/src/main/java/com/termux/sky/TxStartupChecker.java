@@ -46,7 +46,7 @@ public class TxStartupChecker {
         boolean isSetupDone = prefs.getBoolean("setup_done", false);
 
         if (isSetupDone) {
-            checkOverlayPermission();
+//            checkOverlayPermission();
         } else {
             Log.d("SkyLog", "Setup not done, skipping permission flow");
 

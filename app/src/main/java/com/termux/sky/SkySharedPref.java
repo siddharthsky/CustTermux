@@ -39,4 +39,18 @@ public class SkySharedPref {
         SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
         return prefs.getString("auto_start_mode", "disabled");
     }
+
+    public static int getVersionCode(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
+        return prefs.getInt("version_code", -1);
+    }
+
+    public static void setVersionCode(Context context, int versionCode) {
+
+        SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
+
+        prefs.edit()
+            .putInt("version_code", versionCode)
+            .apply();
+    }
 }

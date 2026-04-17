@@ -66,6 +66,7 @@ import com.termux.shared.termux.settings.properties.TermuxAppSharedProperties;
 import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
+import com.termux.sky.SkySharedPref;
 import com.termux.sky.TermuxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.ui.PluginManagerActivity;
@@ -327,6 +328,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 termuxController.exitApp();
             }
         });
+        int v_CODE = 1;
+        SkySharedPref.setVersionCode(this, v_CODE);
+//        int v_CODE = SkySharedPref.getVersionCode(this);
+
 
 
 

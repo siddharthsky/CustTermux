@@ -19,15 +19,18 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.termux.R;
+import com.termux.sky.TxUtils;
 
 public class SetupWizardActivity extends AppCompatActivity {
 
     ViewFlipper flipper;
-    Button btnNext, btnBack;
+    Button btnNext, btnBack, btnGrantStorage, btnGrantOverlay;
+        TextView statusStorage, statusOverlay;
     LinearLayout dots;
 
     int step = 0;
     int totalSteps = 4;
+
 
     ActivityResultLauncher<String> storagePermissionLauncher;
 
@@ -41,6 +44,13 @@ public class SetupWizardActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         dots = findViewById(R.id.dots);
 
+        btnGrantStorage = findViewById(R.id.btnGrantStorage);
+        btnGrantOverlay = findViewById(R.id.btnGrantOverlay);
+        statusStorage = findViewById(R.id.txtStorageStatus);
+        statusOverlay = findViewById(R.id.txtOverlayStatus);
+
+
+
         setupDots();
         updateUI();
 
@@ -52,28 +62,15 @@ public class SetupWizardActivity extends AppCompatActivity {
                 }
             });
 
+        btnGrantStorage.setOnClickListener(v -> requestStorage());
+        btnGrantOverlay.setOnClickListener(v -> requestOverlay());
+
         btnNext.setOnClickListener(v -> handleNext());
         btnBack.setOnClickListener(v -> backStep());
     }
 
     // MAIN FLOW CONTROLLER
     private void handleNext() {
-
-        if (step == 0) {
-            nextStep();
-            return;
-        }
-
-        if (step == 1) {
-            requestStorage();
-            return;
-        }
-
-        if (step == 2) {
-            requestOverlay();
-            return;
-        }
-
         nextStep();
     }
 
@@ -81,10 +78,12 @@ public class SetupWizardActivity extends AppCompatActivity {
     @SuppressLint("ObsoleteSdkInt")
     private void requestStorage() {
 
+        // Android 11+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 
-            if (android.os.Environment.isExternalStorageManager()) {
-                nextStep();
+            if (hasStoragePermission()) {
+                TxUtils.showCustomToast(this, "Storage already granted");
+                updatePermissionStatus();
                 return;
             }
 
@@ -93,56 +92,91 @@ public class SetupWizardActivity extends AppCompatActivity {
                 intent.setData(Uri.parse("package:" + getPackageName()));
                 startActivity(intent);
             } catch (Exception e) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivity(intent);
+                } catch (Exception ex) {
+                    openAppSettings(); // TV fallback
+                }
             }
-
             return;
         }
 
+        // Android 6–10
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
-                nextStep();
+            if (hasStoragePermission()) {
+                TxUtils.showCustomToast(this, "Storage already granted");
+                updatePermissionStatus();
                 return;
             }
 
-            requestPermissions(
-                new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                },
-                101
-            );
-
+            try {
+                requestPermissions(
+                    new String[]{
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    },
+                    101
+                );
+            } catch (Exception e) {
+                openAppSettings(); // TV fallback
+            }
             return;
         }
 
-        nextStep();
+        // Android 5 and below
+        TxUtils.showCustomToast(this, "Storage available by default");
     }
 
     // OVERLAY
     private void requestOverlay() {
 
-        if (!Settings.canDrawOverlays(this)) {
-            Intent intent = new Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:" + getPackageName())
-            );
-            startActivity(intent);
-        } else {
-            nextStep();
+        // Already granted
+        if (hasOverlayPermission()) {
+            TxUtils.showCustomToast(this, "Overlay already granted");
+            updatePermissionStatus();
+            return;
         }
+
+        // Try normal flow (phones/tablets)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName())
+                );
+                startActivity(intent);
+                return;
+            } catch (Exception ignored) {}
+        }
+
+        // Fallback (TV / Fire TV)
+        try {
+            openAppSettings();
+            TxUtils.showCustomToast(this, "Enable 'Display over apps' if available");
+        } catch (Exception e) {
+            TxUtils.showCustomToast(this, "Overlay setting not available on this device");
+        }
+    }
+
+
+
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.parse("package:" + getPackageName()));
+        startActivity(intent);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (step == 2 && Settings.canDrawOverlays(this)) {
-            nextStep();
-        }
+        updatePermissionStatus();
+
+//        if (step == 2 && Settings.canDrawOverlays(this)) {
+//            nextStep();
+//        }
     }
 
     private void nextStep() {
@@ -196,5 +230,52 @@ public class SetupWizardActivity extends AppCompatActivity {
             .apply();
 
         finish();
+    }
+
+    private boolean hasStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return android.os.Environment.isExternalStorageManager();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
+    private boolean hasOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(this);
+        }
+        return true;
+    }
+
+
+    private void updatePermissionStatus() {
+
+        if (statusStorage != null) {
+            boolean granted = hasStoragePermission();
+            statusStorage.setText(granted ? "✅ Granted" : "❌ Not Granted");
+            statusStorage.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
+            btnGrantStorage.setVisibility(hasStoragePermission() ? View.GONE : View.VISIBLE);
+        }
+
+        if (statusOverlay != null) {
+
+            boolean granted = hasOverlayPermission();
+
+            if (!granted && isAndroidTV()) {
+                statusOverlay.setText("⚠️ Try enabling in App Settings");
+                statusOverlay.setTextColor(0xFFFBBF24);
+            } else {
+                statusOverlay.setText(granted ? "✅ Granted" : "❌ Not Granted");
+                statusOverlay.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
+            }
+
+            btnGrantOverlay.setVisibility(granted ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private boolean isAndroidTV() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
     }
 }

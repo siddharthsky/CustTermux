@@ -41,7 +41,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome to your CustTermux Engine."
+                    android:text="Welcome to CustTermux Engine."
                     android:textColor="#9CA3AF"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
@@ -57,19 +57,39 @@
                 android:elevation="6dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:text="📁 Storage Permission"
                     android:textSize="22sp"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF"/>
+                    android:textColor="#FFFFFF"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Give storage permission."
+                    android:text="Required to manage files and plugins."
                     android:textColor="#9CA3AF"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- STATUS -->
+                <TextView
+                    android:id="@+id/txtStorageStatus"
+                    android:text="❌ Not Granted"
+                    android:textColor="#F87171"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- BUTTON -->
+                <Button
+                    android:id="@+id/btnGrantStorage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Grant Storage Access"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tv_plugin_add_btn"
+                    android:layout_marginTop="16dp"
+                    android:focusable="true"/>
             </LinearLayout>
 
             <!-- STEP 3 -->
@@ -83,19 +103,39 @@
                 android:elevation="6dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:text="🪟 Display Over Apps"
                     android:textSize="22sp"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF"/>
+                    android:textColor="#FFFFFF"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Allow overlay permission."
+                    android:text="Needed for floating player and overlay features."
                     android:textColor="#9CA3AF"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- STATUS -->
+                <TextView
+                    android:id="@+id/txtOverlayStatus"
+                    android:text="❌ Not Granted"
+                    android:textColor="#F87171"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- BUTTON -->
+                <Button
+                    android:id="@+id/btnGrantOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Enable Overlay Permission"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tv_plugin_add_btn"
+                    android:layout_marginTop="16dp"
+                    android:focusable="true"/>
             </LinearLayout>
 
             <!-- STEP 4 -->
