@@ -790,6 +790,8 @@ termuxinfo() {
 }
 
 
+
+
 drm_on() {
 	echo "-----------------------"
 	echo "DRM Utility"
@@ -834,6 +836,17 @@ drm_off() {
 	sleep 2
  	exit 0
  }
+
+
+ drm_install(){
+
+	drm_on
+
+	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
+
+	curl -fsSL https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/5007_bin_script.sh | bash
+
+}
 
  
 extra_on() {
@@ -1070,8 +1083,10 @@ elif [ "$1" == "epg_on" ]; then
 	epg_on
 elif [ "$1" == "epg_off" ]; then
 	epg_off
- elif [ "$1" == "drm_on" ]; then
-	drm_on
+elif [ "$1" == "drm_install" ]; then
+	drm_install
+elif [ "$1" == "drm_on" ]; then
+	
 elif [ "$1" == "drm_off" ]; then
 	drm_off
 elif [ "$1" == "extra_on" ]; then
