@@ -56,6 +56,23 @@
                 android:lineSpacingExtra="2dp"
                 android:tooltipText="Restart Server + IPTV" />
 
+            <!-- Update -->
+            <Button
+                android:id="@+id/button_update"
+                android:layout_width="100dp"
+                android:layout_height="62dp"
+                android:layout_margin="3dp"
+                android:background="@drawable/button_card"
+                android:gravity="center"
+                android:text="⬆️\nUpdate"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:lineSpacingExtra="2dp"
+                android:visibility="gone"
+                android:tooltipText="Update App" />
+
 <!--            &lt;!&ndash; IPTV &ndash;&gt;-->
 <!--            <Button-->
 <!--                android:id="@+id/button6"-->
@@ -124,6 +141,32 @@
 
         </LinearLayout>
     </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/update_progress_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/update_status_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Downloading..."
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:gravity="center"/>
+
+        <ProgressBar
+            android:id="@+id/update_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

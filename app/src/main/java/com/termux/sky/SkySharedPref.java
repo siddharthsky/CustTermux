@@ -42,15 +42,11 @@ public class SkySharedPref {
 
     public static int getVersionCode(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
-        return prefs.getInt("version_code", -1);
+        return prefs.getInt("version_code", 0);
     }
 
-    public static void setVersionCode(Context context, int versionCode) {
-
+    public static void setVersionCode(Context context, int version) {
         SharedPreferences prefs = context.getSharedPreferences("sky_prefs", Context.MODE_PRIVATE);
-
-        prefs.edit()
-            .putInt("version_code", versionCode)
-            .apply();
+        prefs.edit().putInt("version_code", version).apply();
     }
 }

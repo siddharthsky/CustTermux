@@ -31,7 +31,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -83,10 +85,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Arrays;
 
 /**
@@ -328,11 +337,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 termuxController.exitApp();
             }
         });
-        int v_CODE = 1;
-        SkySharedPref.setVersionCode(this, v_CODE);
-//        int v_CODE = SkySharedPref.getVersionCode(this);
-
-
 
 
 //        button6.setOnClickListener(new View.OnClickListener() {
@@ -356,6 +360,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //            }
 //        });
 
+        clearUpdateCache();
+        checkForUpdate();
 
 
 
@@ -425,7 +431,144 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxUtils.sendTermuxOpenedBroadcast(this);
     }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    private void clearUpdateCache() {
+        File file = new File(getExternalFilesDir(null), "update.apk");
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
+    private void checkForUpdate() {
+
+        int v_CODE = 1;
+        SkySharedPref.setVersionCode(this, v_CODE);
+
+        new Thread(() -> {
+            try {
+                URL url = new URL("https://github.com/siddharthsky/Extrix/raw/refs/heads/main/golang/ctx/ctx_engine.version");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                String versionStr = reader.readLine();
+                reader.close();
+
+                int remoteVersion = Integer.parseInt(versionStr.trim());
+
+                int localVersion = SkySharedPref.getVersionCode(this);
+
+                runOnUiThread(() -> {
+                    Button updateBtn = findViewById(R.id.button_update);
+
+                    if (remoteVersion > localVersion) {
+                        updateBtn.setVisibility(View.VISIBLE);
+                        updateBtn.setOnClickListener(v -> downloadAndInstallApk());
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.d("TxActivity", String.valueOf(e));
+            }
+        }).start();
+    }
+
+
+    private void downloadAndInstallApk() {
+
+        File file = new File(getExternalFilesDir(null), "update.apk");
+
+        // ✅ CACHE HIT → install directly
+        if (file.exists()) {
+            installApk(file);
+            return;
+        }
+
+        // else → download
+        LinearLayout progressContainer = findViewById(R.id.update_progress_container);
+        ProgressBar progressBar = findViewById(R.id.update_progress_bar);
+        TextView statusText = findViewById(R.id.update_status_text);
+
+        progressContainer.setVisibility(View.VISIBLE);
+        progressBar.setProgress(0);
+        statusText.setText("Starting download...");
+
+        new Thread(() -> {
+            try {
+                URL url = new URL(getApkUrl());
+                Log.d("TxActivity", getApkUrl());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                int fileLength = connection.getContentLength();
+
+                InputStream input = connection.getInputStream();
+                FileOutputStream output = new FileOutputStream(file);
+
+                byte[] buffer = new byte[4096];
+                int len;
+                int total = 0;
+
+                while ((len = input.read(buffer)) > 0) {
+                    total += len;
+                    output.write(buffer, 0, len);
+
+                    if (fileLength > 0) {
+                        int progress = (int) (total * 100L / fileLength);
+
+                        runOnUiThread(() -> {
+                            progressBar.setProgress(progress);
+                            statusText.setText("Downloading... " + progress + "%");
+                        });
+                    }
+                }
+
+                output.close();
+                input.close();
+
+                runOnUiThread(() -> {
+                    statusText.setText("Download complete");
+                    installApk(file);
+                });
+
+            } catch (Exception e) {
+                Log.d("TxActivity", String.valueOf(e));
+
+                runOnUiThread(() -> {
+                    statusText.setText("Download failed");
+                });
+            }
+        }).start();
+    }
+
+    private String getApkUrl() {
+        String[] abis = android.os.Build.SUPPORTED_ABIS;
+
+        Log.d("TxActivity", Arrays.toString(Build.SUPPORTED_ABIS));
+
+        for (String abi : abis) {
+            if (abi.contains("arm64")) {
+                return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx-arm64.apk";
+            } else if (abi.contains("armeabi") || abi.contains("arm")) {
+                return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx-arm.apk";
+            }
+        }
+
+        // fallback
+        return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx.apk";
+    }
+
+    private void installApk(File file) {
+        Uri uri = FileProvider.getUriForFile(
+            this,
+            getPackageName() + ".provider",
+            file
+        );
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, "application/vnd.android.package-archive");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        startActivity(intent);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
 private final Runnable refreshRunnable = new Runnable() {
     @Override
