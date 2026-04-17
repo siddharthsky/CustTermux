@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -261,11 +262,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_termux);
+
+        File homeDir = new File(getFilesDir(), "home");
+        File launchFile = new File(homeDir, ".launch");
+
+        if (launchFile.exists()) {
+            if (launchFile.delete()) {
+                Log.d("FILE", ".launch deleted successfully");
+            } else {
+                Log.d("FILE", "Failed to delete .launch");
+            }
+        }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        redirectShown = (savedInstanceState != null && savedInstanceState.getBoolean("redirectShown", false));
-
+//        redirectShown = (savedInstanceState != null && savedInstanceState.getBoolean("redirectShown", false));
+//
+//        File homeDir = new File(getFilesDir(), "home");
+//        File launchFile = new File(homeDir, ".launch");
+//
+//        if (launchFile.exists()) {
+//            showRedirectDialog();
+//        }
 
         startup = new TxStartupChecker(this);
         startup.startPermissionFlow();
@@ -694,9 +712,28 @@ private final Runnable refreshRunnable = new Runnable() {
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
 
-        if (launchFile.exists()) {
-            showRedirectDialog();
-        }
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        final int[] attempt = {0};
+
+        Runnable checkTask = new Runnable() {
+            @Override
+            public void run() {
+                attempt[0]++;
+
+                if (launchFile.exists()) {
+                    showRedirectDialog();
+                    return;
+                }
+
+                if (attempt[0] < 10) {
+                    Log.d("FILE", "TRY: " + attempt[0]);
+                    handler.postDelayed(this, 750);
+                }
+            }
+        };
+
+        handler.postDelayed(checkTask, 300);
 
 
 
