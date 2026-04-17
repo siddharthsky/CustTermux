@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -45,7 +44,7 @@ public class AppPickerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_app_picker);
+        setContentView(R.layout.activity_iptv_manager);
 
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
@@ -57,7 +56,13 @@ public class AppPickerActivity extends AppCompatActivity {
 
         loadAppsAsync();
 
-        @SuppressLint("UseSwitchCompatOrMaterialCode") Switch switchAutoStart = findViewById(R.id.switchAutoStart);
+        @SuppressLint("UseSwitchCompatOrMaterialCode")
+        Switch switchAutoStart = findViewById(R.id.switchAutoStart);
+        @SuppressLint("UseSwitchCompatOrMaterialCode")
+        Switch switchMinimize = findViewById(R.id.switchMinimize);
+        @SuppressLint("UseSwitchCompatOrMaterialCode")
+        Switch switchBOOTbg = findViewById(R.id.switchBOOTbg);
+
         LinearLayout autoOptions = findViewById(R.id.autoStartOptions);
         SeekBar seekDelay = findViewById(R.id.seekDelay);
         TextView txtDelay = findViewById(R.id.txtDelay);
@@ -68,18 +73,64 @@ public class AppPickerActivity extends AppCompatActivity {
         boolean autoStart = prefs.getBoolean("auto_start", false);
         int delay = prefs.getInt("delay", 2);
 
+        boolean minimize = prefs.getBoolean("minimize", false);
+        switchMinimize.setChecked(minimize);
+
+        boolean boot_start_app = prefs.getBoolean("boot_start_app", false);
+        switchBOOTbg.setChecked(boot_start_app);
+
         switchAutoStart.setChecked(autoStart);
         autoOptions.setVisibility(autoStart ? View.VISIBLE : View.GONE);
+
+
 
         // Set seekbar (map 2–10 sec → 0–8)
         seekDelay.setProgress(delay - 2);
         txtDelay.setText(delay + " sec");
 
+        switchMinimize.setEnabled(autoStart);
+        switchBOOTbg.setEnabled(autoStart);
+
         // Toggle
         switchAutoStart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+
             autoOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 
-            prefs.edit().putBoolean("auto_start", isChecked).apply();
+            switchMinimize.setEnabled(isChecked);
+            switchBOOTbg.setEnabled(isChecked);
+
+            if (!isChecked) {
+
+                switchMinimize.setOnCheckedChangeListener(null);
+                switchBOOTbg.setOnCheckedChangeListener(null);
+
+                switchMinimize.setChecked(false);
+                switchBOOTbg.setChecked(false);
+
+                switchMinimize.setOnCheckedChangeListener((b, v) ->
+                    prefs.edit().putBoolean("minimize", v).apply()
+                );
+
+                switchBOOTbg.setOnCheckedChangeListener((b, v) ->
+                    prefs.edit().putBoolean("boot_start_app", v).apply()
+                );
+
+                prefs.edit()
+                    .putBoolean("auto_start", false)
+                    .putBoolean("minimize", false)
+                    .putBoolean("boot_start_app", false)
+                    .apply();
+            } else {
+                prefs.edit().putBoolean("auto_start", true).apply();
+            }
+        });
+
+        switchMinimize.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean("minimize", isChecked).apply();
+        });
+
+        switchBOOTbg.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean("boot_start_app", isChecked).apply();
         });
 
         // Slider change

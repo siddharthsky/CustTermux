@@ -5,4 +5,7 @@
     <color name="tooltip_background_color">#40000000</color>
     <color name="focused_color">#FFD700</color>
     <color name="text_color_black">#000000</color>
+
+    <color name="switch_thumb">#22C55E</color>
+    <color name="switch_track">#374151</color>
 </resources>

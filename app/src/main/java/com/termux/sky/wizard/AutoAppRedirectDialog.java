@@ -1,5 +1,7 @@
 package com.termux.sky.wizard;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -32,14 +35,16 @@ public class AutoAppRedirectDialog {
 
     public void show(Activity activity) {
 
-        SharedPreferences prefs = activity.getSharedPreferences("apps", Context.MODE_PRIVATE);
-        SharedPreferences settings = activity.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences("apps", MODE_PRIVATE);
+        SharedPreferences settings = activity.getSharedPreferences("settings", MODE_PRIVATE);
 
         boolean autoStart = settings.getBoolean("auto_start", false);
         int delay = settings.getInt("delay", 3);
 
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);
+
+        Boolean minimize = settings.getBoolean("minimize", false);
 
         /// /////////////////
 
@@ -100,7 +105,7 @@ public class AutoAppRedirectDialog {
                 @Override
                 public void onFinish() {
                     dialog.dismiss();
-                    launch(activity, pkg, cls);
+                    launch(activity, pkg, cls, minimize);
                 }
             }.start();
 
@@ -117,17 +122,32 @@ public class AutoAppRedirectDialog {
         return file.exists() && file.isFile();
     }
 
-    private void launch(Context context, String pkg, String cls) {
-        handler.postDelayed(() -> {
-            try {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(pkg, cls));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
+    public void launch(Context context, String pkg, String cls, Boolean minimize) {
+
+        try {
+
+            SharedPreferences prefs = context.getSharedPreferences("settings", MODE_PRIVATE);
+            prefs.edit().putBoolean("temp_minimize", minimize).apply();
+
+            if (minimize && context instanceof Activity) {
+                ((Activity) context).moveTaskToBack(true);
             }
-        }, 200);
+
+            handler.postDelayed(() -> {
+                try {
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName(pkg, cls));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+
+                } catch (Exception e) {
+                    Log.d("TxAutoAppRedirect", String.valueOf(e));
+                }
+            }, 200);
+
+        } catch (Exception e) {
+            Log.d("TxAutoAppRedirect", String.valueOf(e));
+        }
     }
 
     public void cancel() {
