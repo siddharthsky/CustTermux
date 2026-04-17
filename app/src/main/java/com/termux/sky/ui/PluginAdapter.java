@@ -24,15 +24,21 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         void onLogin(Plugin plugin, int position);
     }
 
+    public interface OnWatchClick {
+        void onWatch(Plugin plugin, int position);
+    }
+
     List<Plugin> list;
     Context ctx;
     OnDeleteClick deleteListener;
     OnLoginClick loginListener;
+    OnWatchClick watchListener;
 
-    public PluginAdapter(Context ctx, List<Plugin> list, OnLoginClick login_listener, OnDeleteClick listener) {
+    public PluginAdapter(Context ctx, List<Plugin> list, OnLoginClick login_listener, OnWatchClick watch_listener, OnDeleteClick listener) {
         this.ctx = ctx;
         this.list = list;
         this.loginListener = login_listener;
+        this.watchListener = watch_listener;
         this.deleteListener = listener;
     }
 
@@ -102,6 +108,18 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             });
         }
 
+        if (current.watch_url == null || current.watch_url.trim().isEmpty()) {
+            h.watch.setVisibility(View.GONE);
+        } else {
+            h.watch.setVisibility(View.VISIBLE);
+
+            h.watch.setOnClickListener(v -> {
+                if (watchListener != null) {
+                    watchListener.onWatch(current, h.getAdapterPosition());
+                }
+            });
+        }
+
         h.delete.setOnClickListener(v -> {
             if (deleteListener != null) {
                 deleteListener.onDelete(current, h.getAdapterPosition());
@@ -116,6 +134,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 
         TextView name, status, playlist;
         Button login;
+        Button watch;
         Button delete;
 
         VH(View v) {
@@ -124,6 +143,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
             login = v.findViewById(R.id.loginBtn);
+            watch = v.findViewById(R.id.watchBtn);
             delete = v.findViewById(R.id.deleteBtn);
         }
     }

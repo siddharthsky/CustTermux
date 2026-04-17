@@ -61,7 +61,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         list = PluginStorage.load(this);
 
-        adapter = new PluginAdapter(this, list, this::loginPlugin, this::deletePlugin);
+        adapter = new PluginAdapter(this, list, this::loginPlugin,this::watchPlugin, this::deletePlugin );
 
         listView.setLayoutManager(new LinearLayoutManager(this));
         listView.setAdapter(adapter);
@@ -542,6 +542,14 @@ public class PluginManagerActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void watchPlugin(Plugin plugin, int position) {
+
+        Intent intent = new Intent(this, WebViewPlayerActivity.class);
+        intent.putExtra("url", plugin.watch_url);
+        startActivity(intent);
+
     }
 
 

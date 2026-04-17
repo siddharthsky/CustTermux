@@ -22,6 +22,7 @@ public class PluginUtils {
             p.port = o.getInt("port");
             p.playlist = o.getString("playlist");
             p.server_check_url = o.has("server_check_url") ? o.getString("server_check_url") : null;
+            p.watch_url = o.has("watch_url") ? o.getString("watch_url") : null;
             p.login_url = o.has("login_url") ? o.getString("login_url") : null;
             p.post_install_script = o.has("post_install_script") ? o.getString("post_install_script") : null;
             p.start = o.getString("start");
