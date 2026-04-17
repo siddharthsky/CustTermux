@@ -1088,7 +1088,7 @@ elif [ "$1" == "epg_off" ]; then
 elif [ "$1" == "drm_install" ]; then
 	drm_install
 elif [ "$1" == "drm_on" ]; then
-	
+	drm_on
 elif [ "$1" == "drm_off" ]; then
 	drm_off
 elif [ "$1" == "extra_on" ]; then
