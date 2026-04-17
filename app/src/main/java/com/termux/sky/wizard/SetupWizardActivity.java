@@ -37,7 +37,7 @@ public class SetupWizardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_setup_wizard);
+        setContentView(R.layout.setup_wizard_activity);
 
         flipper = findViewById(R.id.flipper);
         btnNext = findViewById(R.id.btnNext);

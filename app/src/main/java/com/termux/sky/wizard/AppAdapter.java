@@ -1,21 +1,17 @@
 package com.termux.sky.wizard;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.termux.R;
-
-import java.util.List;
 
 public class AppAdapter extends ListAdapter<AppModel, AppAdapter.ViewHolder> {
 
@@ -47,7 +43,7 @@ public class AppAdapter extends ListAdapter<AppModel, AppAdapter.ViewHolder> {
         context = parent.getContext();
 
         View view = LayoutInflater.from(context)
-            .inflate(R.layout.item_app, parent, false);
+            .inflate(R.layout.iptv_manager_items, parent, false);
 
         return new ViewHolder(view);
     }

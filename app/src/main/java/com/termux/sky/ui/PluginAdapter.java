@@ -40,7 +40,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
         return new VH(LayoutInflater.from(ctx)
-            .inflate(R.layout.item_plugin, p, false));
+            .inflate(R.layout.plugin_manager_items, p, false));
     }
 
     @Override

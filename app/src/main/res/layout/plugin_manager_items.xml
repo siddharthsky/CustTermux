@@ -6,27 +6,57 @@
     android:padding="12dp"
     android:layout_marginBottom="10dp">
 
-    <TextView
-        android:id="@+id/pluginName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#fff"
-        android:textSize="16sp"/>
+    <!-- TOP SECTION -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/pluginStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stopped"
-        android:textColor="#aaa"/>
+        <!-- LEFT: Name + Playlist container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/pluginPlaylist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:text="http://localhost:111/playlist.m3u"
-        android:textColor="#38bdf8"/>
+            <TextView
+                android:id="@+id/pluginName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#fff"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/pluginStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stopped"
+                android:textColor="#aaa"/>
+
+            <TextView
+                android:id="@+id/pluginPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="http://localhost:111/playlist.m3u"
+                android:textColor="#38bdf8" />
+
+        </LinearLayout>
+
+        <!-- RIGHT TOP BUTTON -->
+        <Button
+            android:id="@+id/topRightBtn"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/tv_plugin_item_btns"
+            android:includeFontPadding="false"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:text="🌐"
+            android:visibility="gone"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

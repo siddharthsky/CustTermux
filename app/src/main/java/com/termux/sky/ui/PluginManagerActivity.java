@@ -54,7 +54,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        setContentView(R.layout.activity_plugin_manager);
+        setContentView(R.layout.plugin_manager_activity);
 
         listView = findViewById(R.id.pluginList);
         btnAdd = findViewById(R.id.btnAdd);
