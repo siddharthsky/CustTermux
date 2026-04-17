@@ -24,11 +24,10 @@ public class TxBootReceiver extends BroadcastReceiver {
 
         String mode = SkySharedPref.getAutoStartMode(context);
 
-        SharedPreferences prefs = context.getSharedPreferences("apps", MODE_PRIVATE);
-        SharedPreferences settings = context.getSharedPreferences("settings", MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences("settings", MODE_PRIVATE);
 
-        boolean autoStart = settings.getBoolean("auto_start", false);
-        boolean boot_start_app = settings.getBoolean("boot_start_app", false);
+        boolean autoStart = prefs.getBoolean("auto_start", false);
+        boolean boot_start_app = prefs.getBoolean("boot_start_app", false);
 
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);

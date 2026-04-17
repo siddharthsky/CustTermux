@@ -224,7 +224,7 @@ public class SetupWizardActivity extends AppCompatActivity {
     }
 
     private void finishSetup() {
-        getSharedPreferences("app", MODE_PRIVATE)
+        getSharedPreferences("settings", MODE_PRIVATE)
             .edit()
             .putBoolean("setup_done", true)
             .apply();

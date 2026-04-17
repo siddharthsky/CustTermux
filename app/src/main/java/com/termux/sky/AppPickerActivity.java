@@ -178,7 +178,7 @@ public class AppPickerActivity extends AppCompatActivity {
     }
 
     private void onAppSelected(AppModel app) {
-        SharedPreferences prefs = getSharedPreferences("apps", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
 
         prefs.edit()
             .putString("pkg", app.packageName)

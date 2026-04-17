@@ -242,6 +242,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private LaunchFileObserver launchObserver;
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Logger.logDebug(LOG_TAG, "onCreate");
@@ -694,7 +696,7 @@ private final Runnable refreshRunnable = new Runnable() {
 
         registerTermuxActivityBroadcastReceiver();
 
-        SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
         boolean isSetupDone = prefs.getBoolean("setup_done", false);
 
         if (!isSetupDone) {
@@ -733,7 +735,14 @@ private final Runnable refreshRunnable = new Runnable() {
             }
         };
 
-        handler.postDelayed(checkTask, 300);
+        SharedPreferences settings = this.getSharedPreferences("settings", MODE_PRIVATE);
+
+        boolean autoStart = settings.getBoolean("auto_start", false);
+
+        if (autoStart) {
+            handler.postDelayed(checkTask, 300);
+        }
+
 
 
 

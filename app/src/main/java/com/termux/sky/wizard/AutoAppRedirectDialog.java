@@ -35,16 +35,15 @@ public class AutoAppRedirectDialog {
 
     public void show(Activity activity) {
 
-        SharedPreferences prefs = activity.getSharedPreferences("apps", MODE_PRIVATE);
-        SharedPreferences settings = activity.getSharedPreferences("settings", MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences("settings", MODE_PRIVATE);
 
-        boolean autoStart = settings.getBoolean("auto_start", false);
-        int delay = settings.getInt("delay", 3);
+        boolean autoStart = prefs.getBoolean("auto_start", false);
+        int delay = prefs.getInt("delay", 3);
 
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);
 
-        Boolean minimize = settings.getBoolean("minimize", false);
+        Boolean minimize = prefs.getBoolean("minimize", false);
 
         /// /////////////////
 

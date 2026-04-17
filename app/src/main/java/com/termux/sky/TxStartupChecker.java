@@ -24,7 +24,7 @@ public class TxStartupChecker {
 
     private final Activity activity;
 
-    private static final String PREF = "sky_permission_pref";
+    private static final String PREF = "settings";
     private static final String KEY_OVERLAY_CANCEL = "overlay_cancel_count";
     private static final String KEY_STORAGE_CANCEL = "storage_cancel_count";
     private static final int MAX_CANCELS = 3;
@@ -42,7 +42,7 @@ public class TxStartupChecker {
 //        intent.putExtra("url", "http://localhost:5350/play/143");
 //        activity.startActivity(intent);
 
-        SharedPreferences prefs = activity.getSharedPreferences("app", MODE_PRIVATE);
+        SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
         boolean isSetupDone = prefs.getBoolean("setup_done", false);
 
         if (isSetupDone) {
