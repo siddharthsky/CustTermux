@@ -587,12 +587,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="@color/color_gray"
-                    android:layout_marginTop="10dp" />
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone"/>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp">
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone">
 
                     <Button
                         android:id="@+id/ExtraChannelsbtn"

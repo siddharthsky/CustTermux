@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -15,7 +17,12 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
+
+import com.termux.app.TermuxActivity;
 
 import org.json.JSONObject;
 
@@ -40,6 +47,8 @@ public class WebPlayerActivity extends AppCompatActivity {
     private String CONFIGPART_URL;
     private String DEFAULT_URL;
     private String initURL;
+
+    private String isDRMinstall;
 
     private String currentPlayId;
     private String currentLogoUrl;
@@ -81,6 +90,8 @@ public class WebPlayerActivity extends AppCompatActivity {
         DEFAULT_URL = BASE_URL + CONFIGPART_URL;
 
         Log.d(TAG, "URL: " + DEFAULT_URL);
+
+        isDRMinstall = preferenceManager.getKey("server_setup_isDRMINSTALL");
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setFullScreenMode();
@@ -295,7 +306,20 @@ public class WebPlayerActivity extends AppCompatActivity {
                 // Replace "/play/" with "/player/" to load the player view
                 String newUrl = url.replace("/play/", "/player/");
                 Log.d(TAG, "Loading new player URL: " + newUrl);
-                webView.loadUrl(newUrl);
+
+
+               if ("Yes".equals(isDRMinstall)) {
+
+                   openInCustomTabs(WebPlayerActivity.this, newUrl);
+
+                } else {
+                    webView.loadUrl(newUrl);
+                }
+
+
+
+
+
                 return true; // URL has been overridden
             } else if (url.contains(initURL)) {
                 initURL = url;
@@ -345,6 +369,85 @@ public class WebPlayerActivity extends AppCompatActivity {
                 "  searchButton.parentNode.insertBefore(searchInput, searchButton.nextSibling); " +
                 "} " +
                 "})()");
+        }
+    }
+
+    private void openInCustomTabs(Context context, String url) {
+        try {
+            // replace /player/ with /mpd/
+            if (url != null) {
+                url = url.replace("/player/", "/mpd/");
+            }
+
+            Uri uri = Uri.parse(url);
+
+
+            // 1st priority: HiBrowser
+            if (isAppInstalled(context, "com.hisense.odinbrowser")) {
+                openWithPackage(context, uri, "com.hisense.odinbrowser");
+                return;
+            }
+
+            // 2nd priority: TV Bro
+            if (isAppInstalled(context, "com.phlox.tvwebbrowser")) {
+                openWithPackage(context, uri, "com.phlox.tvwebbrowser");
+                return;
+            }
+
+            // 3rd priority: Chrome
+            if (isAppInstalled(context, "com.android.chrome")) {
+                openWithPackage(context, uri, "com.android.chrome");
+                return;
+            }
+
+            // Fallback: show install prompt
+            showInstallDialog(context);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            webView.loadUrl(url);
+        }
+    }
+
+    private boolean isAppInstalled(Context context, String packageName) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private void openWithPackage(Context context, Uri uri, String packageName) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.setPackage(packageName);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            context.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            webView.loadUrl(uri.toString());
+        }
+    }
+
+    private void showInstallDialog(Context context) {
+        new AlertDialog.Builder(context)
+            .setTitle("Browser Required")
+            .setMessage("Please install either HiBrowser or TV Bro to open links properly.")
+            .setPositiveButton("Install TV Bro", (d, w) -> openPlayStore(context, "com.phlox.tvwebbrowser"))
+            .setNegativeButton("Install HiBrowser", (d, w) -> openPlayStore(context, "com.hisense.odinbrowser"))
+            .setNeutralButton("Cancel", null)
+            .show();
+    }
+
+    private void openPlayStore(Context context, String packageName) {
+        try {
+            context.startActivity(new Intent(Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=" + packageName)));
+        } catch (Exception e) {
+            context.startActivity(new Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
         }
     }
 

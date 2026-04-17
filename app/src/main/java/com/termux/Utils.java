@@ -195,6 +195,68 @@ public class Utils {
         dialog.show();
     }
 
+    public static void DRM_alert_confirmation(Context context) {
+        // Create an AlertDialog Builder
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+
+        // Set the message and the title
+        builder.setMessage("This will install the DRM binary.\n\n" +
+                "On WebTV channels, playback will open in a third-party browser.\n\n" +
+                "Please make sure you have HiBrowser or TV Bro installed.")
+            .setTitle("DRM WEBTV");
+
+        // Add the buttons
+        builder.setPositiveButton("Install", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+
+                sky_DRM(context);
+
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+                dialog.dismiss();
+            }
+        });
+        builder.setNeutralButton("Reset", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                Utils.sky_reinstall(context);
+                dialog.dismiss();
+            }
+        });
+
+        // Create the AlertDialog
+        android.app.AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+    }
+
+    private static void sky_DRM(Context context) {
+
+//        SkySharedPref preferenceManager = new SkySharedPref(context);
+//        preferenceManager.setKey("server_setup_isDRM", "Yes");
+
+        Intent intentC = new Intent();
+        intentC.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intentC.setAction("com.termux.RUN_COMMAND");
+        intentC.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutils.sh");
+        intentC.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"drm_install"});
+        intentC.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+        intentC.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+        intentC.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intentC);
+        } else {
+            context.startService(new Intent(intentC));
+        }
+    }
+
+
     private static void sky_terminal(Context context) {
         TerminalView terminalView = ((Activity) context).findViewById(R.id.terminal_view);
 //        View terminalKeyView = ((Activity) context).findViewById(R.id.activity_termux_bottom_space_view);
