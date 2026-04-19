@@ -838,7 +838,7 @@ drm_off() {
  }
 
 
- drm_install(){
+ drm_install() {
 
 	DRM_FOLDER="$HOME/.jiotv_go/bin/drm"
 	DRM_FILE="$DRM_FOLDER/on.drm"
@@ -862,7 +862,7 @@ drm_off() {
 
 	pkill -f "$HOME/.jiotv_go/bin/jiotv_go"
 
-	curl -fsSL https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/5007_bin_script.sh | bash
+	curl -fsSL https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/5007_bin_script2.sh | bash
 
 	am start -a com.termux.SaveReceiver -n com.termux/.SkySharedPrefActivity --es key server_setup_isDRMINSTALL --es value Yes
 
