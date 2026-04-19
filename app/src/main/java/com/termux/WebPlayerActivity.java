@@ -309,16 +309,11 @@ public class WebPlayerActivity extends AppCompatActivity {
 
 
                if ("Yes".equals(isDRMinstall)) {
-
-                   openInCustomTabs(WebPlayerActivity.this, newUrl);
-
+                   webView.loadUrl(newUrl);
+//                   openInCustomTabs(WebPlayerActivity.this, newUrl);
                 } else {
                     webView.loadUrl(newUrl);
                 }
-
-
-
-
 
                 return true; // URL has been overridden
             } else if (url.contains(initURL)) {
@@ -404,7 +399,8 @@ public class WebPlayerActivity extends AppCompatActivity {
             showInstallDialog(context);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.d("WebActivity", String.valueOf(e));
+            assert url != null;
             webView.loadUrl(url);
         }
     }
