@@ -11,7 +11,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.color.MaterialColors;
 import com.termux.R;
 import com.termux.view.TerminalView;
 
@@ -24,6 +26,7 @@ public class TxUtils {
 
     private static final String HOME_PATH = "/data/data/com.termux/files/home";
     private static final String SCRIPT_PATH = HOME_PATH + "/.skyutils.sh";
+
 
     public static void showCustomToast(Context context, String message) {
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -69,12 +72,13 @@ public class TxUtils {
         dialog.show();
 
         // Fix invisible buttons
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(
-            context.getResources().getColor(android.R.color.holo_green_light)
-        );
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(
-            context.getResources().getColor(android.R.color.holo_red_light)
-        );
+        int color = MaterialColors.getColor(dialog.getContext(),
+            com.google.android.material.R.attr.colorOnSurface,
+            "Dialog");
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
+
     }
 
     private static void sky_terminal(Context context) {
@@ -167,6 +171,16 @@ public class TxUtils {
 
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss());
 
-        builder.show();
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Fix invisible buttons
+        int color = MaterialColors.getColor(dialog.getContext(),
+            com.google.android.material.R.attr.colorOnSurface,
+            "Dialog");
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
     }
 }

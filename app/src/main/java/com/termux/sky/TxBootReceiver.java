@@ -7,19 +7,24 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.termux.sky.wizard.AutoAppRedirectDialog;
+import java.io.File;
 
 public class TxBootReceiver extends BroadcastReceiver {
+
+    private final ConnectivityManager.NetworkCallback[] callbackRef =
+        new ConnectivityManager.NetworkCallback[1];
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         if (intent == null || intent.getAction() == null) return;
-
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
 
         String mode = SkySharedPref.getAutoStartMode(context);
@@ -31,7 +36,6 @@ public class TxBootReceiver extends BroadcastReceiver {
 
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);
-
 
         Log.d("BootReceiver", "AutoStart mode: " + mode);
 
@@ -45,14 +49,14 @@ public class TxBootReceiver extends BroadcastReceiver {
                 startTermuxActivity(context);
                 break;
 
-            case "disabled":
             default:
                 Log.d("BootReceiver", "AutoStart disabled");
                 break;
         }
     }
 
-    private void startTermuxService(Context context, boolean background, boolean autoStart, boolean boot_start_app, String pkg, String cls) {
+    private void startTermuxService(Context context, boolean background, boolean autoStart,
+                                    boolean boot_start_app, String pkg, String cls) {
 
         Toast.makeText(context, "[CTx] Running in background.", Toast.LENGTH_LONG).show();
 
@@ -78,24 +82,55 @@ public class TxBootReceiver extends BroadcastReceiver {
             context.startService(serviceIntent);
         }
 
-        if (autoStart) {
-            if (boot_start_app) {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(pkg, cls));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent);
-                } else {
-                    context.startService(serviceIntent);
-                }
-            }
-        } else {
-            Log.d("BOOT","SKIP");
+        if (!autoStart || !boot_start_app) {
+            Log.d("BOOT", "SKIP");
+            return;
         }
 
+        Handler handler = new Handler(Looper.getMainLooper());
 
+        File homeDir = new File(context.getFilesDir(), "home");
+        File launchFile = new File(homeDir, ".launch");
 
+        final int[] attempt = {0};
+
+        Runnable checkTask = new Runnable() {
+            @Override
+            public void run() {
+                attempt[0]++;
+
+                if (launchFile.exists()) {
+
+                    boolean deleted = launchFile.delete();
+                    Log.d("BOOT", ".launch file deleted: " + deleted);
+
+                    if (pkg != null && cls != null) {
+                        try {
+                            Intent launchIntent = new Intent();
+                            launchIntent.setComponent(new ComponentName(pkg, cls));
+                            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(launchIntent);
+
+                            Log.d("BOOT", "App launched");
+                        } catch (Exception e) {
+                            Log.e("BOOT", "Launch failed: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("BOOT", "Package or Activity is null");
+                    }
+
+                    return;
+                }
+
+                if (attempt[0] < 15) {
+                    handler.postDelayed(this, 750);
+                } else {
+                    Log.e("BOOT", ".launch file not found after retries");
+                }
+            }
+        };
+
+        handler.postDelayed(checkTask, 1000);
     }
 
     private void startTermuxActivity(Context context) {
@@ -104,4 +139,5 @@ public class TxBootReceiver extends BroadcastReceiver {
         activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(activityIntent);
     }
+    
 }
