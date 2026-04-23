@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.termux.R;
-import com.termux.app.TermuxActivity;
+import com.termux.sky.iptv.AppPickerActivity;
 
 public class MoreOptions {
 

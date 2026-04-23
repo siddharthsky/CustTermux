@@ -1,4 +1,4 @@
-package com.termux.sky.ui;
+package com.termux.sky.plugins;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.*;
 
 import com.termux.R;
+import com.termux.sky.txplayer.PlugDRM;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -502,27 +503,48 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void deletePlugin(Plugin plugin, int position) {
-
         new androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Delete Plugin")
-            .setMessage("Delete plugin on port " + plugin.port + "?")
+            .setMessage("Are you sure you want to delete the plugin on port " + plugin.port + "?")
             .setPositiveButton("Delete", (d, w) -> {
 
                 list.remove(position);
                 PluginStorage.save(this, list);
                 adapter.notifyItemRemoved(position);
 
-                File baseDir = new File(getFilesDir(), "home/plugins");
-                File pluginDir = new File(baseDir, String.valueOf(plugin.port));
+                String prefName = "port_" + plugin.port;
 
-                deleteRecursive(pluginDir);
+                getSharedPreferences(prefName, MODE_PRIVATE).edit().clear().commit();
 
-                File zip = new File(getCacheDir(), plugin.port + ".zip");
-                if (zip.exists() && !zip.delete()) {
-                    Log.w("PluginDelete", "Failed to delete zip: " + zip.getAbsolutePath());
+                boolean apiDeleted = false;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    apiDeleted = deleteSharedPreferences(prefName);
                 }
 
-                Toast.makeText(this, "Plugin deleted", Toast.LENGTH_SHORT).show();
+                if (!apiDeleted) {
+                    File dataDir = new File(getApplicationInfo().dataDir, "shared_prefs");
+                    File prefFile = new File(dataDir, prefName + ".xml");
+                    File backupFile = new File(dataDir, prefName + ".bak");
+
+                    if (prefFile.exists()) prefFile.delete();
+                    if (backupFile.exists()) backupFile.delete();
+                }
+
+
+                File baseDir = new File(getFilesDir(), "home/plugins");
+                File pluginDir = new File(baseDir, String.valueOf(plugin.port));
+                if (pluginDir.exists()) {
+                    deleteRecursive(pluginDir);
+                }
+
+                File zip = new File(getCacheDir(), plugin.port + ".zip");
+                if (zip.exists()) {
+                    if (!zip.delete()) {
+                        Log.w("PluginDelete", "Failed to delete zip: " + zip.getAbsolutePath());
+                    }
+                }
+
+                Toast.makeText(this, "Plugin " + plugin.port + " deleted", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("Cancel", null)
             .show();
@@ -531,7 +553,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     private void loginPlugin(Plugin plugin, int position) {
 
         new AlertDialog.Builder(this)
-            .setTitle("Open Login WebPage")
+            .setTitle("Open Login Web Page?")
             .setMessage("URL: " + plugin.login_url)
             .setPositiveButton("Open", (d, w) -> {
 
@@ -546,9 +568,16 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void watchPlugin(Plugin plugin, int position) {
 
-        Intent intent = new Intent(this, WebViewPlayerActivity.class);
-        intent.putExtra("url", plugin.watch_url);
+        Log.d("GIO", plugin.port + " "+plugin.playlist);
+
+        Intent intent = new Intent(this, PlugDRM.class);
+        intent.putExtra("playlist_url", plugin.playlist);
+        intent.putExtra("port", plugin.port);
         startActivity(intent);
+
+//        Intent intent = new Intent(this, ExoPlayerActivityDRM.class);
+//        intent.putExtra("url", plugin.watch_url);
+//        startActivity(intent);
 
     }
 

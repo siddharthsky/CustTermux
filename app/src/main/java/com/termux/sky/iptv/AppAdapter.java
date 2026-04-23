@@ -1,4 +1,4 @@
-package com.termux.sky.wizard;
+package com.termux.sky.iptv;
 
 import android.content.Context;
 import android.view.LayoutInflater;

@@ -3,10 +3,13 @@ package com.termux.sky;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,12 +75,17 @@ public class TxUtils {
         dialog.show();
 
         // Fix invisible buttons
-        int color = MaterialColors.getColor(dialog.getContext(),
-            com.google.android.material.R.attr.colorOnSurface,
-            "Dialog");
+        int activeColor = Color.parseColor("#007BFF");
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setTextColor(activeColor);
+        }
+        if (negButton != null) {
+            negButton.setTextColor(activeColor);
+        }
 
     }
 
@@ -176,11 +184,16 @@ public class TxUtils {
         dialog.show();
 
         // Fix invisible buttons
-        int color = MaterialColors.getColor(dialog.getContext(),
-            com.google.android.material.R.attr.colorOnSurface,
-            "Dialog");
+        int activeColor = Color.parseColor("#007BFF");
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(color);
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setTextColor(activeColor);
+        }
+        if (negButton != null) {
+            negButton.setTextColor(activeColor);
+        }
     }
 }

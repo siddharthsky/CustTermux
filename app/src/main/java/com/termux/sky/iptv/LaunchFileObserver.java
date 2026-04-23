@@ -1,5 +1,4 @@
-package com.termux.sky.wizard;
-import android.app.Activity;
+package com.termux.sky.iptv;
 import android.os.FileObserver;
 import android.util.Log;
 

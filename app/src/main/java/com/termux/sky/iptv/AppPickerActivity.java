@@ -1,4 +1,4 @@
-package com.termux.sky;
+package com.termux.sky.iptv;
 
 
 import android.annotation.SuppressLint;
@@ -22,8 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.termux.R;
-import com.termux.sky.wizard.AppAdapter;
-import com.termux.sky.wizard.AppModel;
 
 import java.util.ArrayList;
 import java.util.Collections;

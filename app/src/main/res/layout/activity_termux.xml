@@ -113,7 +113,7 @@
                 android:layout_margin="3dp"
                 android:background="@drawable/button_card"
                 android:gravity="center"
-                android:text="🔐\nMore"
+                android:text="📂\nMore"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"

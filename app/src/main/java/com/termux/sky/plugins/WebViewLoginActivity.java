@@ -1,4 +1,4 @@
-package com.termux.sky.ui;
+package com.termux.sky.plugins;
 
 import android.annotation.SuppressLint;
 import android.os.Build;

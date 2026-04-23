@@ -1,4 +1,4 @@
-package com.termux.sky.ui;
+package com.termux.sky.plugins;
 
 import android.app.Activity;
 import android.content.ClipData;
@@ -108,17 +108,23 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             });
         }
 
-        if (current.watch_url == null || current.watch_url.trim().isEmpty()) {
-            h.watch.setVisibility(View.GONE);
-        } else {
-            h.watch.setVisibility(View.VISIBLE);
+//        if (current.watch_url == null || current.watch_url.trim().isEmpty()) {
+//            h.watch.setVisibility(View.GONE);
+//        } else {
+//            h.watch.setVisibility(View.VISIBLE);
+//
+//            h.watch.setOnClickListener(v -> {
+//                if (watchListener != null) {
+//                    watchListener.onWatch(current, h.getAdapterPosition());
+//                }
+//            });
+//        }
 
-            h.watch.setOnClickListener(v -> {
-                if (watchListener != null) {
-                    watchListener.onWatch(current, h.getAdapterPosition());
-                }
-            });
-        }
+        h.watch.setOnClickListener(v -> {
+            if (watchListener != null) {
+                watchListener.onWatch(current, h.getAdapterPosition());
+            }
+        });
 
         h.delete.setOnClickListener(v -> {
             if (deleteListener != null) {
@@ -133,9 +139,9 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist;
-        Button login;
-        Button watch;
-        Button delete;
+        ImageButton login, delete;
+        LinearLayout watch;
+
 
         VH(View v) {
             super(v);

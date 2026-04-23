@@ -139,5 +139,5 @@ public class TxBootReceiver extends BroadcastReceiver {
         activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(activityIntent);
     }
-    
+
 }

@@ -1,4 +1,4 @@
-package com.termux.sky.wizard;
+package com.termux.sky.iptv;
 
 import static android.content.Context.MODE_PRIVATE;
 

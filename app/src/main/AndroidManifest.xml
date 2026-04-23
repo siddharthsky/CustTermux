@@ -51,7 +51,8 @@
         android:supportsRtl="false"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar"
-        tools:targetApi="m">
+        tools:targetApi="m"
+        android:hardwareAccelerated="true">
 
         <activity
             android:name=".app.TermuxActivity"
@@ -122,28 +123,41 @@
         </activity>
 
         <activity
-            android:name=".sky.ui.PluginManagerActivity"
+            android:name=".sky.plugins.PluginManagerActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
         <activity
-            android:name=".sky.ui.WebViewLoginActivity"
+            android:name=".sky.plugins.WebViewLoginActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
         <activity
-            android:name=".sky.ui.WebViewPlayerActivity"
+            android:name=".sky.txplayer.WebViewPlayerActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
         <activity
-            android:name=".sky.AppPickerActivity"
+            android:name=".sky.txplayer.ExoPlayerActivityDRM"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true"/>
+
+        <activity
+            android:name=".sky.txplayer.PlugDRM"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true"/>
+
+
+
+
+        <activity
+            android:name=".sky.iptv.AppPickerActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"

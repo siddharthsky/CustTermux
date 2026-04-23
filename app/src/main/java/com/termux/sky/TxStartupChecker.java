@@ -16,10 +16,6 @@ import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
-import com.termux.app.TermuxActivity;
-import com.termux.sky.ui.WebViewLoginActivity;
-import com.termux.sky.wizard.SetupWizardActivity;
-
 public class TxStartupChecker {
 
     private final Activity activity;

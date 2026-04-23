@@ -1,6 +1,4 @@
-package com.termux.sky.wizard;
-
-import android.graphics.drawable.Drawable;
+package com.termux.sky.iptv;
 
 public class AppModel {
     public String appName;

@@ -1,11 +1,10 @@
-package com.termux.sky.ui;
+package com.termux.sky.plugins;
 
 import android.util.Log;
 
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 
 public class PluginUtils {
@@ -25,7 +24,7 @@ public class PluginUtils {
             p.watch_url = o.has("watch_url") ? o.getString("watch_url") : null;
             p.login_url = o.has("login_url") ? o.getString("login_url") : null;
             p.post_install_script = o.has("post_install_script") ? o.getString("post_install_script") : null;
-            p.start = o.getString("start");
+            p.start = o.has("start") ? o.getString("start") : null;
 
             return p;
 
