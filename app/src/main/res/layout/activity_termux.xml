@@ -23,7 +23,7 @@
             android:gravity="center">
 
             <!-- Minimize -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button1"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
@@ -41,7 +41,7 @@
                 android:tooltipText="Minimize" />
 
             <!-- ReRun -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button2"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
@@ -54,10 +54,10 @@
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
                 android:lineSpacingExtra="2dp"
-                android:tooltipText="Restart Server + IPTV" />
+                android:tooltipText="Restart Server" />
 
             <!-- Update -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_update"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
@@ -74,7 +74,7 @@
                 android:tooltipText="Update App" />
 
 <!--            &lt;!&ndash; IPTV &ndash;&gt;-->
-<!--            <Button-->
+<!--            <androidx.appcompat.widget.AppCompatButton-->
 <!--                android:id="@+id/button6"-->
 <!--                android:layout_width="100dp"-->
 <!--                android:layout_height="62dp"-->
@@ -90,7 +90,7 @@
 <!--                android:tooltipText="Start IPTV player" />-->
 
             <!-- PLUGINS -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button5"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
@@ -106,7 +106,7 @@
                 android:tooltipText="Manage plugins" />
 
             <!-- More -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button3"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
@@ -124,7 +124,7 @@
 
 
             <!-- Exit -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button4"
                 android:layout_width="100dp"
                 android:layout_height="62dp"
