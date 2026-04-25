@@ -14,4 +14,6 @@ public class ChannelModel {
     public String licenseKey = "";
     public String manifestType = "";
     public String userAgent = "";
+
+    public boolean isFavorite = false;
 }

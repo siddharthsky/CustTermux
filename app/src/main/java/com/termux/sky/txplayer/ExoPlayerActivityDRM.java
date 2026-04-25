@@ -7,18 +7,23 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
+import androidx.annotation.NonNull;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
 
 import java.net.URLDecoder;
@@ -177,11 +182,50 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 .createMediaSource(mediaItemBuilder.build());
         }
 
-        player = new ExoPlayer.Builder(this).build();
+        DefaultRenderersFactory renderersFactory =
+            new DefaultRenderersFactory(this)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+
+
+        player = new ExoPlayer.Builder(this, renderersFactory).build();
+
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onPlayerError(@NonNull PlaybackException error) {
+                Throwable cause = error.getCause();
+
+                if (cause instanceof HttpDataSource.InvalidResponseCodeException) {
+                    HttpDataSource.InvalidResponseCodeException httpError =
+                        (HttpDataSource.InvalidResponseCodeException) cause;
+
+                    int responseCode = httpError.responseCode;
+                    Log.e("DRM_DEBUG", "HTTP Error Detected! Code: " + responseCode);
+
+                    if (responseCode == 403) {
+                        Log.e("DRM_DEBUG", "Access Denied (403). Check Headers or Token.");
+                        Toast.makeText(ExoPlayerActivityDRM.this, "Server Access Denied (403)", Toast.LENGTH_LONG).show();
+
+                        switchToWebView(videoUrl);
+                    }
+                } else {
+                    Log.e("DRM_DEBUG", "General Player Error: " + error.getMessage());
+                }
+            }
+        });
+
         playerView.setPlayer(player);
         player.setMediaSource(mediaSource);
         player.prepare();
         player.setPlayWhenReady(true);
+    }
+
+    private void switchToWebView(String url) {
+        Intent intent = new Intent(this, WebViewPlayerActivity.class);
+        intent.putExtra("url", url);
+        intent.putExtra("port", port_no);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override

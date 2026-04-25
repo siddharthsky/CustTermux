@@ -106,6 +106,8 @@ public class M3UParser {
             editor.putString(prefix + "lic_key", ch.licenseKey);
             editor.putString(prefix + "man_type", ch.manifestType);
             editor.putString(prefix + "ua", ch.userAgent);
+
+            editor.putBoolean(prefix + "is_fav", ch.isFavorite);
         }
 
         editor.apply();
@@ -146,6 +148,8 @@ public class M3UParser {
             ch.licenseKey = prefs.getString(prefix + "lic_key", "");
             ch.manifestType = prefs.getString(prefix + "man_type", "");
             ch.userAgent = prefs.getString(prefix + "ua", "");
+
+            ch.isFavorite = prefs.getBoolean(prefix + "is_fav", false);
 
             // Safety check: ensure we don't add empty/broken records
             if (ch.url != null && !ch.url.isEmpty()) {

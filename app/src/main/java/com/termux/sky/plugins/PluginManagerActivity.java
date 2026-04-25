@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.result.*;
@@ -42,6 +44,8 @@ public class PluginManagerActivity extends AppCompatActivity {
     List<Plugin> list;
     PluginAdapter adapter;
 
+    private ImageButton btnMenu;
+
     private androidx.appcompat.app.AlertDialog progressDialog;
     private android.widget.ProgressBar progressBar;
     private android.widget.TextView progressText;
@@ -68,7 +72,35 @@ public class PluginManagerActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
 
         btnAdd.setOnClickListener(v -> showPortInputDialog());
+
+        btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(this::showPopupMenu);
     }
+
+    private void showPopupMenu(View view) {
+        androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, view);
+        popup.getMenuInflater().inflate(R.menu.plugin_menu, popup.getMenu());
+
+//        popup.getMenu().findItem(R.id.menu_layout_toggle)
+//            .setTitle("Clear Favorite");
+
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.menu_add_url) {
+                showUrlInputDialog();
+                Toast.makeText(this, "Add M3U URL...", Toast.LENGTH_SHORT).show();
+                Log.d("PlugDRM","Cleared fav.");
+                return true;
+            } else if (id == R.id.menu_add_json) {
+                filePicker.launch("application/json");
+                Toast.makeText(this, "Add JSON...", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
 
     private void handleFile(Uri uri) {
         if (uri == null) return;
@@ -91,13 +123,31 @@ public class PluginManagerActivity extends AppCompatActivity {
             Plugin p = PluginUtils.parse(sb.toString());
 
             if (p != null) {
+                // Check if plugin already exists to avoid duplicates
+                for (Plugin existing : list) {
+                    if (existing.port == p.port) {
+                        Toast.makeText(this, "Plugin on port " + p.port + " already exists", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                initPlugin(
+                    p.port,
+                    p.repo,
+                    p.repo_branch,
+                    p.start,
+                    p.bin_download,
+                    p.post_install_script,
+                    p.pkg != null ? Arrays.toString(p.pkg) : ""
+                );
+
                 list.add(p);
                 PluginStorage.save(this, list);
                 adapter.notifyDataSetChanged();
 
-                Toast.makeText(this, "Plugin added", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Plugin added and initializing...", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Invalid JSON", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Invalid JSON format", Toast.LENGTH_SHORT).show();
             }
 
         } catch (Exception e) {
@@ -125,7 +175,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                 String port = input.getText().toString().trim();
 
                 if (port.isEmpty()) {
-                    Toast.makeText(this, "Enter port", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Enter plugin code", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -740,6 +790,117 @@ public class PluginManagerActivity extends AppCompatActivity {
             hideProgress();
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         });
+    }
+
+    private void showUrlInputDialog() {
+        EditText input = new EditText(this);
+        input.setHint("https://example.com/playlist.m3u");
+        input.setPadding(50, 20, 50, 20);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Add M3U URL")
+            .setMessage("Enter the playlist URL:")
+            .setView(input)
+            .setPositiveButton("Add", (dialog, which) -> {
+                String url = input.getText().toString().trim();
+                if (url.isEmpty()) {
+                    Toast.makeText(this, "URL cannot be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                processUrlAsPlugin(url);
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void processUrlAsPlugin(String url) {
+        int uniquePort = findAvailablePort(6001, 6099);
+
+        if (uniquePort == -1) {
+            Toast.makeText(this, "No available ports left", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Generate the incremented title (Playlist 001, 002...)
+        String nextTitle = generateNextPlaylistTitle();
+
+        // The JSON string as you requested
+        String json = "{\n" +
+            "  \"title\": \"" + nextTitle + "\",\n" +
+            "  \"port\": " + uniquePort + ",\n" +
+            "  \"playlist\": \"" + url + "\"\n" +
+            "}";
+
+        Plugin p = PluginUtils.parse(json);
+
+        if (p != null) {
+            list.add(p);
+            PluginStorage.save(this, list);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, nextTitle + " added", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private int findAvailablePort(int min, int max) {
+        java.util.Set<Integer> usedPorts = new java.util.HashSet<>();
+        for (Plugin p : list) {
+            usedPorts.add(p.port);
+        }
+
+        java.util.List<Integer> available = new java.util.ArrayList<>();
+        for (int i = min; i <= max; i++) {
+            if (!usedPorts.contains(i)) {
+                available.add(i);
+            }
+        }
+
+        if (available.isEmpty()) return -1;
+
+        return available.get(new java.util.Random().nextInt(available.size()));
+    }
+
+    private String generateNextPlaylistTitle() {
+        int maxNumber = 0;
+
+        // Pattern to match "Playlist " followed by digits
+        for (Plugin p : list) {
+            if (p.title != null && p.title.startsWith("Playlist ")) {
+                try {
+                    String numPart = p.title.substring(9).trim(); // Get part after "Playlist "
+                    int currentNum = Integer.parseInt(numPart);
+                    if (currentNum > maxNumber) {
+                        maxNumber = currentNum;
+                    }
+                } catch (Exception ignored) {
+                    // If title isn't formatted with a number, just skip it
+                }
+            }
+        }
+
+        // Increment and format to 3 digits (e.g., 001, 012)
+        int nextNumber = maxNumber + 1;
+        return String.format(java.util.Locale.US, "Playlist %03d", nextNumber);
+    }
+
+    private int generateUniquePort(int min, int max) {
+        java.util.Random random = new java.util.Random();
+        java.util.ArrayList<Integer> availablePorts = new java.util.ArrayList<>();
+
+        // Create list of all potential ports
+        for (int i = min; i <= max; i++) {
+            availablePorts.add(i);
+        }
+
+        // Remove ports that are already in the 'list'
+        for (Plugin p : list) {
+            availablePorts.remove(Integer.valueOf(p.port));
+        }
+
+        if (availablePorts.isEmpty()) return -1;
+
+        // Pick a random one from what's left
+        return availablePorts.get(random.nextInt(availablePorts.size()));
     }
 }
 

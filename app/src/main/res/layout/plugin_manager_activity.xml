@@ -11,26 +11,38 @@
         android:layout_height="60dp"
         android:background="#111827"
         android:gravity="center_vertical"
-        android:paddingHorizontal="20dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Plugin Manager"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="4dp"> <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Plugin Manager"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnAdd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
             android:text="+ Add Plugin"
             android:background="@drawable/tv_plugin_add_btn"
             android:paddingHorizontal="16dp"
             android:paddingVertical="10dp"
             android:focusable="true" />
+
+        <ImageButton
+            android:id="@+id/btnMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:background="@drawable/img_btn_selector"
+            android:contentDescription="More"
+            android:scaleType="centerInside"
+            android:focusable="true"
+            android:src="@drawable/tx_more" />
+
     </LinearLayout>
 
     <!-- Plugin List -->

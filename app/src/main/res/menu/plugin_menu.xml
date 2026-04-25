@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_add_url"
+        android:title="Add M3U URL"
+        android:icon="@drawable/tx_play"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_add_json"
+        android:title="Add JSON"
+        android:icon="@drawable/tx_reload"
+        app:showAsAction="never" />
+</menu>

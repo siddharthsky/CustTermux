@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -38,6 +39,8 @@ public class PlugDRM extends AppCompatActivity {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Handler handler = new Handler(Looper.getMainLooper());
 
+    private ImageButton btnMenu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +50,9 @@ public class PlugDRM extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         searchBar = findViewById(R.id.searchChannel);
         btnReload = findViewById(R.id.btnReload);
+
+        btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(this::showPopupMenu);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -70,6 +76,32 @@ public class PlugDRM extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
     }
+
+    private void showPopupMenu(View view) {
+        androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, view);
+        popup.getMenuInflater().inflate(R.menu.channel_menu, popup.getMenu());
+
+        // Update menu text based on current state
+        popup.getMenu().findItem(R.id.menu_layout_toggle)
+            .setTitle("Clear Favorite");
+
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.menu_layout_toggle) {
+                loadData(true);
+                Toast.makeText(this, "Clearing...", Toast.LENGTH_SHORT).show();
+                Log.d("PlugDRM","Cleared fav.");
+                return true;
+            } else if (id == R.id.menu_refresh) {
+                Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
+                loadData(true);
+                return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
 
     private void loadData(boolean forceRefresh) {
         progressBar.setVisibility(View.VISIBLE);
@@ -101,12 +133,13 @@ public class PlugDRM extends AppCompatActivity {
                 }
 
                 // Update UI
-                if (adapter == null) {
-                    adapter = new ChannelAdapter(channels, this::playVideo);
-                    recyclerView.setAdapter(adapter);
-                } else {
-                    adapter.updateList(channels);
-                }
+                setupAdapter(channels);
+//                if (adapter == null) {
+//                    adapter = new ChannelAdapter(channels, this::playVideo, this::toggleFavorite);
+//                    recyclerView.setAdapter(adapter);
+//                } else {
+//                    adapter.updateList(channels);
+//                }
             });
         });
     }
@@ -136,7 +169,7 @@ public class PlugDRM extends AppCompatActivity {
                 if (channels.isEmpty()) {
                     Toast.makeText(this, "No channels found!", Toast.LENGTH_SHORT).show();
                 }
-                adapter = new ChannelAdapter(channels, this::playVideo);
+                adapter = new ChannelAdapter(channels, this::playVideo, this::toggleFavorite);
                 recyclerView.setAdapter(adapter);
             });
         });
@@ -170,5 +203,40 @@ public class PlugDRM extends AppCompatActivity {
             java.util.Scanner s = new java.util.Scanner(new java.net.URL(urlString).openStream(), "UTF-8").useDelimiter("\\A");
             return s.hasNext() ? s.next() : "";
         } catch (Exception e) { return ""; }
+    }
+
+    private void setupAdapter(List<ChannelModel> channels) {
+        // Sort so favorites appear at the top
+        sortList(channels);
+
+        if (adapter == null) {
+            adapter = new ChannelAdapter(channels, this::playVideo, this::toggleFavorite);
+            recyclerView.setAdapter(adapter);
+        } else {
+            adapter.updateList(channels);
+        }
+    }
+
+    private void toggleFavorite(ChannelModel channel) {
+        channel.isFavorite = !channel.isFavorite;
+
+        // Save state to SharedPreferences
+        M3UParser.saveToPrefs(this, port, fullList);
+
+        // Re-sort and notify UI
+        sortList(fullList);
+        adapter.updateList(fullList);
+
+        String msg = channel.isFavorite ? "Added to Favorites" : "Removed from Favorites";
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private void sortList(List<ChannelModel> list) {
+        list.sort((o1, o2) -> {
+            if (o1.isFavorite != o2.isFavorite) {
+                return o1.isFavorite ? -1 : 1;
+            }
+            return 0;
+        });
     }
 }

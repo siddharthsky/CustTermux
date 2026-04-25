@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_layout_toggle"
+        android:title="Clear Favorite"
+        android:icon="@drawable/tx_del"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_refresh"
+        android:title="Refetch Playlist"
+        android:icon="@drawable/tx_reload"
+        app:showAsAction="never" />
+</menu>

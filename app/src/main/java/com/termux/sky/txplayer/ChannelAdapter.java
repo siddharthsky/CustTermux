@@ -17,14 +17,20 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     private List<ChannelModel> channels;
     private final OnChannelClickListener listener;
+    private final OnChannelLongClickListener longListener;
 
     public interface OnChannelClickListener {
         void onChannelClick(ChannelModel channel);
     }
 
-    public ChannelAdapter(List<ChannelModel> channels, OnChannelClickListener listener) {
+    public interface OnChannelLongClickListener {
+        void onChannelLongClick(ChannelModel channel);
+    }
+
+    public ChannelAdapter(List<ChannelModel> channels, OnChannelClickListener listener, OnChannelLongClickListener longListener) {
         this.channels = channels;
         this.listener = listener;
+        this.longListener = longListener;
     }
 
     public void updateList(List<ChannelModel> newList) {
@@ -44,6 +50,20 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChannelModel channel = channels.get(position);
         holder.txtName.setText(channel.name);
+
+        holder.imgFavorite.setVisibility(channel.isFavorite ? View.VISIBLE : View.GONE);
+
+        holder.itemView.setFocusable(true);
+
+        holder.itemView.setOnClickListener(v -> listener.onChannelClick(channel));
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longListener != null) {
+                longListener.onChannelLongClick(channel);
+                return true;
+            }
+            return false;
+        });
 
         // Show Group | Language | Type
         String info = channel.group;
@@ -72,13 +92,14 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtName, txtGroup;
-        ImageView imgLogo;
+        ImageView imgLogo, imgFavorite; // Add imgFavorite
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             txtName = itemView.findViewById(R.id.channelName);
             txtGroup = itemView.findViewById(R.id.channelGroup);
             imgLogo = itemView.findViewById(R.id.channelLogo);
+            imgFavorite = itemView.findViewById(R.id.imgFavorite); // Bind here
         }
     }
 }
