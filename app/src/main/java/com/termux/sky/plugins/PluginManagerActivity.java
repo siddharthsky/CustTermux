@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.activity.result.*;
@@ -78,7 +79,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void showPopupMenu(View view) {
-        androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, view);
+        PopupMenu popup = new PopupMenu(this, view);
         popup.getMenuInflater().inflate(R.menu.plugin_menu, popup.getMenu());
 
 //        popup.getMenu().findItem(R.id.menu_layout_toggle)

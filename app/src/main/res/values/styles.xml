@@ -14,6 +14,12 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
+    <style name="HanaPlayerTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0E1628FF</item>
+        <item name="android:windowBackground">#121212</item>
+    </style>
+
+
     <style name="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="android:buttonBarPositiveButtonStyle">@style/CustomAlertDialogButton</item>
         <item name="android:buttonBarNegativeButtonStyle">@style/CustomAlertDialogButton</item>

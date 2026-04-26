@@ -16,4 +16,5 @@ public class ChannelModel {
     public String userAgent = "";
 
     public boolean isFavorite = false;
+    public String originPort;
 }

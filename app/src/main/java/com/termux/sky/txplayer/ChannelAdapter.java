@@ -77,7 +77,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
             .into(holder.imgLogo);
 
         holder.itemView.setFocusable(true);
-        holder.itemView.setFocusableInTouchMode(true);
+
         Drawable selector = ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.tv_plugin_card_bg);
         holder.itemView.setBackground(selector);
 
@@ -92,7 +92,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txtName, txtGroup;
-        ImageView imgLogo, imgFavorite; // Add imgFavorite
+        ImageView imgLogo, imgFavorite;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

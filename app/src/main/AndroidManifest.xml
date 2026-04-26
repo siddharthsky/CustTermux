@@ -153,6 +153,11 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="true"/>
 
+        <activity
+            android:name=".sky.hanaplayer.HanaPlayerActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:exported="true"/>
+
 
 
 
