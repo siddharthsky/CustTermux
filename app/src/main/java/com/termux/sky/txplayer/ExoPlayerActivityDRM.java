@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
@@ -25,6 +26,7 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.termux.sky.playlistmanager.PlaylistManager;
 
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -192,26 +194,40 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(@NonNull PlaybackException error) {
-                Throwable cause = error.getCause();
+                // Log the error for debugging
+                Log.e("DRM_DEBUG", "ExoPlayer failed to play: " + error.getMessage() + ". Rerouting to WebPlayer.");
+                Toast.makeText(ExoPlayerActivityDRM.this, "Stream error, trying Web Player...", Toast.LENGTH_SHORT).show();
 
-                if (cause instanceof HttpDataSource.InvalidResponseCodeException) {
-                    HttpDataSource.InvalidResponseCodeException httpError =
-                        (HttpDataSource.InvalidResponseCodeException) cause;
+                Toast.makeText(ExoPlayerActivityDRM.this, "Retrying on Web Player", Toast.LENGTH_LONG).show();
 
-                    int responseCode = httpError.responseCode;
-                    Log.e("DRM_DEBUG", "HTTP Error Detected! Code: " + responseCode);
-
-                    if (responseCode == 403) {
-                        Log.e("DRM_DEBUG", "Access Denied (403). Check Headers or Token.");
-                        Toast.makeText(ExoPlayerActivityDRM.this, "Server Access Denied (403)", Toast.LENGTH_LONG).show();
-
-                        switchToWebView(videoUrl);
-                    }
-                } else {
-                    Log.e("DRM_DEBUG", "General Player Error: " + error.getMessage());
-                }
+                // Instead of only checking for 403, we switch to WebView for ANY playback failure
+                switchToWebView(videoUrl);
             }
         });
+
+//        player.addListener(new Player.Listener() {
+//            @Override
+//            public void onPlayerError(@NonNull PlaybackException error) {
+//                Throwable cause = error.getCause();
+//
+//                if (cause instanceof HttpDataSource.InvalidResponseCodeException) {
+//                    HttpDataSource.InvalidResponseCodeException httpError =
+//                        (HttpDataSource.InvalidResponseCodeException) cause;
+//
+//                    int responseCode = httpError.responseCode;
+//                    Log.e("DRM_DEBUG", "HTTP Error Detected! Code: " + responseCode);
+//
+//                    if (responseCode == 403) {
+//                        Log.e("DRM_DEBUG", "Access Denied (403). Check Headers or Token.");
+//                        Toast.makeText(ExoPlayerActivityDRM.this, "Server Access Denied (403)", Toast.LENGTH_LONG).show();
+//
+//                        switchToWebView(videoUrl);
+//                    }
+//                } else {
+//                    Log.e("DRM_DEBUG", "General Player Error: " + error.getMessage());
+//                }
+//            }
+//        });
 
         playerView.setPlayer(player);
         player.setMediaSource(mediaSource);
@@ -229,6 +245,14 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (player != null) {
+            player.setPlayWhenReady(false);
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (player != null) {
@@ -236,4 +260,69 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             player = null;
         }
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                changeChannel(1);
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                changeChannel(-1);
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void changeChannel(int direction) {
+        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
+
+        // Calculate next index with wrap-around
+        int newIndex = PlaylistManager.currentIndex + direction;
+        if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
+        if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
+
+        PlaylistManager.currentIndex = newIndex;
+        ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
+
+        // Update port_no globally
+        port_no = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
+
+//        Toast.makeText(this, "Playing: " + nextChannel.name, Toast.LENGTH_SHORT).show();
+
+        // Stop current playback
+        if (player != null) {
+            player.stop();
+            player.release();
+            player = null;
+        }
+
+        // Decode new URL and start playback
+        String vUrl = nextChannel.url;
+        String origin = null;
+        String referer = null;
+        String userAgent = nextChannel.userAgent;
+
+        try {
+            vUrl = java.net.URLDecoder.decode(vUrl, "UTF-8");
+            if (vUrl.contains("|")) {
+                String[] parts = vUrl.split("\\|");
+                vUrl = parts[0].trim();
+                for (int i = 1; i < parts.length; i++) {
+                    String part = parts[i].trim();
+                    String lowerPart = part.toLowerCase();
+                    if (lowerPart.startsWith("origin=")) origin = part.substring(7);
+                    else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
+                    else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+                }
+            }
+            vUrl = vUrl.replaceAll("&$", "");
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "URL Decoding failed", e);
+        }
+
+        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer);
+    }
+
 }

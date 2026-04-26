@@ -1,6 +1,7 @@
 package com.termux.sky.hanaplayer;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -10,8 +11,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.termux.R;
+import com.termux.sky.playlistmanager.PlaylistManager;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.txplayer.ChannelModel;
@@ -41,6 +46,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private boolean isUpdatingChips = false;
     private ImageButton btnMenu;
 
+    private boolean isLaunch = true;
+    private boolean isFirstLaunch = true;
+
+    SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+
     private static final String UI_PREFS = "hana_player_ui";
     private static final String SELECTED_CHIPS_KEY = "selected_chips";
 
@@ -50,6 +60,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        isLaunch = prefs.getBoolean("auto_launch_channel", false);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -110,21 +123,30 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void showPopupMenu(View view) {
-       PopupMenu popup = new PopupMenu(this, view);
+        PopupMenu popup = new PopupMenu(this, view);
         popup.getMenuInflater().inflate(R.menu.hana_menu, popup.getMenu());
+
+        MenuItem autoPlayItem = popup.getMenu().findItem(R.id.menu_auto_play);
+        boolean isAutoPlayEnabled = prefs.getBoolean("auto_launch_channel", false);
+        autoPlayItem.setChecked(isAutoPlayEnabled);
 
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+
             if (id == R.id.menu_auto_play) {
-                Toast.makeText(this, "Auto-Play Setting...", Toast.LENGTH_SHORT).show();
-                Log.d("PlugDRM","Cleared fav.");
+                boolean newState = !item.isChecked();
+                item.setChecked(newState);
+                prefs.edit().putBoolean("auto_launch_channel", newState).apply();
+                Toast.makeText(this, "Auto-Play: " + (newState ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
                 return true;
+
             } else if (id == R.id.menu_demo) {
                 Toast.makeText(this, "Demo Menu...", Toast.LENGTH_SHORT).show();
                 return true;
             }
             return false;
         });
+
         popup.show();
     }
 
@@ -254,9 +276,22 @@ public class HanaPlayerActivity extends AppCompatActivity {
         }
 
         adapter.updateList(displayList);
+
+        if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
+            isFirstLaunch = false;
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                onChannelClick(displayList.get(0));
+            }, 500);
+
+        }
     }
 
     private void onChannelClick(ChannelModel channel) {
+
+        PlaylistManager.currentList = displayList;
+        PlaylistManager.currentIndex = displayList.indexOf(channel);
+
         String activePort = channel.originPort;
         if (activePort == null || channel.url.contains("5007")) {
             activePort = channel.url.contains("5007") ? "5007" : "0";
@@ -273,7 +308,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         startActivity(intent);
 
-        Toast.makeText(this, "Playing: " + channel.name, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Playing: " + channel.name, Toast.LENGTH_SHORT).show();
     }
 
     private void onChannelLongClick(ChannelModel channel) {

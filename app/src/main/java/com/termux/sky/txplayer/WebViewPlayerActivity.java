@@ -1,15 +1,18 @@
 package com.termux.sky.txplayer;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.net.Uri;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -17,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.termux.sky.playlistmanager.PlaylistManager;
 
 public class WebViewPlayerActivity extends AppCompatActivity {
 
@@ -120,19 +124,14 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
             if (port_no != null && !port_no.isEmpty()) {
 
-                if (port_no.equals("5006") || port_no.equals("5007") ) {
+                assert path != null;
+                if (path.contains("/live/")) {
                     Log.d("DRM_PLAYER_WEB", "Port 5006,5007 logic applied");
-
-                    if (path.contains("/live/")) {
-                        path = path.replace("/live/", "/mpd/");
-                    }
+                    path = path.replace("/live/", "/mpd/");
 
                     if (path.endsWith(".m3u8")) {
                         path = path.substring(0, path.length() - ".m3u8".length());
                     }
-
-                } else if (port_no.equals("8181")) {
-                    Log.d("DRM_PLAYER_WEB", "Port 8181 logic applied");
                 }
             }
             
@@ -171,5 +170,91 @@ public class WebViewPlayerActivity extends AppCompatActivity {
             webView.destroy();
         }
         super.onDestroy();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        // Intercept the key press before the WebView can consume it for scrolling
+        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+
+            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                changeChannel(1);
+                return true; // Return true so the WebView doesn't scroll
+            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                changeChannel(-1);
+                return true; // Return true so the WebView doesn't scroll
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void changeChannel(int direction) {
+        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
+
+        // Calculate next index with wrap-around
+        int newIndex = PlaylistManager.currentIndex + direction;
+        if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
+        if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
+
+        PlaylistManager.currentIndex = newIndex;
+        ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
+
+        String activePort = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
+
+//        Toast.makeText(this, "Trying ExoPlayer: " + nextChannel.name, android.widget.Toast.LENGTH_SHORT).show();
+
+        // INSTEAD of loading in WebView, we launch ExoPlayerActivityDRM again
+        Intent intent = new Intent(this, ExoPlayerActivityDRM.class)
+            .putExtra("url", nextChannel.url)
+            .putExtra("name", nextChannel.name)
+            .putExtra("logo_url", nextChannel.logo)
+            .putExtra("license_key", nextChannel.licenseKey)
+            .putExtra("license_type", nextChannel.licenseType)
+            .putExtra("user_agent", nextChannel.userAgent)
+            .putExtra("manifest_type", nextChannel.manifestType)
+            .putExtra("plugin_port", activePort);
+
+        // Clear the WebView from the back stack so the user doesn't get stuck in a loop
+        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        startActivity(intent);
+
+        // Clean up and close the WebView Activity
+        if (webView != null) {
+            webView.stopLoading();
+            webView.onPause();
+            webView.loadUrl("about:blank");
+            webView.destroy();
+            webView = null;
+        }
+        finish();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (webView != null) {
+            webView.onPause();
+            webView.pauseTimers();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.onResume();
+            webView.resumeTimers();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (webView != null) {
+            webView.stopLoading();
+            webView.loadUrl("about:blank");
+        }
     }
 }

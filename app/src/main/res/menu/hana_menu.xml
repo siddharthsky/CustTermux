@@ -6,6 +6,7 @@
         android:id="@+id/menu_auto_play"
         android:title="Auto-Play"
         android:icon="@drawable/tx_play"
+        android:checkable="true"
         app:showAsAction="never" />
 
     <item
