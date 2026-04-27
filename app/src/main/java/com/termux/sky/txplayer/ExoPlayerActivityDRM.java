@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
@@ -35,6 +36,7 @@ import java.util.Map;
 public class ExoPlayerActivityDRM extends ComponentActivity {
     private ExoPlayer player;
     private PlayerView playerView;
+    private ChannelBannerManager bannerManager;
 
     String port_no;
 
@@ -43,8 +45,23 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         super.onCreate(savedInstanceState);
         
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        FrameLayout root = new FrameLayout(this);
         playerView = new PlayerView(this);
-        setContentView(playerView);
+        root.addView(playerView);
+        setContentView(root);
+
+        bannerManager = new ChannelBannerManager(root);
+
+        // Check intent for "show_banner" flag
+        boolean shouldShow = getIntent().getBooleanExtra("show_banner", true);
+        String name = getIntent().getStringExtra("name");
+        String logo_url = getIntent().getStringExtra("logo_url");
+
+        if (shouldShow && name != null) {
+            bannerManager.show(name, logo_url);
+        }
+
         hideSystemUI();
 
         port_no = getIntent().getStringExtra("plugin_port");
@@ -100,52 +117,37 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
 
-                // --- HEADERS---
-                if (userAgent != null && !userAgent.isEmpty()) {
-                    connection.setRequestProperty("User-Agent", userAgent);
-                } else {
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-                }
-                if (origin != null && !origin.isEmpty()) {
-                    connection.setRequestProperty("Origin", origin);
-                }
-                if (referer != null && !referer.isEmpty()) {
-                    connection.setRequestProperty("Referer", referer);
-                }
-                // -----------------------
+                String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+                connection.setRequestProperty("User-Agent", ua);
+
+                if (origin != null && !origin.isEmpty()) connection.setRequestProperty("Origin", origin);
+                if (referer != null && !referer.isEmpty()) connection.setRequestProperty("Referer", referer);
 
                 int responseCode = connection.getResponseCode();
-                Log.d("DRM_PLAYER", "Curl Status Code: " + responseCode);
+                Log.d("DRM_PLAYER", "Response Code: " + responseCode);
 
-                if ((responseCode >= 200 && responseCode < 400) && !port_no.equals("5007")) {
-                    runOnUiThread(() -> initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer));
+                // Logic Check
+                boolean isUrlValid = (responseCode >= 200 && responseCode < 400);
+                boolean isSpecialPort = "5007".equals(port_no);
+
+                if (isUrlValid && !isSpecialPort) {
+                    runOnUiThread(() -> initializePlayer(videoUrl, licenseUrl, ua, origin, referer));
                 } else {
-
-                    Log.d("DRM_DEBUG", "Main Intent Port: " + port_no);
-
-                    Intent intent = new Intent(this, WebViewPlayerActivity.class);
-                    intent.putExtra("url", videoUrl);
-                    intent.putExtra("port", port_no);
-
-                    // These flags clear the previous activities from the stack
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                    this.startActivity(intent);
-                    this.finish();
-
-                    Log.d("DRM_PLAYER", "Server rejected the curl check. Code: " + responseCode);
-                    Toast.makeText(this, "Stream unavailable", Toast.LENGTH_SHORT).show();
-
-
-
-
+                    runOnUiThread(() -> {
+                        if (!isUrlValid) {
+                            Toast.makeText(this, "Stream connection issues, trying WebView...", Toast.LENGTH_SHORT).show();
+                        }
+                        switchToWebView(videoUrl);
+                    });
                 }
 
             } catch (Exception e) {
-                Log.e("DRM_PLAYER", "Network error during curl check", e);
+                Log.e("DRM_PLAYER", "Network error during check", e);
+                runOnUiThread(() -> switchToWebView(videoUrl));
             }
         }).start();
     }
+
 
     private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer) {
 
@@ -186,24 +188,25 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         DefaultRenderersFactory renderersFactory =
             new DefaultRenderersFactory(this)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                .setEnableDecoderFallback(true);
 
 
         player = new ExoPlayer.Builder(this, renderersFactory).build();
 
-        player.addListener(new Player.Listener() {
-            @Override
-            public void onPlayerError(@NonNull PlaybackException error) {
-                // Log the error for debugging
-                Log.e("DRM_DEBUG", "ExoPlayer failed to play: " + error.getMessage() + ". Rerouting to WebPlayer.");
-                Toast.makeText(ExoPlayerActivityDRM.this, "Stream error, trying Web Player...", Toast.LENGTH_SHORT).show();
-
-                Toast.makeText(ExoPlayerActivityDRM.this, "Retrying on Web Player", Toast.LENGTH_LONG).show();
-
-                // Instead of only checking for 403, we switch to WebView for ANY playback failure
-                switchToWebView(videoUrl);
-            }
-        });
+//        player.addListener(new Player.Listener() {
+//            @Override
+//            public void onPlayerError(@NonNull PlaybackException error) {
+//                // Log the error for debugging
+//                Log.e("DRM_DEBUG", "ExoPlayer failed to play: " + error.getMessage() + ". Rerouting to WebPlayer.");
+//                Toast.makeText(ExoPlayerActivityDRM.this, "Stream error, trying Web Player...", Toast.LENGTH_SHORT).show();
+//
+//                Toast.makeText(ExoPlayerActivityDRM.this, "Retrying on Web Player", Toast.LENGTH_LONG).show();
+//
+//                // Instead of only checking for 403, we switch to WebView for ANY playback failure
+//                switchToWebView(videoUrl);
+//            }
+//        });
 
 //        player.addListener(new Player.Listener() {
 //            @Override
@@ -285,6 +288,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         PlaylistManager.currentIndex = newIndex;
         ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
+
+        bannerManager.show(nextChannel.name, nextChannel.logo);
 
         // Update port_no globally
         port_no = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");

@@ -51,7 +51,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private boolean isLaunch = true;
     private boolean isFirstLaunch = true;
 
-    private static final String UI_PREFS = "hana_player_ui";
+    private static final String UI_PREFS = "settings";
     private static final String SELECTED_CHIPS_KEY = "selected_chips";
 
     @SuppressLint("SetTextI18n")
@@ -196,51 +196,73 @@ public class HanaPlayerActivity extends AppCompatActivity {
             chip.setChecked(true);
         }
 
-        chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        chip.setOnClickListener(v -> {
             if (isUpdatingChips) return;
             isUpdatingChips = true;
 
-            if (isChecked) {
-                if (portValue.equals("All") || portValue.equals("Favorites")) {
-                    selectedPorts.clear();
-                    selectedPorts.add(portValue);
-                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                        Chip c = (Chip) chipGroup.getChildAt(i);
-                        if (!c.getTag().toString().equals(portValue)) {
-                            c.setChecked(false);
-                        }
-                    }
-                } else {
-                    selectedPorts.add(portValue);
-                    selectedPorts.remove("All");
-                    selectedPorts.remove("Favorites");
-                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                        Chip c = (Chip) chipGroup.getChildAt(i);
-                        String tag = c.getTag().toString();
-                        if (tag.equals("All") || tag.equals("Favorites")) {
-                            c.setChecked(false);
-                        }
-                    }
-                }
-            } else {
-                selectedPorts.remove(portValue);
-                if (selectedPorts.isEmpty()) {
-                    selectedPorts.add("All");
-                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                        Chip c = (Chip) chipGroup.getChildAt(i);
-                        if (c.getTag().toString().equals("All")) {
-                            c.setChecked(true);
-                        }
-                    }
-                }
+            for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                Chip child = (Chip) chipGroup.getChildAt(i);
+                child.setChecked(false);
             }
 
-            isUpdatingChips = false;
+            chip.setChecked(true);
+
+            selectedPorts.clear();
+            selectedPorts.add(portValue);
+
             getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
                 .putStringSet(SELECTED_CHIPS_KEY, selectedPorts).apply();
 
             loadActiveData();
+
+            isUpdatingChips = false;
         });
+
+//        chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            if (isUpdatingChips) return;
+//            isUpdatingChips = true;
+//
+//            if (isChecked) {
+//                if (portValue.equals("All") || portValue.equals("Favorites")) {
+//                    selectedPorts.clear();
+//                    selectedPorts.add(portValue);
+//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+//                        Chip c = (Chip) chipGroup.getChildAt(i);
+//                        if (!c.getTag().toString().equals(portValue)) {
+//                            c.setChecked(false);
+//                        }
+//                    }
+//                } else {
+//                    selectedPorts.add(portValue);
+//                    selectedPorts.remove("All");
+//                    selectedPorts.remove("Favorites");
+//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+//                        Chip c = (Chip) chipGroup.getChildAt(i);
+//                        String tag = c.getTag().toString();
+//                        if (tag.equals("All") || tag.equals("Favorites")) {
+//                            c.setChecked(false);
+//                        }
+//                    }
+//                }
+//            } else {
+//                selectedPorts.remove(portValue);
+//                if (selectedPorts.isEmpty()) {
+//                    selectedPorts.add("All");
+//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+//                        Chip c = (Chip) chipGroup.getChildAt(i);
+//                        if (c.getTag().toString().equals("All")) {
+//                            c.setChecked(true);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            isUpdatingChips = false;
+//            getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+//                .putStringSet(SELECTED_CHIPS_KEY, selectedPorts).apply();
+//
+//            loadActiveData();
+//        });
 
         chipGroup.addView(chip);
     }
@@ -292,6 +314,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         if (activePort == null || channel.url.contains("5007")) {
             activePort = channel.url.contains("5007") ? "5007" : "0";
         }
+
         Intent intent = new Intent(this, ExoPlayerActivityDRM.class)
             .putExtra("url", channel.url)
             .putExtra("name", channel.name)
