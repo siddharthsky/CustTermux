@@ -23,6 +23,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 
 import com.termux.R;
+import com.termux.app.TermuxActivity;
+import com.termux.sky.hanaplayer.HanaPlayerActivity;
 
 import java.io.File;
 import java.util.Objects;
@@ -54,10 +56,18 @@ public class AutoAppRedirectDialog {
         if (!autoStart || pkg == null || cls == null) return;
 
         try {
-            PackageManager pm = activity.getPackageManager();
-            ApplicationInfo info = pm.getApplicationInfo(pkg, 0);
-            Drawable icon = pm.getApplicationIcon(info);
-            String appName = pm.getApplicationLabel(info).toString();
+            Drawable icon;
+            String appName;
+
+            if ("hana_player".equals(pkg)) {
+                icon = activity.getDrawable(R.drawable.tx_hana_player);
+                appName = "Hana Player";
+            } else {
+                PackageManager pm = activity.getPackageManager();
+                ApplicationInfo info = pm.getApplicationInfo(pkg, 0);
+                icon = pm.getApplicationIcon(info);
+                appName = pm.getApplicationLabel(info).toString();
+            }
 
             View view = LayoutInflater.from(activity).inflate(R.layout.dialog_auto_redirect
                 , null);
@@ -66,6 +76,10 @@ public class AutoAppRedirectDialog {
             TextView titleView = view.findViewById(R.id.app_name);
             TextView timerView = view.findViewById(R.id.countdown);
             Button cancelBtn = view.findViewById(R.id.cancel_btn);
+
+            if ("hana_player".equals(pkg)) {
+                iconView.setColorFilter(android.graphics.Color.parseColor("#F47983"));
+            }
 
             iconView.setImageDrawable(icon);
             titleView.setText("Opening " + appName);
@@ -122,9 +136,7 @@ public class AutoAppRedirectDialog {
     }
 
     public void launch(Context context, String pkg, String cls, Boolean minimize) {
-
         try {
-
             SharedPreferences prefs = context.getSharedPreferences("settings", MODE_PRIVATE);
             prefs.edit().putBoolean("temp_minimize", minimize).apply();
 
@@ -134,18 +146,24 @@ public class AutoAppRedirectDialog {
 
             handler.postDelayed(() -> {
                 try {
-                    Intent intent = new Intent();
-                    intent.setComponent(new ComponentName(pkg, cls));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
+
+                    if ("hana_player".equals(pkg)) {
+                        Intent intent = new Intent(context, HanaPlayerActivity.class);
+                        context.startActivity(intent);
+                    } else {
+                        Intent intent = new Intent();
+                        intent.setComponent(new ComponentName(pkg, cls));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
 
                 } catch (Exception e) {
-                    Log.d("TxAutoAppRedirect", String.valueOf(e));
+                    Log.e("TxAutoAppRedirect", "Delayed launch failed", e);
                 }
             }, 200);
 
         } catch (Exception e) {
-            Log.d("TxAutoAppRedirect", String.valueOf(e));
+            Log.e("TxAutoAppRedirect", "Initial launch setup failed", e);
         }
     }
 

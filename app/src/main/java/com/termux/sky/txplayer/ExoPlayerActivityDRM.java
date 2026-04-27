@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
@@ -55,9 +56,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private Runnable zapRunnable;
     private static final long ZAP_DELAY_MS = 400;
 
+    private TextView errorOverlay;
+
     private SharedPreferences prefs;
 
     String port_no;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,10 +77,27 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
 
         FrameLayout root = new FrameLayout(this);
+
+        android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+        shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        shape.setCornerRadius(30f);
+        shape.setColor(android.graphics.Color.parseColor("#D91A1A1A"));
+        shape.setStroke(3, android.graphics.Color.parseColor("#FF4444"));
+        errorOverlay = new TextView(this);
+        errorOverlay.setBackground(shape);
+        errorOverlay.setTextColor(android.graphics.Color.WHITE);
+        errorOverlay.setGravity(android.view.Gravity.CENTER);
+        errorOverlay.setTextSize(14); // Slightly smaller text
+        errorOverlay.setPadding(40, 40, 40, 40);
+        errorOverlay.setLineSpacing(0, 1.1f);
+        errorOverlay.setVisibility(View.GONE);
+
+
         playerView = new PlayerView(this);
         playerView.setKeepScreenOn(true);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
         root.addView(playerView);
+
 
         playerView.setShowNextButton(false);
         playerView.setShowPreviousButton(false);
@@ -132,11 +153,20 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             return true;
         });
 
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        FrameLayout.LayoutParams errorParams = new FrameLayout.LayoutParams(
+            (int) (screenWidth * 0.6), // 60% width
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        errorParams.gravity = android.view.Gravity.CENTER;
+
+        root.addView(errorOverlay, errorParams);
+
+
         setContentView(root);
 
         bannerManager = new ChannelBannerManager(root);
 
-        // Check intent for "show_banner" flag
         boolean shouldShow = getIntent().getBooleanExtra("show_banner", true);
         String name = getIntent().getStringExtra("name");
         String logo_url = getIntent().getStringExtra("logo_url");
@@ -232,7 +262,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 int responseCode = connection.getResponseCode();
                 Log.d("DRM_PLAYER", "Response Code: " + responseCode);
 
-                // Logic Check
                 boolean isUrlValid = (responseCode >= 200 && responseCode < 400);
                 boolean isSpecialPort = "5007".equals(port_no);
 
@@ -240,16 +269,42 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     runOnUiThread(() -> initializePlayer(videoUrl, licenseUrl, ua, origin, referer));
                 } else {
                     runOnUiThread(() -> {
-                        if (!isUrlValid) {
-                            Toast.makeText(this, "Stream connection issues, trying WebView...", Toast.LENGTH_SHORT).show();
+                        if (errorOverlay != null) {
+                            String sb = "⚠️ CONNECTION ISSUE\n" +
+                                "────────────────\n" +
+                                "HTTP CODE: " + responseCode + "\n" +
+                                "STATUS: " + (responseCode == 403 ? "Access Denied" : "Server Error") + "\n";
+
+                            errorOverlay.setText(sb);
+                            errorOverlay.setVisibility(View.VISIBLE);
                         }
-                        switchToWebView(videoUrl);
+                        if (videoUrl.contains("/live/")) {
+                            switchToWebView(videoUrl);
+                        }
                     });
                 }
 
             } catch (Exception e) {
                 Log.e("DRM_PLAYER", "Network error during check", e);
-                runOnUiThread(() -> switchToWebView(videoUrl));
+
+                runOnUiThread(() -> {
+                    String errorMsg = e instanceof java.net.SocketTimeoutException ?
+                        "Connection Timeout: Server not responding" :
+                        "Network error: " + e.getMessage();
+
+//                    Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show();
+
+                    if (errorOverlay != null) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("⚠️ NETWORK FAILURE\n");
+                        sb.append("────────────────\n");
+                        sb.append("TYPE: ").append(e.getClass().getSimpleName()).append("\n");
+                        sb.append("INFO: ").append(errorMsg);
+
+                        errorOverlay.setText(sb.toString());
+                        errorOverlay.setVisibility(View.VISIBLE);
+                    }
+                });
             }
         }).start();
     }
@@ -304,43 +359,36 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             .setTrackSelector(trackSelector)
             .build();
 
-//        player.addListener(new Player.Listener() {
-//            @Override
-//            public void onPlayerError(@NonNull PlaybackException error) {
-//                // Log the error for debugging
-//                Log.e("DRM_DEBUG", "ExoPlayer failed to play: " + error.getMessage() + ". Rerouting to WebPlayer.");
-//                Toast.makeText(ExoPlayerActivityDRM.this, "Stream error, trying Web Player...", Toast.LENGTH_SHORT).show();
-//
-//                Toast.makeText(ExoPlayerActivityDRM.this, "Retrying on Web Player", Toast.LENGTH_LONG).show();
-//
-//                // Instead of only checking for 403, we switch to WebView for ANY playback failure
-//                switchToWebView(videoUrl);
-//            }
-//        });
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onPlayerError(@NonNull PlaybackException error) {
+                if (errorOverlay != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("⚠️ ERROR DETAILS\n");
+                    sb.append("────────────────\n");
+                    sb.append("CODE: ").append(error.errorCode).append("\n");
+                    sb.append("TYPE: ").append(error.getErrorCodeName()).append("\n");
 
-//        player.addListener(new Player.Listener() {
-//            @Override
-//            public void onPlayerError(@NonNull PlaybackException error) {
-//                Throwable cause = error.getCause();
-//
-//                if (cause instanceof HttpDataSource.InvalidResponseCodeException) {
-//                    HttpDataSource.InvalidResponseCodeException httpError =
-//                        (HttpDataSource.InvalidResponseCodeException) cause;
-//
-//                    int responseCode = httpError.responseCode;
-//                    Log.e("DRM_DEBUG", "HTTP Error Detected! Code: " + responseCode);
-//
-//                    if (responseCode == 403) {
-//                        Log.e("DRM_DEBUG", "Access Denied (403). Check Headers or Token.");
-//                        Toast.makeText(ExoPlayerActivityDRM.this, "Server Access Denied (403)", Toast.LENGTH_LONG).show();
-//
-//                        switchToWebView(videoUrl);
-//                    }
-//                } else {
-//                    Log.e("DRM_DEBUG", "General Player Error: " + error.getMessage());
-//                }
-//            }
-//        });
+                    if (error.getMessage() != null) {
+                        sb.append("Details: ").append(error.getMessage()).append("\n");
+                    }
+
+                    if (error.getCause() != null) {
+                        sb.append("INFO: ").append(error.getCause().getClass().getSimpleName());
+                    }
+
+                    errorOverlay.setText(sb.toString());
+                    errorOverlay.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (errorOverlay != null && state == Player.STATE_READY) {
+                    errorOverlay.setVisibility(View.GONE);
+                }
+            }
+        });
 
         playerView.setPlayer(player);
         player.setMediaSource(mediaSource);
@@ -389,21 +437,10 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
 
-        // --- NEW: Open settings on Menu button or 'S' key ---
         if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
             showSettingsMenu();
             return true;
         }
-
-//        // --- NEW: Long Press DPAD Center (OK) or Enter ---
-//        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
-//            // A repeat count of 1 means the button has been held down.
-//            // A repeat count of 0 is a normal, quick press.
-//            if (event.getRepeatCount() == 1) {
-//                showSettingsMenu();
-//                return true;
-//            }
-//        }
 
         if (playerView != null && !playerView.isControllerVisible()) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
@@ -442,6 +479,10 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         bannerManager.show(nextChannel.name, nextChannel.logo);
         port_no = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
+
+        if (errorOverlay != null) {
+            errorOverlay.setVisibility(View.GONE);
+        }
 
         if (player != null) {
             player.stop();
@@ -544,11 +585,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         builder.setShowDisableOption(false); //for none option
 
 
-        // After the dialog updates the trackSelector, we save the preference
         Dialog dialog = builder.build();
         dialog.setOnDismissListener(d -> {
             if (trackType == C.TRACK_TYPE_AUDIO) {
-                // Get the currently playing format after the user made a choice
                 com.google.android.exoplayer2.Format currentFormat = player.getAudioFormat();
                 if (currentFormat != null && currentFormat.language != null) {
                     prefs.edit().putString("pref_audio_lang", currentFormat.language).apply();

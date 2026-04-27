@@ -54,13 +54,15 @@ public class AppAdapter extends ListAdapter<AppModel, AppAdapter.ViewHolder> {
 
         holder.name.setText(app.appName);
 
-        if ("web_tv".equals(app.packageName)) {
-            holder.icon.setImageResource(R.drawable.tv_plugin_add_btn);
+        if ("hana_player".equals(app.packageName)) {
+            holder.icon.setImageResource(R.drawable.tx_hana_player);
+            holder.icon.setColorFilter(android.graphics.Color.parseColor("#FADADD"));
         } else {
             try {
                 holder.icon.setImageDrawable(
                     context.getPackageManager().getApplicationIcon(app.packageName)
                 );
+                holder.icon.clearColorFilter();
             } catch (Exception e) {
                 holder.icon.setImageDrawable(null);
             }

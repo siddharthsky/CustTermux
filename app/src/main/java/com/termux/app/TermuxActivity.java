@@ -71,6 +71,7 @@ import com.termux.shared.view.ViewUtils;
 import com.termux.sky.SkySharedPref;
 import com.termux.sky.TermuxController;
 import com.termux.sky.TxStartupChecker;
+import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import com.termux.sky.plugins.PluginManagerActivity;
 import com.termux.sky.iptv.AutoAppRedirectDialog;
 import com.termux.sky.iptv.LaunchFileObserver;
@@ -298,6 +299,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Button button3 = findViewById(R.id.button3);
         Button button4 = findViewById(R.id.button4);
         Button button5 = findViewById(R.id.button5);
+        Button buttonHana = findViewById(R.id.buttonHana);
 //        Button button6 = findViewById(R.id.button6);
 
         ipAddressText = findViewById(R.id.ip_address);
@@ -321,6 +323,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         button2.setOnFocusChangeListener(tooltipFocusListener);
         button3.setOnFocusChangeListener(tooltipFocusListener);
         button5.setOnFocusChangeListener(tooltipFocusListener);
+        buttonHana.setOnFocusChangeListener(tooltipFocusListener);
 //        button6.setOnFocusChangeListener(tooltipFocusListener);
 
 
@@ -345,6 +348,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(TermuxActivity.this, PluginManagerActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        buttonHana.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(TermuxActivity.this, HanaPlayerActivity.class);
                 startActivity(intent);
             }
         });

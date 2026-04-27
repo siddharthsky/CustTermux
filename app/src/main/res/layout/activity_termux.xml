@@ -5,137 +5,157 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#1A1A1B"
     android:fitsSystemWindows="true">
 
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
         android:overScrollMode="never"
         android:scrollbars="none"
         android:fillViewport="true">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingVertical="4dp">
 
-            <!-- Minimize -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button1"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card"
                 android:focusable="true"
                 android:gravity="center"
-                android:lineSpacingExtra="2dp"
-                android:text="🔽\nMin"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_minimize"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="2dp"
+                android:text="Min"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
+                android:textSize="12sp"
                 android:tooltipText="Minimize" />
 
-            <!-- ReRun -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button2"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card"
                 android:gravity="center"
-                android:text="✨\nReRun"
-                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_rerun3"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="2dp"
+                android:text="ReRun"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
                 android:tooltipText="Restart Server" />
 
-            <!-- Update -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button_update"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card"
                 android:gravity="center"
-                android:text="⬆️\nUpdate"
-                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_star"
+                android:drawableTint="#FFD700"
+                android:drawablePadding="2dp"
+                android:text="Update"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
                 android:visibility="gone"
                 android:tooltipText="Update App" />
 
-<!--            &lt;!&ndash; IPTV &ndash;&gt;-->
-<!--            <androidx.appcompat.widget.AppCompatButton-->
-<!--                android:id="@+id/button6"-->
-<!--                android:layout_width="100dp"-->
-<!--                android:layout_height="62dp"-->
-<!--                android:layout_margin="3dp"-->
-<!--                android:background="@drawable/button_card"-->
-<!--                android:gravity="center"-->
-<!--                android:text="▶️\nIPTV"-->
-<!--                android:textSize="14sp"-->
-<!--                android:textStyle="bold"-->
-<!--                android:textAllCaps="false"-->
-<!--                android:textColor="@android:color/white"-->
-<!--                android:lineSpacingExtra="2dp"-->
-<!--                android:tooltipText="Start IPTV player" />-->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonHana"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:background="@drawable/button_card"
+                android:gravity="center"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_tv"
+                android:drawableTint="#FADADD"
+                android:drawablePadding="2dp"
+                android:text="🌸 Player"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:tooltipText="Watch Channels" />
 
-            <!-- PLUGINS -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button5"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card"
                 android:gravity="center"
-                android:text="📦\nPlugins"
-                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_plugin"
+                android:drawableTint="#AFDFE4"
+                android:drawablePadding="2dp"
+                android:text="Plugins"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
                 android:tooltipText="Manage plugins" />
 
-            <!-- More -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button3"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card"
                 android:gravity="center"
-                android:text="📂\nMore"
-                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_more"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="2dp"
+                android:text="More"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
                 android:tooltipText="Extra Options" />
 
-
-
-            <!-- Exit -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/button4"
-                android:layout_width="100dp"
-                android:layout_height="62dp"
-                android:layout_margin="3dp"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 android:background="@drawable/button_card_exit"
                 android:gravity="center"
-                android:text="🚫\nExit"
-                android:textSize="14sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:drawableTop="@drawable/tx_m_exit"
+                android:drawableTint="#FFFFFF"
+                android:drawablePadding="2dp"
+                android:text="Exit"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
-                android:lineSpacingExtra="2dp"
                 android:tooltipText="Exit App" />
 
         </LinearLayout>
@@ -171,13 +191,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
         android:gravity="center">
 
-        <!-- IP Card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="54dp"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -187,9 +207,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="IP"
+                android:text="IP ADDRESS"
                 android:textColor="#BBBBBB"
-                android:textSize="10sp"/>
+                android:textSize="10sp"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:id="@+id/ip_address"
@@ -198,13 +219,13 @@
                 android:text="Detecting..."
                 android:textColor="#FF9800"
                 android:textStyle="bold"
-                android:textSize="14sp"/>
+                android:textSize="13sp"
+                android:maxLines="1" />
         </LinearLayout>
 
-        <!-- Storage Card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="54dp"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -214,9 +235,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Storage"
+                android:text="STORAGE"
                 android:textColor="#BBBBBB"
-                android:textSize="10sp"/>
+                android:textSize="10sp"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:id="@+id/storage_permission_status"
@@ -225,13 +247,12 @@
                 android:text="Checking..."
                 android:textColor="#FF5252"
                 android:textStyle="bold"
-                android:textSize="14sp"/>
+                android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Overlay Card -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="60dp"
+            android:layout_height="54dp"
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
@@ -241,9 +262,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Overlay"
+                android:text="OVERLAY"
                 android:textColor="#BBBBBB"
-                android:textSize="10sp"/>
+                android:textSize="10sp"
+                android:letterSpacing="0.05" />
 
             <TextView
                 android:id="@+id/overlay_permission_status"
@@ -252,7 +274,7 @@
                 android:text="Checking..."
                 android:textColor="#FF5252"
                 android:textStyle="bold"
-                android:textSize="14sp"/>
+                android:textSize="13sp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -349,7 +371,7 @@
             android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="37.5dp"
-            android:background="@color/black"
+            android:background="#1A1A1B"
             android:layout_alignParentBottom="true" />
 
     </RelativeLayout>

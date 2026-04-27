@@ -168,6 +168,13 @@ public class AppPickerActivity extends AppCompatActivity {
 
             Collections.sort(tempList, (a, b) -> a.appName.compareToIgnoreCase(b.appName));
 
+            AppModel internalPlayer = new AppModel(
+                "🌸 Hana Player",
+                "hana_player",
+                "internal_activity"
+            );
+            tempList.add(0, internalPlayer);
+
             handler.post(() -> {
                 progressBar.setVisibility(View.GONE);
                 adapter.submitList(tempList);

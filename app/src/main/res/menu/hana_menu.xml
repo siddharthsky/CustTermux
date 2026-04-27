@@ -13,5 +13,6 @@
         android:id="@+id/menu_demo"
         android:title="Demo!"
         android:icon="@drawable/tx_reload"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        android:visible="false"/>
 </menu>

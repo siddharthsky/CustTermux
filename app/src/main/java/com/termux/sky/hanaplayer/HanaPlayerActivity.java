@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -55,6 +56,12 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private static final String UI_PREFS = "settings";
     private static final String SELECTED_CHIPS_KEY = "selected_chips";
+    private static final String SELECTED_GROUPS_KEY = "selected_groups";
+
+    private ChipGroup groupChipGroup;
+    private Set<String> selectedGroups = new HashSet<>(Collections.singletonList("All"));
+    private List<ChannelModel> currentPortChannels = new ArrayList<>();
+    private boolean isUpdatingGroupChips = false;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -62,9 +69,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
-
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
         isLaunch = prefs.getBoolean("auto_launch_channel", false);
 
         root = new LinearLayout(this);
@@ -74,8 +79,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(10, 0, 0, 0);
-//        header.setPadding(40, 60, 40, 20); // Top padding for status bar area
+        header.setPadding(10, 5, 10, 5);
 
         TextView titleBar = new TextView(this);
         titleBar.setText("🌸 Hana Player");
@@ -91,21 +95,34 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
-
         btnMenu.setOnClickListener(this::showPopupMenu);
 
         header.addView(btnMenu);
-
         root.addView(header);
 
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
-        chipScroll.setPadding(10, 20, 10, 20);
+        chipScroll.setPadding(10, 0, 10, 0);
         chipScroll.setHorizontalScrollBarEnabled(false);
+        chipScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         chipGroup = new ChipGroup(this);
         chipGroup.setSingleSelection(false);
+        chipGroup.setSingleLine(true);
+        chipGroup.setChipSpacingHorizontal(12);
         chipScroll.addView(chipGroup);
         root.addView(chipScroll);
+
+        HorizontalScrollView groupChipScroll = new HorizontalScrollView(this);
+        groupChipScroll.setPadding(10, 10, 10, 10);
+        groupChipScroll.setHorizontalScrollBarEnabled(false);
+        groupChipScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+
+        groupChipGroup = new ChipGroup(this);
+        groupChipGroup.setSingleSelection(false);
+        groupChipGroup.setSingleLine(true);
+        groupChipGroup.setChipSpacingHorizontal(12);
+        groupChipScroll.addView(groupChipGroup);
+        root.addView(groupChipScroll);
 
         progressBar = new ProgressBar(this);
         LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(
@@ -115,6 +132,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         progressBar.setLayoutParams(progressParams);
         progressBar.setVisibility(View.GONE);
         root.addView(progressBar);
+
 
         RecyclerView recyclerView = new RecyclerView(this);
         int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
@@ -174,12 +192,35 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private void initChips() {
         SharedPreferences uiPrefs = getSharedPreferences(UI_PREFS, MODE_PRIVATE);
         selectedPorts = new HashSet<>(Objects.requireNonNull(uiPrefs.getStringSet(SELECTED_CHIPS_KEY, new HashSet<>(Collections.singletonList("All")))));
+        selectedGroups = new HashSet<>(Objects.requireNonNull(uiPrefs.getStringSet(SELECTED_GROUPS_KEY, new HashSet<>(Collections.singletonList("All")))));
 
         List<Plugin> plugins = PluginStorage.load(this);
 
         addChip("All", "All");
         addChip("Favorites", "Favorites");
+
+        String activePort = "";
+        for (String s : selectedPorts) {
+            if (!s.equals("All") && !s.equals("Favorites")) {
+                activePort = s;
+                break;
+            }
+        }
+
+        Plugin activePlugin = null;
+        List<Plugin> others = new ArrayList<>();
         for (Plugin p : plugins) {
+            if (String.valueOf(p.port).equals(activePort)) {
+                activePlugin = p;
+            } else {
+                others.add(p);
+            }
+        }
+
+        if (activePlugin != null) {
+            addChip(activePlugin.title, String.valueOf(activePlugin.port));
+        }
+        for (Plugin p : others) {
             addChip(p.title, String.valueOf(p.port));
         }
     }
@@ -192,19 +233,23 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setFocusable(true);
         chip.setClickable(true);
 
+        chip.setEnsureMinTouchTargetSize(false);
+        chip.setChipMinHeight(65f);
+        chip.setChipStartPadding(16f);
+        chip.setChipEndPadding(16f);
+
+        chip.setChipBackgroundColor(getChipBackgroundStates());
+        chip.setTextColor(Color.WHITE);
+        chip.setChipStrokeWidth(0);
+
+
         GradientDrawable focusedDrawable = new GradientDrawable();
         focusedDrawable.setShape(GradientDrawable.RECTANGLE);
-
         focusedDrawable.setCornerRadius(50);
-
         focusedDrawable.setStroke(4, Color.parseColor("#FFD700"));
         focusedDrawable.setColor(Color.TRANSPARENT);
 
-        InsetDrawable insetFocused = new InsetDrawable(
-            focusedDrawable,
-            2, 4, 2, 4
-        );
-
+        InsetDrawable insetFocused = new InsetDrawable(focusedDrawable, 2, 4, 2, 4);
         StateListDrawable states = new StateListDrawable();
         states.addState(new int[]{android.R.attr.state_focused}, insetFocused);
         states.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
@@ -230,60 +275,28 @@ public class HanaPlayerActivity extends AppCompatActivity {
             selectedPorts.add(portValue);
 
             getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
-                .putStringSet(SELECTED_CHIPS_KEY, selectedPorts).apply();
+                .putStringSet(SELECTED_CHIPS_KEY, new HashSet<>(selectedPorts)).apply();
 
             loadActiveData();
 
             isUpdatingChips = false;
         });
 
-//        chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (isUpdatingChips) return;
-//            isUpdatingChips = true;
-//
-//            if (isChecked) {
-//                if (portValue.equals("All") || portValue.equals("Favorites")) {
-//                    selectedPorts.clear();
-//                    selectedPorts.add(portValue);
-//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-//                        Chip c = (Chip) chipGroup.getChildAt(i);
-//                        if (!c.getTag().toString().equals(portValue)) {
-//                            c.setChecked(false);
-//                        }
-//                    }
-//                } else {
-//                    selectedPorts.add(portValue);
-//                    selectedPorts.remove("All");
-//                    selectedPorts.remove("Favorites");
-//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-//                        Chip c = (Chip) chipGroup.getChildAt(i);
-//                        String tag = c.getTag().toString();
-//                        if (tag.equals("All") || tag.equals("Favorites")) {
-//                            c.setChecked(false);
-//                        }
-//                    }
-//                }
-//            } else {
-//                selectedPorts.remove(portValue);
-//                if (selectedPorts.isEmpty()) {
-//                    selectedPorts.add("All");
-//                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-//                        Chip c = (Chip) chipGroup.getChildAt(i);
-//                        if (c.getTag().toString().equals("All")) {
-//                            c.setChecked(true);
-//                        }
-//                    }
-//                }
-//            }
-//
-//            isUpdatingChips = false;
-//            getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
-//                .putStringSet(SELECTED_CHIPS_KEY, selectedPorts).apply();
-//
-//            loadActiveData();
-//        });
-
         chipGroup.addView(chip);
+    }
+
+    private ColorStateList getChipBackgroundStates() {
+        int[][] states = new int[][]{
+            new int[]{android.R.attr.state_checked},
+            new int[]{}
+        };
+
+        int[] colors = new int[]{
+            Color.parseColor("#304FFE"),
+            Color.parseColor("#1E2738")
+        };
+
+        return new ColorStateList(states, colors);
     }
 
     private void loadActiveData() {
@@ -333,19 +346,174 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 masterList = favoritesOnly;
             }
 
-            final List<ChannelModel> resultList = masterList;
-            new Handler(Looper.getMainLooper()).post(() -> {
-                displayList.clear();
-                displayList.addAll(resultList);
-                adapter.updateList(displayList);
+            currentPortChannels = masterList;
 
-                // Auto-launch logic
+            Set<String> groups = new TreeSet<>();
+            for (ChannelModel cm : currentPortChannels) {
+                if (cm.group != null && !cm.group.trim().isEmpty()) {
+                    groups.add(cm.group.trim());
+                }
+            }
+
+            if (!selectedGroups.contains("All")) {
+                selectedGroups.retainAll(groups);
+                if (selectedGroups.isEmpty()) {
+                    selectedGroups.add("All");
+                }
+            }
+
+            final List<String> availableGroups = new ArrayList<>(groups);
+
+            new Handler(Looper.getMainLooper()).post(() -> {
+
+                getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+                    .putStringSet(SELECTED_GROUPS_KEY, selectedGroups).apply();
+
+                updateGroupChipsUI(availableGroups);
+
+                applyGroupFilter();
+
                 if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
                     isFirstLaunch = false;
                     onChannelClick(displayList.get(0));
                 }
             });
         }).start();
+    }
+
+    private void applyGroupFilter() {
+        List<ChannelModel> filteredList = new ArrayList<>();
+
+        for (ChannelModel cm : currentPortChannels) {
+            if (selectedGroups.contains("All") ||
+                (cm.group != null && selectedGroups.contains(cm.group.trim()))) {
+                filteredList.add(cm);
+            }
+        }
+
+        displayList.clear();
+        displayList.addAll(filteredList);
+        adapter.updateList(displayList);
+    }
+
+    private void updateGroupChipsUI(List<String> groups) {
+        groupChipGroup.removeAllViews();
+
+        addGroupChip("All");
+
+        List<String> selectedOnes = new ArrayList<>();
+        List<String> others = new ArrayList<>();
+
+        for (String groupName : groups) {
+            if (selectedGroups.contains(groupName)) {
+                selectedOnes.add(groupName);
+            } else {
+                others.add(groupName);
+            }
+        }
+
+        for (String g : selectedOnes) {
+            addGroupChip(g);
+        }
+
+        for (String g : others) {
+            addGroupChip(g);
+        }
+    }
+
+    private void addGroupChip(String groupName) {
+        Chip chip = new Chip(this);
+        chip.setText(groupName);
+        chip.setTag(groupName);
+        chip.setCheckable(true);
+        chip.setFocusable(true);
+        chip.setClickable(true);
+
+        chip.setEnsureMinTouchTargetSize(false);
+        chip.setChipMinHeight(65f);
+        chip.setChipStartPadding(16f);
+        chip.setChipEndPadding(16f);
+
+        chip.setChipBackgroundColor(getChipBackgroundStates());
+        chip.setTextColor(Color.WHITE);
+        chip.setChipStrokeWidth(0);
+
+        GradientDrawable focusedDrawable = new GradientDrawable();
+        focusedDrawable.setShape(GradientDrawable.RECTANGLE);
+        focusedDrawable.setCornerRadius(50);
+        focusedDrawable.setStroke(4, Color.parseColor("#FFD700"));
+        focusedDrawable.setColor(Color.TRANSPARENT);
+
+        InsetDrawable insetFocused = new InsetDrawable(focusedDrawable, 2, 4, 2, 4);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_focused}, insetFocused);
+        states.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
+
+        chip.setForeground(states);
+
+        if (selectedGroups.contains(groupName)) {
+            chip.setChecked(true);
+        }
+
+        chip.setOnClickListener(v -> {
+            if (isUpdatingGroupChips) return;
+            isUpdatingGroupChips = true;
+
+            boolean isChecked = chip.isChecked();
+
+            if (groupName.equals("All")) {
+                if (isChecked) {
+                    selectedGroups.clear();
+                    selectedGroups.add("All");
+
+                    for (int i = 0; i < groupChipGroup.getChildCount(); i++) {
+                        Chip c = (Chip) groupChipGroup.getChildAt(i);
+                        if (!c.getTag().toString().equals("All")) {
+                            c.setChecked(false);
+                        }
+                    }
+                } else {
+                    if (selectedGroups.contains("All")) {
+                        chip.setChecked(true);
+                    }
+                }
+            } else {
+                if (isChecked) {
+                    selectedGroups.add(groupName);
+                    selectedGroups.remove("All");
+
+                    for (int i = 0; i < groupChipGroup.getChildCount(); i++) {
+                        Chip c = (Chip) groupChipGroup.getChildAt(i);
+                        if (c.getTag().toString().equals("All")) {
+                            c.setChecked(false);
+                            break;
+                        }
+                    }
+                } else {
+                    selectedGroups.remove(groupName);
+
+                    if (selectedGroups.isEmpty()) {
+                        selectedGroups.add("All");
+                        for (int i = 0; i < groupChipGroup.getChildCount(); i++) {
+                            Chip c = (Chip) groupChipGroup.getChildAt(i);
+                            if (c.getTag().toString().equals("All")) {
+                                c.setChecked(true);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            isUpdatingGroupChips = false;
+
+            getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+                .putStringSet(SELECTED_GROUPS_KEY, new HashSet<>(selectedGroups)).apply();
+
+            applyGroupFilter();
+        });
+
+        groupChipGroup.addView(chip);
     }
 
     private String downloadUrl(String urlString) {
