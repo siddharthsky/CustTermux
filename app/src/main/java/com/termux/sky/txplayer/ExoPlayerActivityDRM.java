@@ -1,11 +1,17 @@
 package com.termux.sky.txplayer;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
@@ -21,12 +27,18 @@ import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.termux.R;
 import com.termux.sky.playlistmanager.PlaylistManager;
 
 import java.net.URLDecoder;
@@ -37,18 +49,89 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private ExoPlayer player;
     private PlayerView playerView;
     private ChannelBannerManager bannerManager;
+    private DefaultTrackSelector trackSelector;
+
+    private android.os.Handler zapHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable zapRunnable;
+    private static final long ZAP_DELAY_MS = 400;
+
+    private SharedPreferences prefs;
 
     String port_no;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        try {
+            getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        } catch (Exception e) {
+            Log.d("DRM_PLAYER", "SystemUI flags error");
+        }
+
+        prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
 
         FrameLayout root = new FrameLayout(this);
         playerView = new PlayerView(this);
+        playerView.setKeepScreenOn(true);
+        playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
         root.addView(playerView);
+
+        playerView.setShowNextButton(false);
+        playerView.setShowPreviousButton(false);
+        playerView.setShowFastForwardButton(false);
+        playerView.setShowRewindButton(false);
+
+        ImageButton playBtn = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_play);
+        ImageButton pauseBtn = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_pause);
+
+        if (playBtn != null) {
+            playBtn.setImageResource(R.drawable.tx_play_exo);
+            playBtn.setBackgroundResource(R.drawable.img_btn_selector);
+            playBtn.setColorFilter(android.graphics.Color.WHITE);
+        }
+
+        if (pauseBtn != null) {
+            pauseBtn.setImageResource(R.drawable.tx_pause_exo);
+            pauseBtn.setBackgroundResource(R.drawable.img_btn_selector);
+            pauseBtn.setColorFilter(android.graphics.Color.WHITE);
+        }
+
+
+        View nextButton = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_next);
+        if (nextButton != null && nextButton.getParent() instanceof android.view.ViewGroup) {
+            android.view.ViewGroup controlGroup = (android.view.ViewGroup) nextButton.getParent();
+            int nextButtonIndex = controlGroup.indexOfChild(nextButton);
+
+            ImageButton btnResize = createCustomControl(nextButton, R.drawable.tx_resize, v ->
+                showScreenScaleMenu());
+
+            ImageButton btnAudio = createCustomControl(nextButton, R.drawable.tx_audio, v ->
+                showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track"));
+
+            ImageButton btnVideo = createCustomControl(nextButton, R.drawable.tx_videohd, v ->
+                showTrackSelector(C.TRACK_TYPE_VIDEO, "Select Video Quality"));
+
+            ImageButton btnCC = createCustomControl(nextButton, R.drawable.tx_closed_caption, v ->
+                showTrackSelector(C.TRACK_TYPE_TEXT, "Select Subtitles / CC"));
+
+
+            controlGroup.addView(btnResize, nextButtonIndex + 1);
+            controlGroup.addView(btnAudio, nextButtonIndex + 2);
+            controlGroup.addView(btnVideo, nextButtonIndex + 3);
+            controlGroup.addView(btnCC, nextButtonIndex + 4);
+        }
+
+
+        int savedScale = prefs.getInt("global_screen_scale", AspectRatioFrameLayout.RESIZE_MODE_FIT);
+        playerView.setResizeMode(savedScale);
+
+        playerView.setOnLongClickListener(v -> {
+            showSettingsMenu();
+            return true;
+        });
+
         setContentView(root);
 
         bannerManager = new ChannelBannerManager(root);
@@ -101,6 +184,29 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
             
         }
+    }
+
+    @NonNull
+    private ImageButton createCustomControl(View template, int iconResId, View.OnClickListener listener) {
+        ImageButton button = new ImageButton(this);
+
+        button.setImageResource(iconResId);
+        button.setBackgroundResource(R.drawable.img_btn_selector);
+        button.setColorFilter(android.graphics.Color.WHITE);
+        button.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+
+        button.setLayoutParams(template.getLayoutParams());
+        button.setPadding(
+            template.getPaddingLeft(),
+            template.getPaddingTop(),
+            template.getPaddingRight(),
+            template.getPaddingBottom()
+        );
+
+        button.setOnClickListener(listener);
+        button.setFocusable(true);
+
+        return button;
     }
 
     private void hideSystemUI() {
@@ -191,8 +297,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                 .setEnableDecoderFallback(true);
 
+        trackSelector = new DefaultTrackSelector(this);
+        applySavedTrackPreferences();
 
-        player = new ExoPlayer.Builder(this, renderersFactory).build();
+        player = new ExoPlayer.Builder(this, renderersFactory)
+            .setTrackSelector(trackSelector)
+            .build();
 
 //        player.addListener(new Player.Listener() {
 //            @Override
@@ -258,7 +368,19 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        killExoPlayer();
+    }
+
+    @Override
+    protected void onDestroy() {
+        killExoPlayer();
+        super.onDestroy();
+    }
+
+    private void killExoPlayer() {
         if (player != null) {
+            player.setPlayWhenReady(false);
+            player.stop();
             player.release();
             player = null;
         }
@@ -266,6 +388,36 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+
+        // --- NEW: Open settings on Menu button or 'S' key ---
+        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
+            showSettingsMenu();
+            return true;
+        }
+
+//        // --- NEW: Long Press DPAD Center (OK) or Enter ---
+//        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+//            // A repeat count of 1 means the button has been held down.
+//            // A repeat count of 0 is a normal, quick press.
+//            if (event.getRepeatCount() == 1) {
+//                showSettingsMenu();
+//                return true;
+//            }
+//        }
+
+        if (playerView != null && !playerView.isControllerVisible()) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                keyCode == KeyEvent.KEYCODE_ENTER ||
+                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+
+                playerView.showController();
+
+                return true;
+            }
+        }
+
+
         if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
             if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
                 changeChannel(1);
@@ -281,7 +433,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private void changeChannel(int direction) {
         if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
 
-        // Calculate next index with wrap-around
         int newIndex = PlaylistManager.currentIndex + direction;
         if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
         if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
@@ -290,20 +441,28 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
 
         bannerManager.show(nextChannel.name, nextChannel.logo);
-
-        // Update port_no globally
         port_no = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
 
-//        Toast.makeText(this, "Playing: " + nextChannel.name, Toast.LENGTH_SHORT).show();
-
-        // Stop current playback
         if (player != null) {
             player.stop();
-            player.release();
-            player = null;
         }
 
-        // Decode new URL and start playback
+        if (zapRunnable != null) {
+            zapHandler.removeCallbacks(zapRunnable);
+        }
+
+        zapRunnable = () -> {
+            if (player != null) {
+                player.release();
+                player = null;
+            }
+            processAndPlayChannel(nextChannel);
+        };
+
+        zapHandler.postDelayed(zapRunnable, ZAP_DELAY_MS);
+    }
+
+    private void processAndPlayChannel(ChannelModel nextChannel) {
         String vUrl = nextChannel.url;
         String origin = null;
         String referer = null;
@@ -328,6 +487,120 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer);
+    }
+
+    private void showSettingsMenu() {
+        if (player == null) return;
+
+        String[] options = {"⚙️ Video Quality", "🎵 Audio Track", "📺 Screen Scale"};
+
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Player Settings")
+            .setItems(options, (dialog, which) -> {
+                switch (which) {
+                    case 0:
+                        showTrackSelector(C.TRACK_TYPE_VIDEO, "Select Video Quality");
+                        break;
+                    case 1:
+                        showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track");
+                        break;
+                    case 2:
+                        showScreenScaleMenu();
+                        break;
+                }
+            })
+            .show();
+    }
+
+    private void showTrackSelector(int trackType, String title) {
+        if (player == null || trackSelector == null) return;
+
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo =
+            trackSelector.getCurrentMappedTrackInfo();
+
+        if (mappedTrackInfo == null) return;
+
+        boolean hasTracksOfType = false;
+        for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
+            if (mappedTrackInfo.getRendererType(i) == trackType) {
+                TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(i);
+                if (trackGroups.length > 0) {
+                    hasTracksOfType = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasTracksOfType) {
+            String typeName = (trackType == C.TRACK_TYPE_TEXT) ? "Subtitles" : "Options";
+            Toast.makeText(this, "No " + typeName + " available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        TrackSelectionDialogBuilder builder = new TrackSelectionDialogBuilder(
+            this, title, trackSelector, trackType
+        );
+        builder.setTheme(android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setShowDisableOption(false); //for none option
+
+
+        // After the dialog updates the trackSelector, we save the preference
+        Dialog dialog = builder.build();
+        dialog.setOnDismissListener(d -> {
+            if (trackType == C.TRACK_TYPE_AUDIO) {
+                // Get the currently playing format after the user made a choice
+                com.google.android.exoplayer2.Format currentFormat = player.getAudioFormat();
+                if (currentFormat != null && currentFormat.language != null) {
+                    prefs.edit().putString("pref_audio_lang", currentFormat.language).apply();
+                }
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void applySavedTrackPreferences() {
+        if (trackSelector == null) return;
+
+        String savedAudioLang = prefs.getString("pref_audio_lang", null);
+
+        if (savedAudioLang != null) {
+            DefaultTrackSelector.Parameters currentParameters = trackSelector.getParameters();
+            DefaultTrackSelector.Parameters newParameters = currentParameters
+                .buildUpon()
+                .setPreferredAudioLanguage(savedAudioLang)
+                .build();
+
+            trackSelector.setParameters(newParameters);
+        }
+    }
+
+
+
+    private void showScreenScaleMenu() {
+        String[] options = {"Fit (Default)", "Stretch (Fill Screen)", "Zoom (Crop to Fit)"};
+
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Screen Scale")
+            .setItems(options, (dialog, which) -> {
+                int mode = AspectRatioFrameLayout.RESIZE_MODE_FIT;
+                String toastMsg = "Scale: Fit";
+
+                if (which == 1) {
+                    mode = AspectRatioFrameLayout.RESIZE_MODE_FILL;
+                    toastMsg = "Scale: Stretch";
+                } else if (which == 2) {
+                    mode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
+                    toastMsg = "Scale: Zoom";
+                }
+
+                playerView.setResizeMode(mode);
+
+                prefs.edit().putInt("global_screen_scale", mode).apply();
+
+                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
+            })
+            .show();
     }
 
 }

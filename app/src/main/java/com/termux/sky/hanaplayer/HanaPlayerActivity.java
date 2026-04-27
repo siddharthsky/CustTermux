@@ -34,6 +34,7 @@ import com.termux.sky.txplayer.ChannelModel;
 import com.termux.sky.txplayer.ExoPlayerActivityDRM;
 import com.termux.sky.txplayer.M3UParser;
 
+import java.net.URL;
 import java.util.*;
 
 public class HanaPlayerActivity extends AppCompatActivity {
@@ -45,6 +46,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private Set<String> selectedPorts = new HashSet<>();
     private boolean isUpdatingChips = false;
     private ImageButton btnMenu;
+    private ProgressBar progressBar;
 
     private SharedPreferences prefs;
 
@@ -72,7 +74,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(40, 60, 0, 0);
+        header.setPadding(10, 0, 0, 0);
 //        header.setPadding(40, 60, 40, 20); // Top padding for status bar area
 
         TextView titleBar = new TextView(this);
@@ -105,10 +107,27 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chipScroll.addView(chipGroup);
         root.addView(chipScroll);
 
+        progressBar = new ProgressBar(this);
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT);
+        progressParams.gravity = Gravity.CENTER;
+        progressBar.setLayoutParams(progressParams);
+        progressBar.setVisibility(View.GONE);
+        root.addView(progressBar);
+
         RecyclerView recyclerView = new RecyclerView(this);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+        int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
+        int spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, spanCount);
+        recyclerView.setLayoutManager(gridLayoutManager);
         adapter = new HanaChannelAdapter(displayList, this::onChannelClick, this::onChannelLongClick);
         recyclerView.setAdapter(adapter);
+        LinearLayout.LayoutParams rvParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            0, 1.0f);
+        recyclerView.setLayoutParams(rvParams);
         root.addView(recyclerView);
 
         setContentView(root);
@@ -268,41 +287,72 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void loadActiveData() {
-        displayList.clear();
-        List<Plugin> plugins = PluginStorage.load(this);
+        new Thread(() -> {
+            List<Plugin> plugins = PluginStorage.load(this);
+            List<ChannelModel> masterList = new ArrayList<>();
 
-        if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
-            for (Plugin p : plugins) {
-                List<ChannelModel> channels = M3UParser.getFromPrefs(this, String.valueOf(p.port));
-                for(ChannelModel cm : channels) cm.originPort = String.valueOf(p.port);
-                displayList.addAll(channels);
+            List<Plugin> targetPlugins = new ArrayList<>();
+            if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
+                targetPlugins.addAll(plugins);
+            } else {
+                for (Plugin p : plugins) {
+                    if (selectedPorts.contains(String.valueOf(p.port))) {
+                        targetPlugins.add(p);
+                    }
+                }
             }
-        } else {
-            for (String portStr : selectedPorts) {
-                List<ChannelModel> channels = M3UParser.getFromPrefs(this, portStr);
-                for(ChannelModel cm : channels) cm.originPort = portStr;
-                displayList.addAll(channels);
+
+            for (Plugin p : targetPlugins) {
+                String portStr = String.valueOf(p.port);
+                List<ChannelModel> channels;
+
+                if (M3UParser.existsInPrefs(this, portStr)) {
+                    channels = M3UParser.getFromPrefs(this, portStr);
+                } else {
+                    runOnUiThread(() -> progressBar.setVisibility(View.VISIBLE));
+                    String content = p.playlist;
+                    if (content != null && content.startsWith("http")) {
+                        content = downloadUrl(content);
+                    }
+                    channels = M3UParser.parse(content);
+                    M3UParser.saveToPrefs(this, portStr, channels);
+                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                }
+
+                for (ChannelModel cm : channels) {
+                    cm.originPort = portStr;
+                }
+                masterList.addAll(channels);
             }
-        }
 
-        if (selectedPorts.contains("Favorites")) {
-            List<ChannelModel> favoritesOnly = new ArrayList<>();
-            for (ChannelModel cm : displayList) {
-                if (cm.isFavorite) favoritesOnly.add(cm);
+            if (selectedPorts.contains("Favorites")) {
+                List<ChannelModel> favoritesOnly = new ArrayList<>();
+                for (ChannelModel cm : masterList) {
+                    if (cm.isFavorite) favoritesOnly.add(cm);
+                }
+                masterList = favoritesOnly;
             }
-            displayList = favoritesOnly;
-        }
 
-        adapter.updateList(displayList);
+            final List<ChannelModel> resultList = masterList;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                displayList.clear();
+                displayList.addAll(resultList);
+                adapter.updateList(displayList);
 
-        if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
-            isFirstLaunch = false;
+                // Auto-launch logic
+                if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
+                    isFirstLaunch = false;
+                    onChannelClick(displayList.get(0));
+                }
+            });
+        }).start();
+    }
 
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                onChannelClick(displayList.get(0));
-            }, 500);
-
-        }
+    private String downloadUrl(String urlString) {
+        try {
+            Scanner s = new Scanner(new URL(urlString).openStream(), "UTF-8").useDelimiter("\\A");
+            return s.hasNext() ? s.next() : "";
+        } catch (Exception e) { return ""; }
     }
 
     private void onChannelClick(ChannelModel channel) {

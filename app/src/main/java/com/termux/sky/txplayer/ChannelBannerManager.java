@@ -55,6 +55,6 @@ public class ChannelBannerManager {
         }
 
         bannerView.setVisibility(View.VISIBLE);
-        handler.postDelayed(hideRunnable, 2000);
+        handler.postDelayed(hideRunnable, 3000);
     }
 }

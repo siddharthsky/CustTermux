@@ -28,6 +28,10 @@ public class WebViewPlayerActivity extends AppCompatActivity {
     private int backCount = 0;
     private static final int MAX_BACK = 5;
 
+    private long lastChannelChangeTime = 0;
+    private static final long DEBOUNCE_DELAY_MS = 500;
+    private boolean isSwitchingActivity = false;
+
     String port_no = null;
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -162,15 +166,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        if (webView != null) {
-            webView.clearHistory();
-            webView.clearCache(true);
-            webView.destroy();
-        }
-        super.onDestroy();
-    }
 
     @Override
     public boolean dispatchKeyEvent(android.view.KeyEvent event) {
@@ -179,11 +174,17 @@ public class WebViewPlayerActivity extends AppCompatActivity {
             int keyCode = event.getKeyCode();
 
             if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                changeChannel(1);
+                if (!isSwitchingActivity && System.currentTimeMillis() - lastChannelChangeTime > DEBOUNCE_DELAY_MS) {
+                    lastChannelChangeTime = System.currentTimeMillis();
+                    changeChannel(1);
+                }
                 return true; // Return true so the WebView doesn't scroll
             } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                changeChannel(-1);
-                return true; // Return true so the WebView doesn't scroll
+                if (!isSwitchingActivity && System.currentTimeMillis() - lastChannelChangeTime > DEBOUNCE_DELAY_MS) {
+                    lastChannelChangeTime = System.currentTimeMillis();
+                    changeChannel(-1);
+                }
+                return true;
             }
         }
         return super.dispatchKeyEvent(event);
@@ -192,7 +193,8 @@ public class WebViewPlayerActivity extends AppCompatActivity {
     private void changeChannel(int direction) {
         if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
 
-        // Calculate next index with wrap-around
+        isSwitchingActivity = true;
+
         int newIndex = PlaylistManager.currentIndex + direction;
         if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
         if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
@@ -202,9 +204,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
         String activePort = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
 
-//        Toast.makeText(this, "Trying ExoPlayer: " + nextChannel.name, android.widget.Toast.LENGTH_SHORT).show();
-
-        // INSTEAD of loading in WebView, we launch ExoPlayerActivityDRM again
         Intent intent = new Intent(this, ExoPlayerActivityDRM.class)
             .putExtra("url", nextChannel.url)
             .putExtra("name", nextChannel.name)
@@ -215,19 +214,10 @@ public class WebViewPlayerActivity extends AppCompatActivity {
             .putExtra("manifest_type", nextChannel.manifestType)
             .putExtra("plugin_port", activePort);
 
-        // Clear the WebView from the back stack so the user doesn't get stuck in a loop
         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
 
         startActivity(intent);
-
-        // Clean up and close the WebView Activity
-        if (webView != null) {
-            webView.stopLoading();
-            webView.onPause();
-            webView.loadUrl("about:blank");
-            webView.destroy();
-            webView = null;
-        }
+        killWebView();
         finish();
     }
 
@@ -255,6 +245,32 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         if (webView != null) {
             webView.stopLoading();
             webView.loadUrl("about:blank");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        killWebView();
+        super.onDestroy();
+    }
+
+    private void killWebView() {
+        if (webView != null) {
+            // 1. Stop page and media
+            webView.stopLoading();
+            webView.loadUrl("about:blank");
+            webView.onPause();
+            webView.pauseTimers();
+
+            android.view.ViewGroup parent = (android.view.ViewGroup) webView.getParent();
+            if (parent != null) {
+                parent.removeView(webView);
+            }
+
+            webView.clearHistory();
+            webView.removeAllViews();
+            webView.destroy();
+            webView = null;
         }
     }
 }

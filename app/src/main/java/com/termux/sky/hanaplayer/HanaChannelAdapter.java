@@ -72,17 +72,29 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         // FrameLayout to hold Logo and optional Favorite indicator
         FrameLayout imageContainer = new FrameLayout(ctx);
-        imageContainer.setLayoutParams(new LinearLayout.LayoutParams(200, 200));
+        int sizePx = (int) (100 * ctx.getResources().getDisplayMetrics().density);
+        LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            sizePx
+        );
+        imageContainer.setLayoutParams(containerParams);
 
         ImageView logo = new ImageView(ctx);
-        logo.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        FrameLayout.LayoutParams logoParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        logo.setLayoutParams(logoParams);
+        logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        logo.setPadding(8, 8, 8, 8);
 
         ImageView favIcon = new ImageView(ctx);
         FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(48, 48);
         favParams.gravity = Gravity.TOP | Gravity.END;
         favIcon.setLayoutParams(favParams);
-        favIcon.setImageResource(android.R.drawable.btn_star_big_on);
+        favIcon.setImageResource(R.drawable.tx_star);
+        favIcon.setColorFilter(Color.parseColor("#FFD700"));
+        favIcon.setAlpha(0.9f);
         favIcon.setVisibility(View.GONE);
 
         imageContainer.addView(logo);
