@@ -46,10 +46,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private boolean isUpdatingChips = false;
     private ImageButton btnMenu;
 
+    private SharedPreferences prefs;
+
     private boolean isLaunch = true;
     private boolean isFirstLaunch = true;
-
-    SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
 
     private static final String UI_PREFS = "hana_player_ui";
     private static final String SELECTED_CHIPS_KEY = "selected_chips";
@@ -59,22 +59,22 @@ public class HanaPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        prefs = getSharedPreferences("settings", MODE_PRIVATE);
+
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
         isLaunch = prefs.getBoolean("auto_launch_channel", false);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.parseColor("#0E1628"));
 
-        // --- 1. Create a Header Container (Horizontal) ---
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(40, 60, 0, 0);
 //        header.setPadding(40, 60, 40, 20); // Top padding for status bar area
 
-        // --- 2. Create the Title ---
         TextView titleBar = new TextView(this);
         titleBar.setText("🌸 Hana Player");
         titleBar.setTextSize(22);
@@ -85,21 +85,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         header.addView(titleBar);
 
-        // --- 3. Create the Menu Button Programmatically ---
         btnMenu = new ImageButton(this);
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
 
-        // Set the click listener here directly
         btnMenu.setOnClickListener(this::showPopupMenu);
 
         header.addView(btnMenu);
 
-        // Add the header to the root
         root.addView(header);
 
-        // --- 4. The rest of your UI ---
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
         chipScroll.setPadding(10, 20, 10, 20);
         chipScroll.setHorizontalScrollBarEnabled(false);
