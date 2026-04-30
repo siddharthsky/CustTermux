@@ -352,6 +352,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
         });
 
+
         buttonHana.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -391,6 +392,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         clearUpdateCache();
         checkForUpdate();
+        hanaPlayerViz();
 
 
 
@@ -465,6 +467,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (file.exists()) {
             file.delete();
         }
+    }
+
+    private boolean doesPluginPrefExist() {
+
+        File prefFile = new java.io.File(
+            getFilesDir().getParent() + "/shared_prefs/plugins_pref.xml"
+        );
+
+        return prefFile.exists();
+    }
+
+    private void hanaPlayerViz() {
+
+        runOnUiThread(() -> {
+            Button buttonHana = findViewById(R.id.buttonHana);
+
+            if (doesPluginPrefExist()) {
+                buttonHana.setVisibility(View.VISIBLE);
+            } else {
+                buttonHana.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void checkForUpdate() {
@@ -719,6 +743,8 @@ private final Runnable refreshRunnable = new Runnable() {
         super.onResume();
 
         startup.onResumeCheck();
+
+        hanaPlayerViz();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
