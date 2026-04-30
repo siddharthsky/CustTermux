@@ -14,10 +14,13 @@ import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -48,6 +51,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private boolean isUpdatingChips = false;
     private ImageButton btnMenu;
     private ProgressBar progressBar;
+
+    private ImageButton btnSearch;
+    private EditText searchBox;
+    private String currentSearchQuery = "";
 
     private SharedPreferences prefs;
 
@@ -91,14 +98,60 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         header.addView(titleBar);
 
+        // Search Button ---
+        btnSearch = new ImageButton(this);
+        btnSearch.setImageResource(R.drawable.tx_search);
+        btnSearch.setBackgroundResource(R.drawable.img_btn_selector);
+        btnSearch.setColorFilter(Color.WHITE);
+        btnSearch.setOnClickListener(v -> toggleSearch());
+        header.addView(btnSearch);
+
+        //Menu Button ---
         btnMenu = new ImageButton(this);
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
         btnMenu.setOnClickListener(this::showPopupMenu);
-
         header.addView(btnMenu);
+
         root.addView(header);
+
+        //Search Box
+        searchBox = new EditText(this);
+        searchBox.setHint("Search channels...");
+        searchBox.setHintTextColor(Color.LTGRAY);
+        searchBox.setTextColor(Color.WHITE);
+        searchBox.setSingleLine(true);
+        searchBox.setPadding(30, 20, 30, 20);
+        GradientDrawable searchBg = new GradientDrawable();
+        searchBg.setColor(Color.parseColor("#1E2738"));
+        searchBg.setCornerRadius(50f);
+        searchBox.setBackground(searchBg);
+        searchBox.setVisibility(View.GONE);
+
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+
+        searchParams.setMargins(16, 16, 16, 16);
+        searchBox.setLayoutParams(searchParams);
+
+
+        searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentSearchQuery = s.toString();
+                applyGroupFilter();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        root.addView(searchBox);
 
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
         chipScroll.setPadding(10, 0, 10, 0);
@@ -383,10 +436,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void applyGroupFilter() {
         List<ChannelModel> filteredList = new ArrayList<>();
+        String query = currentSearchQuery.toLowerCase().trim();
 
         for (ChannelModel cm : currentPortChannels) {
-            if (selectedGroups.contains("All") ||
-                (cm.group != null && selectedGroups.contains(cm.group.trim()))) {
+            boolean matchesGroup = selectedGroups.contains("All") ||
+                (cm.group != null && selectedGroups.contains(cm.group.trim()));
+
+            boolean matchesSearch = query.isEmpty() ||
+                (cm.name != null && cm.name.toLowerCase().contains(query));
+
+            if (matchesGroup && matchesSearch) {
                 filteredList.add(cm);
             }
         }
@@ -394,6 +453,24 @@ public class HanaPlayerActivity extends AppCompatActivity {
         displayList.clear();
         displayList.addAll(filteredList);
         adapter.updateList(displayList);
+    }
+
+    private void toggleSearch() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if (searchBox.getVisibility() == View.VISIBLE) {
+            searchBox.setVisibility(View.GONE);
+            searchBox.setText("");
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
+            }
+        } else {
+            searchBox.setVisibility(View.VISIBLE);
+            searchBox.requestFocus();
+            if (imm != null) {
+                imm.showSoftInput(searchBox, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }
     }
 
     private void updateGroupChipsUI(List<String> groups) {

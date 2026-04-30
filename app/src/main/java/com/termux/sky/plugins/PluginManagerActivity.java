@@ -8,9 +8,12 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.Toast;
@@ -175,19 +178,44 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void showPortInputDialog() {
 
+        FrameLayout container = new FrameLayout(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        params.setMargins(60, 20, 60, 0);
+
         EditText input = new EditText(this);
+        input.setLayoutParams(params);
         input.setHint("Enter plugin code (4-digits)");
         input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        input.setMaxLines(1);
+        input.setSingleLine(true);
 
-        input.setFocusable(true);
-        input.setFocusableInTouchMode(true);
-        input.setShowSoftInputOnFocus(true);
 
-        AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        input.setImeOptions(EditorInfo.IME_ACTION_GO);
+
+        container.addView(input);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
             .setTitle("Add Plugin")
-            .setView(input)
-            .setPositiveButton("Load", (d, w) -> {
+            .setView(container)
+            .setPositiveButton("Load", null)
+            .setNegativeButton("Cancel", null)
+            .create();
 
+        input.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_DONE) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                return true;
+            }
+            return false;
+        });
+
+        dialog.setOnShowListener(d -> {
+            Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            posButton.setOnClickListener(v -> {
                 String port = input.getText().toString().trim();
 
                 if (port.isEmpty()) {
@@ -196,27 +224,14 @@ public class PluginManagerActivity extends AppCompatActivity {
                 }
 
                 fetchPluginFromServer(port);
-            })
-            .setNegativeButton("Cancel", null)
-            .create();
-
-        dialog.setOnShowListener(d -> {
+                dialog.dismiss();
+            });
 
             input.requestFocus();
-
-            input.postDelayed(() -> {
-
-                InputMethodManager imm =
-                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-
-                imm.showSoftInput(input, InputMethodManager.SHOW_FORCED);
-
-            }, 150);
         });
 
         dialog.show();
     }
-
     private void fetchPluginFromServer(String port) {
 
         new Thread(() -> {
