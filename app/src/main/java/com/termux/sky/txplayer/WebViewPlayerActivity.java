@@ -92,6 +92,19 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient() {
 
+            // Modern version (API 24+)
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    String url = request.getUrl().toString();
+                    String finalUrl = rewriteUrl(url);
+                    view.loadUrl(finalUrl);
+                }
+                return true;
+            }
+
+            // Deprecated version (Fallback for API < 24)
+            @SuppressWarnings("deprecation")
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 String finalUrl = rewriteUrl(url);
@@ -103,7 +116,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 CookieManager.getInstance().flush();
-
                 backCount = 0;
             }
         });

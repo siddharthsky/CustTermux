@@ -99,6 +99,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         root.addView(playerView);
 
 
+        playerView.setControllerAutoShow(false);
+        playerView.hideController();
+
         playerView.setShowNextButton(false);
         playerView.setShowPreviousButton(false);
         playerView.setShowFastForwardButton(false);
@@ -269,18 +272,20 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     runOnUiThread(() -> initializePlayer(videoUrl, licenseUrl, ua, origin, referer));
                 } else {
                     runOnUiThread(() -> {
-                        if (errorOverlay != null) {
-                            String sb = "⚠️ CONNECTION ISSUE\n" +
-                                "────────────────\n" +
-                                "HTTP CODE: " + responseCode + "\n" +
-                                "STATUS: " + (responseCode == 403 ? "Access Denied" : "Server Error") + "\n";
+                        if (!videoUrl.contains("/live/")) {
+                            if (errorOverlay != null) {
+                                String sb = "⚠️ CONNECTION ISSUE\n" +
+                                    "────────────────\n" +
+                                    "HTTP CODE: " + responseCode + "\n" +
+                                    "STATUS: " + (responseCode == 403 ? "Access Denied" : "Server Error") + "\n";
 
-                            errorOverlay.setText(sb);
-                            errorOverlay.setVisibility(View.VISIBLE);
-                        }
-                        if (videoUrl.contains("/live/")) {
+                                errorOverlay.setText(sb);
+                                errorOverlay.setVisibility(View.VISIBLE);
+                            }
+                        } else {
                             switchToWebView(videoUrl);
                         }
+
                     });
                 }
 
@@ -394,6 +399,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         player.setMediaSource(mediaSource);
         player.prepare();
         player.setPlayWhenReady(true);
+
+        playerView.post(() -> playerView.hideController());
     }
 
     private void switchToWebView(String url) {

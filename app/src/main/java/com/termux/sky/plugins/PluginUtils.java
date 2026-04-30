@@ -35,6 +35,13 @@ public class PluginUtils {
     }
 
     public static boolean isRunning(String urlStr) {
+        if (urlStr == null || urlStr.isEmpty()) return false;
+
+        // Skip network check for local content URIs or file paths
+        if (urlStr.startsWith("content://") || urlStr.startsWith("file://")) {
+            return true;
+        }
+
         try {
             URL url = new URL(urlStr);
             HttpURLConnection c = (HttpURLConnection) url.openConnection();

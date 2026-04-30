@@ -182,6 +182,10 @@ public class SetupWizardActivity extends AppCompatActivity {
     private void nextStep() {
         if (step < totalSteps - 1) {
             step++;
+
+            flipper.setInAnimation(this, R.anim.slide_in_right);
+            flipper.setOutAnimation(this, R.anim.slide_out_left);
+
             flipper.showNext();
             updateUI();
         } else {
@@ -192,6 +196,10 @@ public class SetupWizardActivity extends AppCompatActivity {
     private void backStep() {
         if (step > 0) {
             step--;
+
+            flipper.setInAnimation(this, R.anim.slide_in_left);
+            flipper.setOutAnimation(this, R.anim.slide_out_right);
+
             flipper.showPrevious();
             updateUI();
         }

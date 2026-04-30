@@ -22,57 +22,80 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
-        <Switch
-            android:id="@+id/switchAutoStart"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Auto Start |"
-            android:textColor="#FFFFFF"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:background="@drawable/bg_switch_focus"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
+
+            <Switch
+                android:id="@+id/switchAutoStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:text="Auto Start | "
+                android:textColor="#FFFFFF"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+        </LinearLayout>
     </LinearLayout>
+
 
     <!-- Options -->
     <LinearLayout
         android:id="@+id/autoStartOptions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/tv_plugin_card_bg"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="8dp"
-        android:visibility="gone">
+        android:padding="16dp">
 
         <!-- Delay Row -->
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Auto redirect delay"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp" />
+                android:textColor="#E2E8F0"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/txtDelay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/bg_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
                 android:text="2s"
-                android:textColor="#9CA3AF"
-                android:textSize="12sp" />
-        </LinearLayout>
+                android:textColor="#38BDF8"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
 
         <SeekBar
             android:id="@+id/seekDelay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
             android:max="8"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="6dp" />
+            android:focusable="true"
+            android:splitTrack="false"
+            android:thumb="@drawable/seekbar_thumb_selector"
+            android:progressTint="#38BDF8"
+            android:thumbTint="@null" />
 
         <!-- Toggles Row (SIDE BY SIDE) -->
         <LinearLayout
@@ -85,6 +108,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_switch_focus"
+                android:padding="4dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -92,15 +119,16 @@
                     android:id="@+id/switchMinimize"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:focusable="false"
                     tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Minimize CTx after IPTV redirect"
+                    android:text="Minimize on redirect"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:layout_marginStart="6dp" />
+                    android:textSize="11sp"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
 
             <!-- Background -->
@@ -108,6 +136,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_switch_focus"
+                android:padding="4dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -115,15 +147,16 @@
                     android:id="@+id/switchBOOTbg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:focusable="false"
                     tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Auto-open IPTV on background boot start"
+                    android:text="Launch on boot start"
                     android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:layout_marginStart="6dp" />
+                    android:textSize="11sp"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
 
         </LinearLayout>

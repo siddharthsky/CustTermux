@@ -1,6 +1,7 @@
 package com.termux.sky.txplayer;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +22,9 @@ import com.termux.app.TermuxActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import com.termux.sky.plugins.PluginManagerActivity;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -117,18 +121,25 @@ public class PlugDRM extends AppCompatActivity {
         executor.execute(() -> {
             List<ChannelModel> channels;
 
-            // Check if data exists in SharedPreferences and we aren't forcing a refresh
             if (!forceRefresh && M3UParser.existsInPrefs(this, port)) {
                 channels = M3UParser.getFromPrefs(this, port);
             } else {
-                // Parse manually
-                String content = playlistData;
-                if (playlistData != null && playlistData.startsWith("http")) {
-                    content = downloadUrl(playlistData);
-                }
-                channels = M3UParser.parse(content);
+                String content = "";
 
-                // Save to prefs for next time
+                if (playlistData != null) {
+                    if (playlistData.startsWith("http")) {
+                        // It's a Web URL
+                        content = downloadUrl(playlistData);
+                    } else if (playlistData.startsWith("content://")) {
+                        // It's a Local File from the picker
+                        content = readFileFromUri(playlistData);
+                    } else {
+                        // It's raw text data
+                        content = playlistData;
+                    }
+                }
+
+                channels = M3UParser.parse(content);
                 M3UParser.saveToPrefs(this, port, channels);
             }
 
@@ -139,17 +150,29 @@ public class PlugDRM extends AppCompatActivity {
                 if (channels.isEmpty()) {
                     Toast.makeText(this, "No data found!", Toast.LENGTH_SHORT).show();
                 }
-
-                // Update UI
                 setupAdapter(channels);
-//                if (adapter == null) {
-//                    adapter = new ChannelAdapter(channels, this::playVideo, this::toggleFavorite);
-//                    recyclerView.setAdapter(adapter);
-//                } else {
-//                    adapter.updateList(channels);
-//                }
             });
         });
+    }
+
+    private String readFileFromUri(String uriString) {
+        StringBuilder sb = new StringBuilder();
+        try {
+            Uri uri = Uri.parse(uriString);
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            assert inputStream != null;
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            reader.close();
+            inputStream.close();
+        } catch (Exception e) {
+            Log.e("PlugDRM", "Error reading local file: " + e.getMessage());
+        }
+        return sb.toString();
     }
 
     private void processPlaylist(String data) {

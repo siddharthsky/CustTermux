@@ -68,8 +68,8 @@ android {
         applicationId "com.termux"
         minSdk buildMinSdk
         targetSdk buildTargetSdk
-        versionCode 1022
-        versionName "0.119.0-beta.3"
+        versionCode 5
+        versionName "0.5"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
@@ -165,10 +165,10 @@ android {
         variant.outputs.all { output ->
             if (variant.buildType.name == "debug") {
                 def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("termux-app_" + "-" + "debug" + "_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = new File("TxEngine-v" + versionName + "-debug_" + (abi ? abi : "universal") + ".apk")
             } else if (variant.buildType.name == "release") {
                 def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("TxEngine" + "-" + "release" + "_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = new File("TxEngine-v" + versionName + "-release_" + (abi ? abi : "universal") + ".apk")
             }
         }
     }
@@ -188,10 +188,14 @@ task versionName {
 }
 
 def validateVersionName(String versionName) {
-    // https://semver.org/spec/v2.0.0.html#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-    // ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
-    if (!java.util.regex.Pattern.matches("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?\$", versionName))
-        throw new GradleException("The versionName '"  + versionName + "' is not a valid version as per semantic version '2.0.0' spec in the format 'major.minor.patch(-prerelease)(+buildmetadata)'. https://semver.org/spec/v2.0.0.html.")
+    def simpleRegex = /^[0-9]+\.[0-9]+$/
+
+    if (!(versionName ==~ simpleRegex)) {
+        throw new GradleException(
+            "The versionName '$versionName' is invalid. " +
+                "Please use the format 'Major.Minor' (e.g., 5.0, 1.4)."
+        )
+    }
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {

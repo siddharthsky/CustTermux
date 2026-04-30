@@ -55,7 +55,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         Plugin current = list.get(pos);
 
         h.name.setText(current.title);
-        h.playlist.setText(current.playlist);
+        h.playlist.setText(getDisplayName(current.playlist));
 
         new Thread(() -> {
 
@@ -77,11 +77,15 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         }).start();
 
         h.playlist.setOnClickListener(v -> {
-            ClipboardManager cm =
-                (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (current.playlist != null &&
+                (current.playlist.startsWith("content://") || current.playlist.startsWith("file://"))) {
+                Toast.makeText(ctx, "Local file path cannot be copied", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("url", current.playlist));
-            Toast.makeText(ctx, "Copied", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, "URL Copied", Toast.LENGTH_SHORT).show();
         });
 
 //        h.toggle.setOnClickListener(v -> {
@@ -131,6 +135,26 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
                 deleteListener.onDelete(current, h.getAdapterPosition());
             }
         });
+    }
+
+    private String getDisplayName(String url) {
+        if (url == null) return "";
+
+        if (url.startsWith("content://") || url.startsWith("file://")) {
+            try {
+                android.net.Uri uri = android.net.Uri.parse(url);
+                String lastSegment = uri.getLastPathSegment();
+
+                if (lastSegment != null && lastSegment.contains(":")) {
+                    return lastSegment.substring(lastSegment.lastIndexOf(":") + 1);
+                }
+                return lastSegment != null ? lastSegment : "Local File";
+            } catch (Exception e) {
+                return "Local File";
+            }
+        }
+
+        return url;
     }
 
     @Override

@@ -4,13 +4,13 @@
 
     <item
         android:id="@+id/menu_add_url"
-        android:title="Add M3U URL"
+        android:title="Add M3U URL / Playlist"
         android:icon="@drawable/tx_play"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_add_json"
-        android:title="Add JSON"
+        android:title="Add JSON Plugin"
         android:icon="@drawable/tx_reload"
         app:showAsAction="never" />
 </menu>

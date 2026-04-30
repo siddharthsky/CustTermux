@@ -103,7 +103,7 @@
                 android:elevation="6dp">
 
                 <TextView
-                    android:text="🪟 Display Over Apps"
+                    android:text="📱 Display Over Apps"
                     android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"

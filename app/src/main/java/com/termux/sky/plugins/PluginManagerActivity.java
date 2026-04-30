@@ -3,7 +3,10 @@ package com.termux.sky.plugins;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -34,6 +37,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -51,10 +56,20 @@ public class PluginManagerActivity extends AppCompatActivity {
     private android.widget.ProgressBar progressBar;
     private android.widget.TextView progressText;
 
+    // Replace your existing filePicker with this
     ActivityResultLauncher<String> filePicker =
         registerForActivityResult(
             new ActivityResultContracts.GetContent(),
-            this::handleFile
+            uri -> {
+                if (uri != null) {
+                    String fileName = getFileName(uri);
+                    if (fileName != null && fileName.toLowerCase().endsWith(".json")) {
+                        handleFile(uri);
+                    } else {
+                        handlePlaylistFile(uri);
+                    }
+                }
+            }
         );
 
     @Override
@@ -556,7 +571,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     private void deletePlugin(Plugin plugin, int position) {
         new androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Delete Plugin")
-            .setMessage("Are you sure you want to delete the plugin on port " + plugin.port + "?")
+            .setMessage("Are you sure you want to remove the plugin: " + plugin.title + "?")
             .setPositiveButton("Delete", (d, w) -> {
 
                 list.remove(position);
@@ -800,19 +815,132 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         new AlertDialog.Builder(this)
             .setTitle("Add M3U URL")
-            .setMessage("Enter the playlist URL:")
+            .setMessage("Enter the playlist URL or select a file:")
             .setView(input)
-            .setPositiveButton("Add", (dialog, which) -> {
-                String url = input.getText().toString().trim();
-                if (url.isEmpty()) {
+            .setPositiveButton("Add URL", (dialog, which) -> {
+                String urlString = input.getText().toString().trim();
+                if (urlString.isEmpty()) {
                     Toast.makeText(this, "URL cannot be empty", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                processUrlAsPlugin(url);
+                if (!Patterns.WEB_URL.matcher(urlString).matches()) {
+                    Toast.makeText(this, "Please enter a valid URL", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                verifyUrlHasData(urlString);
+            })
+            .setNeutralButton("Choose File", (dialog, which) -> {
+                filePicker.launch("*/*");
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void verifyUrlHasData(String urlString) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            boolean hasData = false;
+            try {
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("HEAD");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+
+                int responseCode = connection.getResponseCode();
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    hasData = true;
+                }
+                connection.disconnect();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                hasData = false;
+            }
+
+            final boolean finalHasData = hasData;
+            handler.post(() -> {
+                if (finalHasData) {
+                    processUrlAsPlugin(urlString);
+                } else {
+                    Toast.makeText(this, "URL is unreachable or contains no data", Toast.LENGTH_LONG).show();
+                }
+            });
+        });
+    }
+
+    private void handlePlaylistFile(Uri uri) {
+
+        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+        try {
+            getContentResolver().takePersistableUriPermission(uri, takeFlags);
+        } catch (SecurityException e) {
+            Log.e("PluginManager", "Failed to persist URI permission", e);
+        }
+
+
+        String fileName = getFileName(uri);
+
+        if (fileName == null || !isValidExtension(fileName)) {
+            Toast.makeText(this, "Invalid file type. Use a valid playlist.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            boolean hasData = false;
+            try (InputStream is = getContentResolver().openInputStream(uri);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.trim().isEmpty()) {
+                        hasData = true;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("PluginManager", "File read error", e);
+            }
+
+            boolean finalHasData = hasData;
+            handler.post(() -> {
+                if (finalHasData) {
+                    processUrlAsPlugin(uri.toString());
+                } else {
+                    Toast.makeText(this, "File is empty or contains no data", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    private boolean isValidExtension(String name) {
+        String low = name.toLowerCase();
+        return low.endsWith(".m3u") || low.endsWith(".m3u8") ||
+            low.endsWith(".php") || low.endsWith(".txt");
+    }
+
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (index != -1) result = cursor.getString(index);
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) result = result.substring(cut + 1);
+        }
+        return result;
     }
 
     private void processUrlAsPlugin(String url) {
@@ -823,10 +951,8 @@ public class PluginManagerActivity extends AppCompatActivity {
             return;
         }
 
-        // Generate the incremented title (Playlist 001, 002...)
         String nextTitle = generateNextPlaylistTitle();
 
-        // The JSON string as you requested
         String json = "{\n" +
             "  \"title\": \"" + nextTitle + "\",\n" +
             "  \"port\": " + uniquePort + ",\n" +
@@ -864,11 +990,10 @@ public class PluginManagerActivity extends AppCompatActivity {
     private String generateNextPlaylistTitle() {
         int maxNumber = 0;
 
-        // Pattern to match "Playlist " followed by digits
         for (Plugin p : list) {
             if (p.title != null && p.title.startsWith("Playlist ")) {
                 try {
-                    String numPart = p.title.substring(9).trim(); // Get part after "Playlist "
+                    String numPart = p.title.substring(9).trim();
                     int currentNum = Integer.parseInt(numPart);
                     if (currentNum > maxNumber) {
                         maxNumber = currentNum;
@@ -879,30 +1004,10 @@ public class PluginManagerActivity extends AppCompatActivity {
             }
         }
 
-        // Increment and format to 3 digits (e.g., 001, 012)
         int nextNumber = maxNumber + 1;
         return String.format(java.util.Locale.US, "Playlist %03d", nextNumber);
     }
 
-    private int generateUniquePort(int min, int max) {
-        java.util.Random random = new java.util.Random();
-        java.util.ArrayList<Integer> availablePorts = new java.util.ArrayList<>();
-
-        // Create list of all potential ports
-        for (int i = min; i <= max; i++) {
-            availablePorts.add(i);
-        }
-
-        // Remove ports that are already in the 'list'
-        for (Plugin p : list) {
-            availablePorts.remove(Integer.valueOf(p.port));
-        }
-
-        if (availablePorts.isEmpty()) return -1;
-
-        // Pick a random one from what's left
-        return availablePorts.get(random.nextInt(availablePorts.size()));
-    }
 }
 
 

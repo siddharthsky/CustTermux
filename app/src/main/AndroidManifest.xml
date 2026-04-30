@@ -42,7 +42,7 @@
     <application
         android:name=".app.TermuxApplication"
         android:allowBackup="false"
-        android:banner="@drawable/banner"
+        android:banner="@mipmap/ic_banner"
         android:extractNativeLibs="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/application_name"
@@ -168,7 +168,7 @@
         <activity
             android:name=".sky.iptv.AppPickerActivity"
             android:screenOrientation="sensor"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
