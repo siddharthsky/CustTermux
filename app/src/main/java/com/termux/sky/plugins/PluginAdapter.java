@@ -23,6 +23,10 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     public interface OnLoginClick {
         void onLogin(Plugin plugin, int position);
     }
+    public interface OnUpdateClick {
+        void onUpdate(Plugin plugin, int position);
+    }
+
 
     public interface OnWatchClick {
         void onWatch(Plugin plugin, int position);
@@ -32,12 +36,14 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     Context ctx;
     OnDeleteClick deleteListener;
     OnLoginClick loginListener;
+    OnUpdateClick updateListener;
     OnWatchClick watchListener;
 
-    public PluginAdapter(Context ctx, List<Plugin> list, OnLoginClick login_listener, OnWatchClick watch_listener, OnDeleteClick listener) {
+    public PluginAdapter(Context ctx, List<Plugin> list, OnLoginClick login_listener, OnUpdateClick update_listener, OnWatchClick watch_listener, OnDeleteClick listener) {
         this.ctx = ctx;
         this.list = list;
         this.loginListener = login_listener;
+        this.updateListener = update_listener;
         this.watchListener = watch_listener;
         this.deleteListener = listener;
     }
@@ -112,17 +118,23 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             });
         }
 
-//        if (current.watch_url == null || current.watch_url.trim().isEmpty()) {
-//            h.watch.setVisibility(View.GONE);
-//        } else {
-//            h.watch.setVisibility(View.VISIBLE);
-//
-//            h.watch.setOnClickListener(v -> {
-//                if (watchListener != null) {
-//                    watchListener.onWatch(current, h.getAdapterPosition());
-//                }
-//            });
-//        }
+
+        if (Boolean.TRUE.equals(current.updatable)) {
+            h.update.setVisibility(View.VISIBLE);
+
+            h.update.setOnClickListener(v -> {
+                int position = h.getAdapterPosition();
+                if (updateListener != null && position != RecyclerView.NO_POSITION) {
+                    updateListener.onUpdate(current, position);
+                }
+            });
+
+        } else {
+            h.update.setVisibility(View.GONE);
+            h.update.setOnClickListener(null);
+        }
+
+
 
         h.watch.setOnClickListener(v -> {
             if (watchListener != null) {
@@ -163,7 +175,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist;
-        ImageButton login, delete;
+        ImageButton login, delete, update;
         LinearLayout watch;
 
 
@@ -173,6 +185,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
             login = v.findViewById(R.id.loginBtn);
+            update = v.findViewById(R.id.updateBtn);
             watch = v.findViewById(R.id.watchBtn);
             delete = v.findViewById(R.id.deleteBtn);
         }

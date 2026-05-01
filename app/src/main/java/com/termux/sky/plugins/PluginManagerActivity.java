@@ -97,7 +97,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         list = PluginStorage.load(this);
 
-        adapter = new PluginAdapter(this, list, this::loginPlugin,this::watchPlugin, this::deletePlugin );
+        adapter = new PluginAdapter(this, list, this::loginPlugin, this::updatePlugin, this::watchPlugin, this::deletePlugin );
 
         listView.setLayoutManager(new LinearLayoutManager(this));
         listView.setAdapter(adapter);
@@ -663,6 +663,48 @@ public class PluginManagerActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void updatePlugin(Plugin plugin, int position) {
+
+        new AlertDialog.Builder(this)
+            .setTitle("Update Plugin?")
+            .setMessage(plugin.title + " on port " + plugin.port)
+            .setPositiveButton("Update", (d, w) -> {
+
+                String TERMUX_PACKAGE = "com.termux";
+                String TERMUX_SERVICE = "com.termux.app.RunCommandService";
+                String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
+
+                String folderName = String.valueOf(plugin.port);
+                File baseDirInit = new File(getFilesDir(), "home");
+                File baseDir = new File(baseDirInit, "plugins");
+                File pluginDir = new File(baseDir, folderName);
+
+                String HOME_PATH = pluginDir.getAbsolutePath();
+
+                File scriptFile = new File(pluginDir, ".post_install_script.sh");
+                String SCRIPT_PATH = scriptFile.getAbsolutePath();
+                String port_no = String.valueOf(plugin.port);
+
+                Intent intent = new Intent();
+                intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
+                intent.setAction(ACTION_RUN_COMMAND);
+
+                intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
+                intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--port", port_no, "--update"});
+                intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
+                intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
+                intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+                this.startService(intent);
+
+                Log.d("SkyLog","skyUpdate Runner");
+
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+
     }
 
     private void watchPlugin(Plugin plugin, int position) {

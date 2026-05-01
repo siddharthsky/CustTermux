@@ -303,6 +303,7 @@
                 android:focusableInTouchMode="false"
                 android:scrollbarThumbVertical="@drawable/terminal_scroll_shape"
                 android:scrollbars="vertical"
+                android:background="@drawable/terminal_bg_final"
                 tools:ignore="UnusedAttribute" />
 
             <LinearLayout

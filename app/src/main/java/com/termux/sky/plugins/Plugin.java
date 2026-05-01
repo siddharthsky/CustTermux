@@ -12,6 +12,7 @@ public class Plugin {
     public String watch_url;
     public String[] pkg;
     public String post_install_script;
+    public Boolean updatable;
     public String start;
 
     public Plugin() {}

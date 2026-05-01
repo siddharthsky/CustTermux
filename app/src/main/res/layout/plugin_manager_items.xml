@@ -12,19 +12,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Left side content: Name, Status, Playlist -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/watchBtn"
+            android:layout_toStartOf="@+id/buttonContainer"
             android:layout_marginEnd="12dp"
-            android:orientation="vertical"
-            tools:ignore="NotSibling">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/pluginName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Plugin Name"
                 android:textColor="#fff"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -44,22 +45,44 @@
                 android:textColor="#38bdf8"
                 android:ellipsize="end"
                 android:maxLines="1" />
-
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/loginBtn"
+        <!-- Top Right Corner Button Container -->
+        <LinearLayout
+            android:id="@+id/buttonContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:background="@drawable/img_btn_selector"
-            android:contentDescription="Reload"
-            android:tooltipText="Login to Service"
-            android:scaleType="fitCenter"
-            android:focusable="true"
-            android:padding="2dp"
-            android:src="@drawable/tx_passkey" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/updateBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/img_btn_selector"
+                android:contentDescription="Reload"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/tx_reload"
+                android:tooltipText="Reload" />
+
+            <ImageButton
+                android:id="@+id/loginBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/img_btn_selector"
+                android:contentDescription="Login"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/tx_passkey"
+                android:tooltipText="Login to Service"/>
+
+        </LinearLayout>
 
     </RelativeLayout>
 

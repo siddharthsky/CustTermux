@@ -24,6 +24,7 @@ public class PluginUtils {
             p.watch_url = o.has("watch_url") ? o.getString("watch_url") : null;
             p.login_url = o.has("login_url") ? o.getString("login_url") : null;
             p.post_install_script = o.has("post_install_script") ? o.getString("post_install_script") : null;
+            p.updatable = o.has("updatable") && o.getBoolean("updatable");
             p.start = o.has("start") ? o.getString("start") : null;
 
             return p;
