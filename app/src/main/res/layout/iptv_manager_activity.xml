@@ -23,6 +23,7 @@
             android:textStyle="bold" />
 
         <LinearLayout
+            android:id="@+id/layoutAutoStart"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_switch_focus"
@@ -38,10 +39,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="false"
+                android:clickable="false"
                 android:text="Auto Start | "
                 android:textColor="#FFFFFF"
                 tools:ignore="UseSwitchCompatOrMaterialXml" />
-
         </LinearLayout>
     </LinearLayout>
 
@@ -103,8 +104,9 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- Minimize -->
+            <!-- Minimize Layout -->
             <LinearLayout
+                android:id="@+id/layoutMinimize"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -120,6 +122,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:focusable="false"
+                    android:clickable="false"
+                    android:textColor="#FFFFFF"
                     tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                 <TextView
@@ -131,8 +135,9 @@
                     android:layout_marginStart="4dp" />
             </LinearLayout>
 
-            <!-- Background -->
+            <!-- Background/Boot Layout -->
             <LinearLayout
+                android:id="@+id/layoutBOOTbg"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -148,6 +153,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:focusable="false"
+                    android:clickable="false"
+                    android:textColor="#FFFFFF"
                     tools:ignore="UseSwitchCompatOrMaterialXml" />
 
                 <TextView

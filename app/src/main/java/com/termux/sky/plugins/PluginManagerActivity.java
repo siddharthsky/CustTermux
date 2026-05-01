@@ -1,10 +1,14 @@
 package com.termux.sky.plugins;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.OpenableColumns;
+import android.text.InputType;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
@@ -15,7 +19,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.*;
@@ -37,9 +44,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
@@ -55,9 +67,9 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private ImageButton btnMenu;
 
-    private androidx.appcompat.app.AlertDialog progressDialog;
-    private android.widget.ProgressBar progressBar;
-    private android.widget.TextView progressText;
+    private AlertDialog progressDialog;
+    private ProgressBar progressBar;
+    private TextView progressText;
 
     // Replace your existing filePicker with this
     ActivityResultLauncher<String> filePicker =
@@ -189,7 +201,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         EditText input = new EditText(this);
         input.setLayoutParams(params);
         input.setHint("Enter plugin code (4-digits)");
-        input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
         input.setMaxLines(1);
         input.setSingleLine(true);
 
@@ -238,8 +250,8 @@ public class PluginManagerActivity extends AppCompatActivity {
             try {
                 String urlStr = "https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/" + port + ".json";
 
-                java.net.URL url = new java.net.URL(urlStr);
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                URL url = new URL(urlStr);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setConnectTimeout(3000);
 
                 int code = conn.getResponseCode();
@@ -250,8 +262,8 @@ public class PluginManagerActivity extends AppCompatActivity {
                     return;
                 }
 
-                java.io.BufferedReader br = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(conn.getInputStream())
+                BufferedReader br = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream())
                 );
 
                 StringBuilder sb = new StringBuilder();
@@ -311,55 +323,57 @@ public class PluginManagerActivity extends AppCompatActivity {
         File zipFile = new File(getCacheDir(), folderName + ".zip");
         new Thread(() -> {
             try {
+                // 1. Check if both URLs are empty
+                boolean hasBin = binDownloadURL != null && !binDownloadURL.trim().isEmpty();
+                boolean hasRepo = repoUrl != null && !repoUrl.trim().isEmpty();
 
-                if (binDownloadURL != null && !binDownloadURL.trim().isEmpty()) {
+                if (!hasBin && !hasRepo) {
+                    Log.d("PluginInit", "No download URLs provided. Skipping download/extraction.");
 
+                    createRunScript(pluginDir, port, startComm);
+
+                    if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
+                        postInstall(postInstallScript, pluginDir, port);
+                    }
+                    return;
+                }
+
+                if (hasBin) {
                     File binFile = new File(pluginDir, "run.bin");
-
                     showProgress("Downloading binary...");
-
                     try {
                         downloadFile(binDownloadURL, binFile);
                     } catch (Exception e) {
                         handleError("Binary download failed", e);
                         return;
                     }
-
                     binFile.setExecutable(true);
-
                     createRunScript(pluginDir, port, startComm);
-
                     hideProgress();
 
                     if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
                         postInstall(postInstallScript, pluginDir, port);
                     }
-
                     return;
                 }
 
                 String zipUrl;
-
-                if (repoUrl != null && repoUrl.endsWith(".zip")) {
+                if (repoUrl.endsWith(".zip")) {
                     zipUrl = repoUrl;
                 } else {
-                    assert repoUrl != null;
-                    zipUrl = getRepoZipUrl(repoUrl, repoBranch);
+                    zipUrl = getRepoZipUrl(Objects.requireNonNull(repoUrl), repoBranch);
                 }
 
                 showProgress("Downloading repository...");
-
                 try {
                     downloadZip(zipUrl, zipFile);
                 } catch (Exception e) {
                     handleError("Repository download failed", e);
                     return;
                 }
-
                 hideProgress();
 
                 showProgress("Extracting...");
-
                 try {
                     boolean isDirectZip = repoUrl.toLowerCase().endsWith(".zip");
                     fullUnzip(zipFile, pluginDir, !isDirectZip);
@@ -369,7 +383,6 @@ public class PluginManagerActivity extends AppCompatActivity {
                 }
 
                 createRunScript(pluginDir, port, startComm);
-
                 hideProgress();
 
                 if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
@@ -492,6 +505,11 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void downloadZip(String urlStr, File output) throws Exception {
 
+        if (urlStr == null || urlStr.trim().isEmpty() || urlStr.equalsIgnoreCase("empty_url")) {
+            Log.d("Download", "Skipping download (empty_url)");
+            return;
+        }
+
         URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.connect();
@@ -584,7 +602,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void deletePlugin(Plugin plugin, int position) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
             .setTitle("Delete Plugin")
             .setMessage("Are you sure you want to remove the plugin: " + plugin.title + "?")
             .setPositiveButton("Delete", (d, w) -> {
@@ -598,7 +616,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                 getSharedPreferences(prefName, MODE_PRIVATE).edit().clear().commit();
 
                 boolean apiDeleted = false;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     apiDeleted = deleteSharedPreferences(prefName);
                 }
 
@@ -706,7 +724,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void downloadFile(String urlStr, File output) throws Exception {
 
-        if (urlStr == null || urlStr.trim().equals("empty_url")) {
+        if (urlStr == null || urlStr.trim().isEmpty() || urlStr.equalsIgnoreCase("empty_url")) {
             Log.d("Download", "Skipping download (empty_url)");
             return;
         }
@@ -770,7 +788,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
 
-            progressBar = new android.widget.ProgressBar(
+            progressBar = new ProgressBar(
                 this,
                 null,
                 android.R.attr.progressBarStyleHorizontal
@@ -778,16 +796,16 @@ public class PluginManagerActivity extends AppCompatActivity {
             progressBar.setMax(100);
             progressBar.setProgress(0);
 
-            progressText = new android.widget.TextView(this);
+            progressText = new TextView(this);
             progressText.setText("0%");
 
-            android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-            layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
             layout.setPadding(50, 30, 50, 30);
             layout.addView(progressBar);
             layout.addView(progressText);
 
-            progressDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+            progressDialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setView(layout)
                 .setCancelable(false)
@@ -943,9 +961,9 @@ public class PluginManagerActivity extends AppCompatActivity {
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
-            try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    int index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     if (index != -1) result = cursor.getString(index);
                 }
             }
@@ -985,12 +1003,12 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private int findAvailablePort(int min, int max) {
-        java.util.Set<Integer> usedPorts = new java.util.HashSet<>();
+        Set<Integer> usedPorts = new HashSet<>();
         for (Plugin p : list) {
             usedPorts.add(p.port);
         }
 
-        java.util.List<Integer> available = new java.util.ArrayList<>();
+        List<Integer> available = new ArrayList<>();
         for (int i = min; i <= max; i++) {
             if (!usedPorts.contains(i)) {
                 available.add(i);
@@ -999,7 +1017,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         if (available.isEmpty()) return -1;
 
-        return available.get(new java.util.Random().nextInt(available.size()));
+        return available.get(new Random().nextInt(available.size()));
     }
 
     private String generateNextPlaylistTitle() {
@@ -1020,7 +1038,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         }
 
         int nextNumber = maxNumber + 1;
-        return String.format(java.util.Locale.US, "Playlist %03d", nextNumber);
+        return String.format(Locale.US, "Playlist %03d", nextNumber);
     }
 
 }

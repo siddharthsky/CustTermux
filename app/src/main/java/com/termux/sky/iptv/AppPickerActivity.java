@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -54,6 +55,10 @@ public class AppPickerActivity extends AppCompatActivity {
 
         loadAppsAsync();
 
+        LinearLayout layoutAutoStart = findViewById(R.id.layoutAutoStart);
+        LinearLayout layoutMinimize = findViewById(R.id.layoutMinimize);
+        LinearLayout layoutBOOTbg = findViewById(R.id.layoutBOOTbg);
+
         @SuppressLint("UseSwitchCompatOrMaterialCode")
         Switch switchAutoStart = findViewById(R.id.switchAutoStart);
         @SuppressLint("UseSwitchCompatOrMaterialCode")
@@ -65,21 +70,25 @@ public class AppPickerActivity extends AppCompatActivity {
         SeekBar seekDelay = findViewById(R.id.seekDelay);
         TextView txtDelay = findViewById(R.id.txtDelay);
 
+        applySwitchColors(switchAutoStart);
+        applySwitchColors(switchMinimize);
+        applySwitchColors(switchBOOTbg);
+
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
 
         // Load saved values
         boolean autoStart = prefs.getBoolean("auto_start", false);
         int delay = prefs.getInt("delay", 2);
 
-        boolean minimize = prefs.getBoolean("minimize", false);
-        switchMinimize.setChecked(minimize);
+        boolean isAutoStartActive = prefs.getBoolean("auto_start", false);
+        switchAutoStart.setChecked(isAutoStartActive);
+        switchMinimize.setChecked(prefs.getBoolean("minimize", false));
+        switchBOOTbg.setChecked(prefs.getBoolean("boot_start_app", false));
 
-        boolean boot_start_app = prefs.getBoolean("boot_start_app", false);
-        switchBOOTbg.setChecked(boot_start_app);
-
-        switchAutoStart.setChecked(autoStart);
-        autoOptions.setVisibility(autoStart ? View.VISIBLE : View.GONE);
-
+        autoOptions.setVisibility(isAutoStartActive ? View.VISIBLE : View.GONE);
+        layoutMinimize.setFocusable(isAutoStartActive);
+        layoutBOOTbg.setFocusable(isAutoStartActive);
+        seekDelay.setFocusable(isAutoStartActive);
 
 
         // Set seekbar (map 2–10 sec → 0–8)
@@ -89,30 +98,29 @@ public class AppPickerActivity extends AppCompatActivity {
         switchMinimize.setEnabled(autoStart);
         switchBOOTbg.setEnabled(autoStart);
 
+
+        layoutAutoStart.setOnClickListener(v -> switchAutoStart.toggle());
+        layoutMinimize.setOnClickListener(v -> {
+            if (switchAutoStart.isChecked()) switchMinimize.toggle();
+        });
+        layoutBOOTbg.setOnClickListener(v -> {
+            if (switchAutoStart.isChecked()) switchBOOTbg.toggle();
+        });
+
+
+
+
         // Toggle
         switchAutoStart.setOnCheckedChangeListener((buttonView, isChecked) -> {
-
             autoOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
 
-            switchMinimize.setEnabled(isChecked);
-            switchBOOTbg.setEnabled(isChecked);
+            layoutMinimize.setFocusable(isChecked);
+            layoutBOOTbg.setFocusable(isChecked);
+            seekDelay.setFocusable(isChecked);
 
             if (!isChecked) {
-
-                switchMinimize.setOnCheckedChangeListener(null);
-                switchBOOTbg.setOnCheckedChangeListener(null);
-
                 switchMinimize.setChecked(false);
                 switchBOOTbg.setChecked(false);
-
-                switchMinimize.setOnCheckedChangeListener((b, v) ->
-                    prefs.edit().putBoolean("minimize", v).apply()
-                );
-
-                switchBOOTbg.setOnCheckedChangeListener((b, v) ->
-                    prefs.edit().putBoolean("boot_start_app", v).apply()
-                );
-
                 prefs.edit()
                     .putBoolean("auto_start", false)
                     .putBoolean("minimize", false)
@@ -123,27 +131,42 @@ public class AppPickerActivity extends AppCompatActivity {
             }
         });
 
-        switchMinimize.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean("minimize", isChecked).apply();
-        });
+        switchMinimize.setOnCheckedChangeListener((b, isChecked) ->
+            prefs.edit().putBoolean("minimize", isChecked).apply());
 
-        switchBOOTbg.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean("boot_start_app", isChecked).apply();
-        });
+        switchBOOTbg.setOnCheckedChangeListener((b, isChecked) ->
+            prefs.edit().putBoolean("boot_start_app", isChecked).apply());
 
-        // Slider change
         seekDelay.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int seconds = progress + 2; // map 0→2, 8→10
+                int seconds = progress + 2;
                 txtDelay.setText(seconds + " sec");
-
                 prefs.edit().putInt("delay", seconds).apply();
             }
-
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+    }
+
+    private void applySwitchColors(Switch toggle) {
+        int[][] states = new int[][] {
+            new int[] {android.R.attr.state_checked},
+            new int[] {-android.R.attr.state_checked}
+        };
+
+        int[] thumbColors = new int[] {
+            Color.parseColor("#38BDF8"),
+            Color.parseColor("#94A3B8")
+        };
+
+        int[] trackColors = new int[] {
+            Color.parseColor("#8B5CF6"),
+            Color.parseColor("#475569")
+        };
+
+        toggle.setThumbTintList(new android.content.res.ColorStateList(states, thumbColors));
+        toggle.setTrackTintList(new android.content.res.ColorStateList(states, trackColors));
     }
 
     private void loadAppsAsync() {

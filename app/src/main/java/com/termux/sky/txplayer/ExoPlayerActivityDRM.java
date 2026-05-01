@@ -393,6 +393,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     errorOverlay.setVisibility(View.GONE);
                 }
             }
+
+            @SuppressWarnings("deprecation")
+            @Override
+            public void onTracksChanged(@NonNull TrackGroupArray trackGroups, com.google.android.exoplayer2.trackselection.TrackSelectionArray trackSelections) {
+                // Intentionally left blank
+            }
         });
 
         playerView.setPlayer(player);
@@ -588,19 +594,30 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         TrackSelectionDialogBuilder builder = new TrackSelectionDialogBuilder(
             this, title, trackSelector, trackType
         );
-        builder.setTheme(android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setShowDisableOption(false); //for none option
 
+        builder.setTheme(android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setShowDisableOption(true);
 
         Dialog dialog = builder.build();
-        dialog.setOnDismissListener(d -> {
-            if (trackType == C.TRACK_TYPE_AUDIO) {
-                com.google.android.exoplayer2.Format currentFormat = player.getAudioFormat();
-                if (currentFormat != null && currentFormat.language != null) {
-                    prefs.edit().putString("pref_audio_lang", currentFormat.language).apply();
+
+        if (trackType == C.TRACK_TYPE_AUDIO) {
+            dialog.setOnDismissListener(d -> {
+                if (playerView != null) {
+                    playerView.postDelayed(() -> {
+                        if (player != null) {
+                            @SuppressWarnings("deprecation")
+                            com.google.android.exoplayer2.Format format = player.getAudioFormat();
+                            if (format != null && format.language != null) {
+                                prefs.edit().putString("pref_audio_lang", format.language).apply();
+
+                                applySavedTrackPreferences();
+                            }
+                        }
+                    }, 300);
                 }
-            }
-        });
+            });
+        }
+
 
         dialog.show();
     }

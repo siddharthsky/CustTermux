@@ -626,21 +626,41 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void onChannelLongClick(ChannelModel channel) {
+
         channel.isFavorite = !channel.isFavorite;
+
 
         if (channel.originPort != null) {
             List<ChannelModel> portList = M3UParser.getFromPrefs(this, channel.originPort);
+            boolean updatedPrefs = false;
+
             for (ChannelModel portCh : portList) {
-                if (portCh.url.equals(channel.url)) {
+                if (portCh.url != null && portCh.url.equals(channel.url) &&
+                    portCh.name != null && portCh.name.equals(channel.name)) {
+
                     portCh.isFavorite = channel.isFavorite;
-                    M3UParser.saveToPrefs(this, channel.originPort, portList);
+                    updatedPrefs = true;
                     break;
                 }
+            }
+
+            if (updatedPrefs) {
+                M3UParser.saveToPrefs(this, channel.originPort, portList);
+            }
+        }
+
+        int position = displayList.indexOf(channel);
+        if (position != -1) {
+            if (selectedPorts.contains("Favorites") && !channel.isFavorite) {
+                displayList.remove(position);
+                adapter.notifyItemRemoved(position);
+            } else {
+                adapter.notifyItemChanged(position);
             }
         }
 
         String msg = channel.isFavorite ? "Added to Favorites" : "Removed from Favorites";
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        loadActiveData();
+
     }
 }

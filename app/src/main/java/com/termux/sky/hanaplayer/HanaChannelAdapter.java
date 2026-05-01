@@ -132,24 +132,47 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         holder.itemView.setOnClickListener(v -> clickListener.onClick(channel));
 
         // Standard touch/click long listener
+        holder.itemView.setOnClickListener(v -> clickListener.onClick(channel));
         holder.itemView.setOnLongClickListener(v -> {
             longClickListener.onLongClick(channel);
             return true;
         });
 
         // TV Remote Key Listener for DPAD_CENTER / ENTER long press
-        holder.itemView.setOnKeyListener((v, keyCode, event) -> {
-            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (event.getRepeatCount() == 0) {
-                        event.startTracking(); // Required to detect the long press event later
-                    } else if (event.isLongPress()) {
-                        longClickListener.onLongClick(channel);
+        holder.itemView.setOnKeyListener(new View.OnKeyListener() {
+            boolean isLongPressFired = false;
+
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+                    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                        if (event.getRepeatCount() == 0) {
+                            isLongPressFired = false;
+                            v.setPressed(true);
+                            event.startTracking();
+                            return true;
+                        } else if (event.isLongPress() || event.getRepeatCount() >= 2) {
+                            if (!isLongPressFired) {
+                                longClickListener.onLongClick(channel);
+                                isLongPressFired = true;
+                            }
+                            return true;
+                        }
+                        return true;
+                    } else if (event.getAction() == KeyEvent.ACTION_UP) {
+
+                        v.setPressed(false);
+
+                        if (!isLongPressFired) {
+                            clickListener.onClick(channel);
+                        }
+                        isLongPressFired = false;
                         return true;
                     }
                 }
+
+                return false;
             }
-            return false;
         });
     }
 
