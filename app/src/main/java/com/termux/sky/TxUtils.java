@@ -72,6 +72,9 @@ public class TxUtils {
         builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
+        }
         dialog.show();
 
         // Fix invisible buttons
@@ -181,6 +184,11 @@ public class TxUtils {
 
 
         AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
+        }
+
         dialog.show();
 
         // Fix invisible buttons

@@ -226,10 +226,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Auto-Play: " + (newState ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
                 return true;
 
+//            } else if (id == R.id.menu_refresh) {
+//                Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
+//                loadActiveData();
+//                return true;
+
             } else if (id == R.id.menu_demo) {
                 Toast.makeText(this, "Demo Menu...", Toast.LENGTH_SHORT).show();
                 return true;
             }
+
             return false;
         });
 

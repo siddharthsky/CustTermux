@@ -3,13 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#0F172A">
+    android:background="#1A1A1B">
 
     <!-- Top Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="#111827"
+        android:background="#1A1A1B"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="20dp"
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
             android:text="+ Add Plugin"
-            android:background="@drawable/tv_plugin_add_btn"
+            android:background="@drawable/tv_plugin_add_btn_sk"
             android:paddingHorizontal="16dp"
             android:paddingVertical="10dp"
             android:focusable="true" />
@@ -44,6 +44,20 @@
             android:src="@drawable/tx_more" />
 
     </LinearLayout>
+
+    <!-- Restart Banner -->
+    <TextView
+        android:id="@+id/restartBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#EF4444"
+        android:text="Action Required: Please restart the server for changes to take effect."
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <!-- Plugin List -->
     <androidx.recyclerview.widget.RecyclerView

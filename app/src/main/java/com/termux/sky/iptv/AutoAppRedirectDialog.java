@@ -2,6 +2,7 @@ package com.termux.sky.iptv;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,6 +36,7 @@ public class AutoAppRedirectDialog {
     private CountDownTimer timer;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     public void show(Activity activity) {
 
         SharedPreferences prefs = activity.getSharedPreferences("settings", MODE_PRIVATE);
@@ -77,9 +79,9 @@ public class AutoAppRedirectDialog {
             TextView timerView = view.findViewById(R.id.countdown);
             Button cancelBtn = view.findViewById(R.id.cancel_btn);
 
-            if ("hana_player".equals(pkg)) {
-                iconView.setColorFilter(android.graphics.Color.parseColor("#F47983"));
-            }
+//            if ("hana_player".equals(pkg)) {
+//                iconView.setColorFilter(android.graphics.Color.parseColor("#F47983"));
+//            }
 
             iconView.setImageDrawable(icon);
             titleView.setText("Opening " + appName);

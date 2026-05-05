@@ -55,8 +55,9 @@ public class AppAdapter extends ListAdapter<AppModel, AppAdapter.ViewHolder> {
         holder.name.setText(app.appName);
 
         if ("hana_player".equals(app.packageName)) {
-            holder.icon.setImageResource(R.drawable.tx_hana_player);
-            holder.icon.setColorFilter(android.graphics.Color.parseColor("#FADADD"));
+            holder.icon.setImageResource(R.drawable.op);
+//            holder.icon.setColorFilter(android.graphics.Color.parseColor("#FADADD"));
+            holder.icon.clearColorFilter();
         } else {
             try {
                 holder.icon.setImageDrawable(

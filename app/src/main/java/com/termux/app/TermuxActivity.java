@@ -236,6 +236,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TextView storageStatus;
     private TextView overlayStatus;
 
+    private TextView restartBanner;
+
     private AutoAppRedirectDialog redirect;
     private boolean redirectShown = false;
 
@@ -274,6 +276,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 Log.d("FILE", "Failed to delete .launch");
             }
         }
+
+        SharedPreferences settings = this.getSharedPreferences("settings", MODE_PRIVATE);
+
+        boolean plugin_restart = settings.getBoolean("plugin_restart", true);
+
+        if (plugin_restart) {
+            settings.edit().putBoolean("plugin_restart", false).apply();
+        }
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -305,6 +317,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         ipAddressText = findViewById(R.id.ip_address);
         storageStatus = findViewById(R.id.storage_permission_status);
         overlayStatus = findViewById(R.id.overlay_permission_status);
+
+        restartBanner = findViewById(R.id.restartBanner);
 
         handler.post(refreshRunnable);
 
@@ -746,6 +760,8 @@ private final Runnable refreshRunnable = new Runnable() {
 
         hanaPlayerViz();
 
+        checkRestartRequired();
+
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
 
@@ -797,6 +813,17 @@ private final Runnable refreshRunnable = new Runnable() {
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
+    }
+
+    private void checkRestartRequired() {
+        SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+        boolean needsRestart = settings.getBoolean("plugin_restart", false);
+
+        if (needsRestart) {
+            restartBanner.setVisibility(View.VISIBLE);
+        } else {
+            restartBanner.setVisibility(View.GONE);
+        }
     }
 
     private void showRedirectDialog() {

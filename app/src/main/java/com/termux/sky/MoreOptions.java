@@ -66,6 +66,10 @@ public class MoreOptions {
                 builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
                 AlertDialog dialog = builder.create();
+
+                if (dialog.getWindow() != null) {
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
+                }
                 dialog.show();
             }
         });

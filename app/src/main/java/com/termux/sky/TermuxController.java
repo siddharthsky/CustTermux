@@ -77,7 +77,13 @@ public class TermuxController {
     }
 
     public void restartApp() {
-        Toast.makeText(activity, "Restarting after 2 reruns", Toast.LENGTH_SHORT).show();
+        restartApp(true);
+    }
+
+    public void restartApp(Boolean toast) {
+        if (toast) {
+            Toast.makeText(activity, "Restarting after 2 reruns", Toast.LENGTH_SHORT).show();
+        }
 
         Intent intent = activity.getPackageManager()
             .getLaunchIntentForPackage(activity.getPackageName());
@@ -95,4 +101,6 @@ public class TermuxController {
         android.os.Process.killProcess(android.os.Process.myPid());
         System.exit(0);
     }
+
+
 }

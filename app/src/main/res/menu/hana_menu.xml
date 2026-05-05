@@ -9,6 +9,12 @@
         android:checkable="true"
         app:showAsAction="never" />
 
+<!--    <item-->
+<!--        android:id="@+id/menu_refetch"-->
+<!--        android:title="Refetch Channels"-->
+<!--        android:icon="@drawable/tx_reload"-->
+<!--        app:showAsAction="never" />-->
+
     <item
         android:id="@+id/menu_demo"
         android:title="Demo!"

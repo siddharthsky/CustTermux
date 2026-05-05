@@ -109,10 +109,38 @@ public class AppPickerActivity extends AppCompatActivity {
 
 
 
-
         // Toggle
         switchAutoStart.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            autoOptions.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (isChecked) {
+                autoOptions.setVisibility(View.VISIBLE);
+                autoOptions.setAlpha(0f);
+                autoOptions.setScaleX(0.95f);
+                autoOptions.setScaleY(0.95f);
+                autoOptions.setTranslationY(-30f);
+
+                autoOptions.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(400)
+                    .setInterpolator(new android.view.animation.OvershootInterpolator(0.8f))
+                    .withEndAction(seekDelay::requestFocus)
+                    .start();
+            } else {
+                autoOptions.animate()
+                    .alpha(0f)
+                    .translationY(-30f)
+                    .scaleX(0.95f)
+                    .scaleY(0.95f)
+                    .setDuration(250)
+                    .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                    .withEndAction(() -> {
+                        autoOptions.setVisibility(View.GONE);
+                        switchAutoStart.requestFocus();
+                    })
+                    .start();
+            }
 
             layoutMinimize.setFocusable(isChecked);
             layoutBOOTbg.setFocusable(isChecked);
@@ -216,4 +244,5 @@ public class AppPickerActivity extends AppCompatActivity {
         Toast.makeText(this, "Saved: " + app.appName, Toast.LENGTH_SHORT).show();
         finish();
     }
+
 }

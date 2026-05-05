@@ -1,0 +1,29 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true">
+        <shape>
+            <corners android:radius="12dp"/>
+
+            <gradient
+                android:startColor="#E0EAFC"
+                android:endColor="#CFDEF3"
+                android:angle="90"/>
+
+            <stroke
+                android:width="3dp"
+                android:color="#FFD700"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape>
+            <corners android:radius="12dp"/>
+
+            <gradient
+                android:startColor="#E0EAFC"
+                android:endColor="#CFDEF3"
+                android:angle="90"/>
+        </shape>
+    </item>
+
+</selector>

@@ -124,7 +124,6 @@
 
         <activity
             android:name=".sky.plugins.PluginManagerActivity"
-            android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
