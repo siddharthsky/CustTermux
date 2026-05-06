@@ -1,28 +1,30 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Focused (TV/D-Pad Navigation) -->
     <item android:state_focused="true">
         <shape>
             <corners android:radius="12dp"/>
 
             <gradient
-                android:startColor="#F5E9FF"
-                android:endColor="#E3CCFF"
-                android:angle="90"/>
+                android:startColor="#FE96BB"
+                android:endColor="#FF5E62"
+                android:angle="45"/>
 
             <stroke
                 android:width="3dp"
-                android:color="#FFD700"/>
+                android:color="#FFF4E0"/> <!-- Soft Cream/Gold highlight -->
         </shape>
     </item>
 
+    <!-- Default State -->
     <item>
         <shape>
             <corners android:radius="12dp"/>
 
             <gradient
-                android:startColor="#F5E9FF"
-                android:endColor="#E3CCFF"
-                android:angle="90"/>
+                android:startColor="#FE96BB"
+                android:endColor="#FF5E62"
+                android:angle="45"/>
         </shape>
     </item>
 

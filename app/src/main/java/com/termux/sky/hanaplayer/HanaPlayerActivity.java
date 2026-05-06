@@ -86,7 +86,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(10, 5, 10, 5);
+        header.setPadding(10, 5, 0, 5);
 
         TextView titleBar = new TextView(this);
         titleBar.setText("🌸 Hana Player");
@@ -103,6 +103,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnSearch.setImageResource(R.drawable.tx_search);
         btnSearch.setBackgroundResource(R.drawable.img_btn_selector);
         btnSearch.setColorFilter(Color.WHITE);
+        btnSearch.setPadding(0, 10, 0, 10);
         btnSearch.setOnClickListener(v -> toggleSearch());
         header.addView(btnSearch);
 
@@ -111,6 +112,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
+        btnMenu.setPadding(0, 10, 0, 10);
         btnMenu.setOnClickListener(this::showPopupMenu);
         header.addView(btnMenu);
 

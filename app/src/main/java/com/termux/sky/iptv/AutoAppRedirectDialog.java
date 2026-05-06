@@ -22,38 +22,38 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 import com.termux.R;
-import com.termux.app.TermuxActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 
 import java.io.File;
+import java.util.Locale;
 import java.util.Objects;
 
 public class AutoAppRedirectDialog {
 
+    private static final String TAG = "AutoAppRedirect";
     private AlertDialog dialog;
     private CountDownTimer timer;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     @SuppressLint("UseCompatLoadingForDrawables")
     public void show(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return; // Prevent WindowManager$BadTokenException
+        }
 
         SharedPreferences prefs = activity.getSharedPreferences("settings", MODE_PRIVATE);
 
         boolean autoStart = prefs.getBoolean("auto_start", false);
         int delay = prefs.getInt("delay", 3);
-
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);
+        boolean minimize = prefs.getBoolean("minimize", false);
 
-        Boolean minimize = prefs.getBoolean("minimize", false);
-
-        /// /////////////////
-
-        boolean exists = isFilePresentInHome(activity,".launch");
-
-        /// /////////////////
+        // TODO: Decide if you want to use this boolean or remove the method call
+        boolean isLaunchFilePresent = isFilePresentInHome(activity, ".launch");
 
         if (!autoStart || pkg == null || cls == null) return;
 
@@ -62,7 +62,7 @@ public class AutoAppRedirectDialog {
             String appName;
 
             if ("hana_player".equals(pkg)) {
-                icon = activity.getDrawable(R.drawable.tx_hana_player);
+                icon = ContextCompat.getDrawable(activity, R.drawable.tx_hana_player);
                 appName = "Hana Player";
             } else {
                 PackageManager pm = activity.getPackageManager();
@@ -71,50 +71,46 @@ public class AutoAppRedirectDialog {
                 appName = pm.getApplicationLabel(info).toString();
             }
 
-            View view = LayoutInflater.from(activity).inflate(R.layout.dialog_auto_redirect
-                , null);
+            View view = LayoutInflater.from(activity).inflate(R.layout.dialog_auto_redirect, null);
 
             ImageView iconView = view.findViewById(R.id.app_icon);
             TextView titleView = view.findViewById(R.id.app_name);
             TextView timerView = view.findViewById(R.id.countdown);
             Button cancelBtn = view.findViewById(R.id.cancel_btn);
 
-//            if ("hana_player".equals(pkg)) {
-//                iconView.setColorFilter(android.graphics.Color.parseColor("#F47983"));
-//            }
-
             iconView.setImageDrawable(icon);
-            titleView.setText("Opening " + appName);
+            titleView.setText(String.format("Opening %s", appName));
 
-            AlertDialog.Builder builder =
-                new AlertDialog.Builder(activity);
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setView(view);
             builder.setCancelable(true);
 
             dialog = builder.create();
             Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.show();
 
-            dialog.setOnCancelListener(dialogInterface -> {
-                cancel();
-                dialog.dismiss();
-            });
+            // Re-verify activity state right before showing
+            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                dialog.show();
+            }
 
+            dialog.setOnCancelListener(dialogInterface -> cancel());
+
+            cancelBtn.setBackground(ContextCompat.getDrawable(activity, R.drawable.tv_plugin_add_btn_sk));
+            cancelBtn.setBackgroundTintList(null);
+
+            // Setting explicit focus
             cancelBtn.setFocusable(true);
             cancelBtn.setFocusableInTouchMode(true);
             cancelBtn.requestFocus();
 
-            cancelBtn.setOnClickListener(v -> {
-                cancel();
-                dialog.dismiss();
-            });
+            cancelBtn.setOnClickListener(v -> cancel());
 
             long total = delay * 1000L;
 
             timer = new CountDownTimer(total, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
-                    timerView.setText((millisUntilFinished / 1000) + "s");
+                    timerView.setText(String.format(Locale.getDefault(), "%ds", millisUntilFinished / 1000));
                 }
 
                 @Override
@@ -125,15 +121,13 @@ public class AutoAppRedirectDialog {
             }.start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error initializing redirect dialog", e);
         }
     }
 
-
-    public boolean isFilePresentInHome(Activity activity, String fileName) {
-        File homeDir = new File(activity.getFilesDir(), "home");
+    public boolean isFilePresentInHome(Context context, String fileName) {
+        File homeDir = new File(context.getFilesDir(), "home");
         File file = new File(homeDir, fileName);
-
         return file.exists() && file.isFile();
     }
 
@@ -148,30 +142,35 @@ public class AutoAppRedirectDialog {
 
             handler.postDelayed(() -> {
                 try {
-
+                    Intent intent;
                     if ("hana_player".equals(pkg)) {
-                        Intent intent = new Intent(context, HanaPlayerActivity.class);
-                        context.startActivity(intent);
+                        intent = new Intent(context, HanaPlayerActivity.class);
                     } else {
-                        Intent intent = new Intent();
+                        intent = new Intent();
                         intent.setComponent(new ComponentName(pkg, cls));
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
                     }
-
+                    context.startActivity(intent);
                 } catch (Exception e) {
-                    Log.e("TxAutoAppRedirect", "Delayed launch failed", e);
+                    Log.e(TAG, "Delayed launch failed", e);
                 }
             }, 200);
 
         } catch (Exception e) {
-            Log.e("TxAutoAppRedirect", "Initial launch setup failed", e);
+            Log.e(TAG, "Initial launch setup failed", e);
         }
     }
 
     public void cancel() {
-        if (timer != null) timer.cancel();
-        if (dialog != null && dialog.isShowing()) dialog.dismiss();
+        if (timer != null) {
+            timer.cancel();
+        }
+        // CRITICAL: Prevent the handler from firing if the dialog is cancelled during the 200ms delay
+        handler.removeCallbacksAndMessages(null);
+
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
     }
 
     public boolean isShowing() {

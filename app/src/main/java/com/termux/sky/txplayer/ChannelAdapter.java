@@ -73,7 +73,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
         Glide.with(holder.itemView.getContext())
             .load(channel.logo)
-            .placeholder(R.drawable.tv_plugin_add_btn)
+            .placeholder(R.drawable.tv_plugin_add_btn_sak)
             .into(holder.imgLogo);
 
         holder.itemView.setFocusable(true);

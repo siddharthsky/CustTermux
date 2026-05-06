@@ -46,10 +46,16 @@ import com.termux.R;
 import com.termux.sky.playlistmanager.PlaylistManager;
 
 import java.net.URLDecoder;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class ExoPlayerActivityDRM extends ComponentActivity {
     private ExoPlayer player;
@@ -72,6 +78,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        disableSSLCertificateChecking();
 
         try {
             getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -772,6 +780,27 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
             })
             .show();
+    }
+
+    private void disableSSLCertificateChecking() {
+        try {
+            TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                }
+            };
+
+            SSLContext sc = SSLContext.getInstance("TLS");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "Failed to disable SSL checking", e);
+        }
     }
 
 }
