@@ -108,6 +108,11 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         btnAdd.setOnClickListener(v -> showPortInputDialog());
 
+        btnAdd.setOnLongClickListener(v -> {
+            showPortInputDialogLegacy();
+            return true;
+        });
+
         btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(this::showPopupMenu);
 
@@ -146,8 +151,22 @@ public class PluginManagerActivity extends AppCompatActivity {
                 Log.d("PlugDRM","Cleared fav.");
                 return true;
             } else if (id == R.id.menu_add_json) {
-                filePicker.launch("application/json");
-                Toast.makeText(this, "Add JSON...", Toast.LENGTH_SHORT).show();
+
+                new AlertDialog.Builder(this)
+                    .setTitle("⚠ Security Warning")
+                    .setMessage(
+                        "JSON plugins can execute scripts and run commands on your device.\n\n" +
+                            "Installing unknown plugins may be dangerous and can damage your data, " +
+                            "device environment, or compromise security.\n\n" +
+                            "Only install plugins from trusted or official sources.\n\n" +
+                            "The developer is not responsible for any damage caused by third-party plugins."
+                    )
+                    .setPositiveButton("I Understand", (dialog, which) -> {
+                        filePicker.launch("application/json");
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
                 return true;
             }
             return false;
@@ -211,6 +230,88 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
 
+    private void showPortInputDialogLegacy() {
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(60, 20, 60, 0);
+
+        // Placeholder text that reacts to double taps
+        TextView tapPrompt = new TextView(this);
+        tapPrompt.setLayoutParams(params);
+        tapPrompt.setText("Double tap to enter code...");
+        tapPrompt.setPadding(0, 20, 0, 20);
+
+        // The actual input box (hidden initially)
+        EditText input = new EditText(this);
+        input.setLayoutParams(params);
+        input.setHint("Experimental Plugin code");
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setVisibility(View.GONE);
+        input.setSingleLine(true);
+        input.setImeOptions(EditorInfo.IME_ACTION_GO);
+
+        container.addView(tapPrompt);
+        container.addView(input);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("⚠ Experimental Plugins")
+            .setMessage("This feature is for advanced users. If you don't know what this is, please cancel.")
+            .setView(container)
+            .setPositiveButton("Load", null)
+            .setNegativeButton("Cancel", null)
+            .create();
+
+        tapPrompt.setOnClickListener(new View.OnClickListener() {
+            private long lastClickTime = 0;
+            @Override
+            public void onClick(View v) {
+                long clickTime = System.currentTimeMillis();
+                if (clickTime - lastClickTime < 300) {
+                    tapPrompt.setVisibility(View.GONE);
+                    input.setVisibility(View.VISIBLE);
+                    input.requestFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                }
+                lastClickTime = clickTime;
+            }
+        });
+
+        input.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_DONE) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                return true;
+            }
+            return false;
+        });
+
+        dialog.setOnShowListener(d -> {
+            Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            posButton.setOnClickListener(v -> {
+
+                if (input.getVisibility() != View.VISIBLE) {
+                    Toast.makeText(this, "Please unlock the input first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String port = input.getText().toString().trim();
+                if (port.isEmpty()) {
+                    Toast.makeText(this, "Please enter a valid plugin code", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                fetchPluginFromServer(port);
+                dialog.dismiss();
+            });
+        });
+
+        dialog.show();
+    }
+
     private void showPortInputDialog() {
 
         FrameLayout container = new FrameLayout(this);
@@ -267,11 +368,13 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         dialog.show();
     }
+
+
     private void fetchPluginFromServer(String port) {
 
         new Thread(() -> {
             try {
-                String urlStr = "https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/" + port + ".json";
+                String urlStr = "https://raw.githubusercontent.com/siddharthsky/ctx-plugins/refs/heads/main/plugins/" + port + ".json";
 
                 URL url = new URL(urlStr);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
