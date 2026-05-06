@@ -166,7 +166,6 @@
 
         <activity
             android:name=".sky.iptv.AppPickerActivity"
-            android:screenOrientation="sensor"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>

@@ -10,13 +10,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
 
-import com.google.android.material.color.MaterialColors;
 import com.termux.R;
 import com.termux.view.TerminalView;
 
@@ -29,7 +28,6 @@ public class TxUtils {
 
     private static final String HOME_PATH = "/data/data/com.termux/files/home";
     private static final String SCRIPT_PATH = HOME_PATH + "/.skyutils.sh";
-
 
     public static void showCustomToast(Context context, String message) {
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -63,7 +61,7 @@ public class TxUtils {
 
     public static void terminal_switch_dialog(Context context) {
         AlertDialog.Builder builder =
-            new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+            new AlertDialog.Builder(context, R.style.GoldenFocusDialogTheme);
 
         builder.setTitle("Confirmation");
         builder.setMessage("Do you want to proceed?\n[Note: To exit press back button, reopen]");
@@ -72,22 +70,23 @@ public class TxUtils {
         builder.setNegativeButton("Cancel", (dialog, id) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
-        }
         dialog.show();
-
-        // Fix invisible buttons
-        int activeColor = Color.parseColor("#007BFF");
 
         Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
         if (posButton != null) {
-            posButton.setTextColor(activeColor);
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(android.graphics.Color.WHITE);
+            posButton.setFocusable(true);
         }
+
         if (negButton != null) {
-            negButton.setTextColor(activeColor);
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
         }
 
     }
@@ -152,7 +151,7 @@ public class TxUtils {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(
             context,
-            R.style.CustomAlertDialogTheme
+            R.style.GoldenFocusDialogTheme
         );
 
         builder.setTitle("Auto start on boot?");
@@ -182,26 +181,26 @@ public class TxUtils {
 
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss());
 
-
         AlertDialog dialog = builder.create();
 
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
-        }
-
         dialog.show();
-
-        // Fix invisible buttons
-        int activeColor = Color.parseColor("#007BFF");
 
         Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
         if (posButton != null) {
-            posButton.setTextColor(activeColor);
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(android.graphics.Color.WHITE);
+            posButton.setFocusable(true);
         }
+
         if (negButton != null) {
-            negButton.setTextColor(activeColor);
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
         }
+
     }
 }

@@ -18,7 +18,7 @@ public class MoreOptions {
             public void onClick(View v) {
 
                 AlertDialog.Builder builder =
-                    new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
+                    new AlertDialog.Builder(context, R.style.GoldenFocusDialogTheme);
 
                 builder.setTitle("Choose an option");
 
@@ -43,14 +43,13 @@ public class MoreOptions {
                     public void onClick(DialogInterface dialog, int which) {
 
                         switch (selectedOption[0]) {
-
                             case 0:
                                 Intent intent = new Intent(context, AppPickerActivity.class);
                                 context.startActivity(intent);
                                 break;
 
                             case 1:
-                                TxUtils.showAutoStartDialog(context);;
+                                TxUtils.showAutoStartDialog(context);
                                 break;
 
                             case 2:
@@ -66,11 +65,24 @@ public class MoreOptions {
                 builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
                 AlertDialog dialog = builder.create();
-
-                if (dialog.getWindow() != null) {
-                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.tv_d_log);
-                }
                 dialog.show();
+
+                Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+                if (posButton != null) {
+                    posButton.setBackgroundTintList(null);
+                    posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+                    posButton.setTextColor(android.graphics.Color.WHITE);
+                    posButton.setFocusable(true);
+                }
+
+                if (negButton != null) {
+                    negButton.setBackgroundTintList(null);
+                    negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+                    negButton.setTextColor(android.graphics.Color.WHITE);
+                    negButton.setFocusable(true);
+                }
             }
         });
     }
