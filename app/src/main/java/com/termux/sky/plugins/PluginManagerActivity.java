@@ -836,6 +836,19 @@ public class PluginManagerActivity extends AppCompatActivity {
                 String SCRIPT_PATH = scriptFile.getAbsolutePath();
                 String port_no = String.valueOf(plugin.port);
 
+                // Required for stopping auto-redirect
+                File homeDir = new File(getFilesDir(), "home");
+                File launchFile = new File(homeDir, ".launch");
+
+                if (launchFile.exists()) {
+                    if (launchFile.delete()) {
+                        Log.d("FILE", ".launch deleted successfully");
+                    } else {
+                        Log.d("FILE", "Failed to delete .launch");
+                    }
+                }
+
+
                 Intent intent = new Intent();
                 intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
                 intent.setAction(ACTION_RUN_COMMAND);
@@ -863,6 +876,10 @@ public class PluginManagerActivity extends AppCompatActivity {
         Intent intent = new Intent(this, PlugDRM.class);
         intent.putExtra("playlist_url", plugin.playlist);
         intent.putExtra("port", plugin.port);
+
+        intent.putExtra("login_url", plugin.login_url);
+        intent.putExtra("watch_url", plugin.watch_url);
+
         startActivity(intent);
 
 //        Intent intent = new Intent(this, ExoPlayerActivityDRM.class);

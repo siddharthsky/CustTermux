@@ -207,6 +207,8 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
         isSwitchingActivity = true;
 
+        pauseWebViewMedia();
+
         int newIndex = PlaylistManager.currentIndex + direction;
         if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
         if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
@@ -228,18 +230,27 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        startActivity(intent);
         killWebView();
+
+        startActivity(intent);
         finish();
+    }
+
+    private void pauseWebViewMedia() {
+        if (webView != null) {
+            // Force pause any HTML5 media elements instantly
+            webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
+        }
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
+        pauseWebViewMedia();
         if (webView != null) {
             webView.onPause();
             webView.pauseTimers();
         }
+        super.onPause();
     }
 
     @Override
@@ -253,11 +264,12 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        super.onStop();
+        pauseWebViewMedia();
         if (webView != null) {
             webView.stopLoading();
             webView.loadUrl("about:blank");
         }
+        super.onStop();
     }
 
     @Override
@@ -268,18 +280,24 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
     private void killWebView() {
         if (webView != null) {
-            // 1. Stop page and media
+            // 1. One final attempt to pause media natively via JS
+            webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
+
+            // 2. Stop page and media
             webView.stopLoading();
             webView.loadUrl("about:blank");
             webView.onPause();
             webView.pauseTimers();
+            webView.clearHistory();
+            webView.clearCache(true); // Clear cache to prevent memory leaks
 
+            // 3. Detach from parent
             android.view.ViewGroup parent = (android.view.ViewGroup) webView.getParent();
             if (parent != null) {
                 parent.removeView(webView);
             }
 
-            webView.clearHistory();
+            // 4. Destroy
             webView.removeAllViews();
             webView.destroy();
             webView = null;

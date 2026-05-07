@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -40,7 +41,7 @@ public class PlugDRM extends AppCompatActivity {
     ChannelAdapter adapter;
     List<ChannelModel> fullList = new ArrayList<>();
 
-    ImageButton btnReload; // Define the reload button
+    ImageButton btnWEB, btnReload;
     String port;
     String playlistData;
 
@@ -59,6 +60,8 @@ public class PlugDRM extends AppCompatActivity {
         searchBar = findViewById(R.id.searchChannel);
         btnReload = findViewById(R.id.btnReload);
 
+        LinearLayout btnWEB = findViewById(R.id.btnWEB);
+
         btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(this::showPopupMenu);
 
@@ -74,6 +77,31 @@ public class PlugDRM extends AppCompatActivity {
             Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
             loadData(true);
         });
+
+        String pluginWatchUrl = getIntent().getStringExtra("watch_url");
+        String pluginLoginUrl = getIntent().getStringExtra("login_url");
+
+        String finalUrl = (pluginWatchUrl != null && !pluginWatchUrl.trim().isEmpty())
+            ? pluginWatchUrl
+            : pluginLoginUrl;
+
+        if (finalUrl == null || finalUrl.trim().isEmpty()) {
+            btnWEB.setVisibility(View.GONE);
+        } else {
+
+            btnWEB.setOnClickListener(v -> {
+                Toast.makeText(this, "Opening Plugin Webpage...", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(this, WebViewPlayerActivity.class);
+                intent.putExtra("url", finalUrl);
+                intent.putExtra("port", "");
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                startActivity(intent);
+                finish();
+            });
+
+        }
 
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override

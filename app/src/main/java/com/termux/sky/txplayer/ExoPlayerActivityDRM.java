@@ -72,6 +72,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private SharedPreferences prefs;
     private Thread currentCheckThread;
 
+    private int currentZapToken = 0;
+
     String port_no;
 
 
@@ -268,7 +270,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             currentCheckThread.interrupt();
         }
 
-        new Thread(() -> {
+        final int myZapToken = currentZapToken;
+
+        currentCheckThread = new Thread(() -> {
             try {
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
                 connection.setRequestMethod("HEAD");
@@ -289,7 +293,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 boolean isSpecialPort = "5007".equals(port_no);
 
                 runOnUiThread(() -> {
-
+                    if (myZapToken != currentZapToken) return;
                     if (Thread.currentThread().isInterrupted()) return;
 
                     if (isUrlValid && !isSpecialPort) {
@@ -301,7 +305,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                                     "────────────────\n" +
                                     "HTTP CODE: " + responseCode + "\n" +
                                     "STATUS: " + (responseCode == 403 ? "Access Denied" : "Server Error") + "\n";
-
                                 errorOverlay.setText(sb);
                                 errorOverlay.setVisibility(View.VISIBLE);
                             }
@@ -313,10 +316,11 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
             } catch (Exception e) {
                 if (Thread.currentThread().isInterrupted()) return;
-
                 Log.e("DRM_PLAYER", "Network error during check", e);
 
                 runOnUiThread(() -> {
+                    if (myZapToken != currentZapToken) return;
+
                     String errorMsg = e instanceof java.net.SocketTimeoutException ?
                         "Connection Timeout: Server not responding" :
                         "Network error: " + e.getMessage();
@@ -333,17 +337,14 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     }
                 });
             }
-        }).start();
+        });
+        currentCheckThread.start();
     }
 
 
     private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer) {
 
-        Log.d("DRM_PLAYER", "videoUrl=" + videoUrl +
-            ", licenseUrl=" + licenseUrl +
-            ", userAgent=" + userAgent +
-            ", origin=" + origin +
-            ", referer=" + referer);
+        Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
 
         Map<String, String> headers = new HashMap<>();
         if (userAgent != null && !userAgent.isEmpty()) headers.put("User-Agent", userAgent);
@@ -374,62 +375,57 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 .createMediaSource(mediaItemBuilder.build());
         }
 
-        DefaultRenderersFactory renderersFactory =
-            new DefaultRenderersFactory(this)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-                .setEnableDecoderFallback(true);
+        if (player == null) {
+            DefaultRenderersFactory renderersFactory =
+                new DefaultRenderersFactory(this)
+                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                    .setEnableDecoderFallback(true);
 
-        trackSelector = new DefaultTrackSelector(this);
-        trackSelector.setParameters(trackSelector.buildUponParameters()
-            .setForceHighestSupportedBitrate(false)
-            .build());
-        applySavedTrackPreferences();
+            trackSelector = new DefaultTrackSelector(this);
+            trackSelector.setParameters(trackSelector.buildUponParameters()
+                .setForceHighestSupportedBitrate(false)
+                .build());
+            applySavedTrackPreferences();
 
-        player = new ExoPlayer.Builder(this, renderersFactory)
-            .setTrackSelector(trackSelector)
-            .build();
+            player = new ExoPlayer.Builder(this, renderersFactory)
+                .setTrackSelector(trackSelector)
+                .build();
 
-        player.addListener(new Player.Listener() {
-            @Override
-            public void onPlayerError(@NonNull PlaybackException error) {
+            player.addListener(new Player.Listener() {
+                @Override
+                public void onPlayerError(@NonNull PlaybackException error) {
+                    if (errorOverlay != null && !videoUrl.contains("/live/")) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("⚠️ ERROR DETAILS\n");
+                        sb.append("────────────────\n");
+                        sb.append("CODE: ").append(error.errorCode).append("\n");
+                        sb.append("TYPE: ").append(error.getErrorCodeName()).append("\n");
 
-                if (errorOverlay != null && !videoUrl.contains("/live/") ) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("⚠️ ERROR DETAILS\n");
-                    sb.append("────────────────\n");
-                    sb.append("CODE: ").append(error.errorCode).append("\n");
-                    sb.append("TYPE: ").append(error.getErrorCodeName()).append("\n");
+                        if (error.getMessage() != null) {
+                            sb.append("Details: ").append(error.getMessage()).append("\n");
+                        }
+                        if (error.getCause() != null) {
+                            sb.append("INFO: ").append(error.getCause().getClass().getSimpleName());
+                        }
 
-                    if (error.getMessage() != null) {
-                        sb.append("Details: ").append(error.getMessage()).append("\n");
+                        errorOverlay.setText(sb.toString());
+                        errorOverlay.setVisibility(View.VISIBLE);
+                    } else {
+                        switchToWebView(videoUrl);
                     }
+                }
 
-                    if (error.getCause() != null) {
-                        sb.append("INFO: ").append(error.getCause().getClass().getSimpleName());
+                @Override
+                public void onPlaybackStateChanged(int state) {
+                    if (errorOverlay != null && state == Player.STATE_READY) {
+                        errorOverlay.setVisibility(View.GONE);
                     }
-
-                    errorOverlay.setText(sb.toString());
-                    errorOverlay.setVisibility(View.VISIBLE);
-                } else {
-                    switchToWebView(videoUrl);
                 }
-            }
+            });
 
-            @Override
-            public void onPlaybackStateChanged(int state) {
-                if (errorOverlay != null && state == Player.STATE_READY) {
-                    errorOverlay.setVisibility(View.GONE);
-                }
-            }
+            playerView.setPlayer(player);
+        }
 
-            @SuppressWarnings("deprecation")
-            @Override
-            public void onTracksChanged(@NonNull TrackGroupArray trackGroups, com.google.android.exoplayer2.trackselection.TrackSelectionArray trackSelections) {
-                // Intentionally left blank
-            }
-        });
-
-        playerView.setPlayer(player);
         player.setMediaSource(mediaSource);
         player.prepare();
         player.setPlayWhenReady(true);
@@ -512,8 +508,11 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private void changeChannel(int direction) {
         if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
 
+        currentZapToken++;
+
         if (player != null) {
             player.stop();
+            player.clearMediaItems();
         }
 
         if (zapRunnable != null) zapHandler.removeCallbacks(zapRunnable);
@@ -533,16 +532,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             errorOverlay.setVisibility(View.GONE);
         }
 
-        if (player != null) {
-            player.stop();
-        }
-
-        if (zapRunnable != null) {
-            zapHandler.removeCallbacks(zapRunnable);
-        }
-
         zapRunnable = () -> {
-            killExoPlayer();
             processAndPlayChannel(nextChannel);
         };
 
