@@ -616,6 +616,18 @@ public class PluginManagerActivity extends AppCompatActivity {
         String TERMUX_SERVICE = "com.termux.app.RunCommandService";
         String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
 
+        // Required for stopping auto-redirect
+        File homeDir = new File(getFilesDir(), "home");
+        File launchFile = new File(homeDir, ".launch");
+
+        if (launchFile.exists()) {
+            if (launchFile.delete()) {
+                Log.d("FILE", ".launch deleted successfully");
+            } else {
+                Log.d("FILE", "Failed to delete .launch");
+            }
+        }
+
 
         String HOME_PATH = pluginDir.getAbsolutePath();
 
