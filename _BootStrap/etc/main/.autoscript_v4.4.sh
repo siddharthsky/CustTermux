@@ -48,6 +48,10 @@ Server_Runner() {
 }
 
 TheShowRunner() {
+
+    # Always reset launch flag on start
+    rm -f "$HOME/.launch"
+    
     retrieve_first_line() {
         file="$1"
         if [ -f "$file" ]; then
@@ -69,17 +73,21 @@ TheShowRunner() {
         port_to_use=$default_port
     fi
 
-    get_value_from_key "server_setup_isLocal" "VARIABLE03"
+    # get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
-    if [ "$VARIABLE03" == "Yes" ]; then
-        termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
-        echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
-    else
-        termux-wake-lock
-        $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
-        echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
-    fi
+    # if [ "$VARIABLE03" == "Yes" ]; then
+    #     termux-wake-lock
+    #     $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use > /dev/null 2>&1 &
+    #     echo -e "\e[32mRunning Server Locally on port $port_to_use\e[0m"
+    # else
+    #     termux-wake-lock
+    #     $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
+    #     echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
+    # fi
+
+    termux-wake-lock
+    $HOME/.jiotv_go/bin/jiotv_go run --port $port_to_use --public > /dev/null 2>&1 &
+    echo -e "\e[32mRunning Server on port $port_to_use\e[0m"
 
     # Wait for the server to be live, with a maximum of 5 tries
     attempts=0
@@ -87,8 +95,10 @@ TheShowRunner() {
     while [ $attempts -lt $max_attempts ]; do
         if curl -s http://localhost:$port_to_use > /dev/null; then
             # Start the activity when the server is live
-            am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
-            break
+            # am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+            # break
+            # Create launch flag
+            touch "$HOME/.launch"
         else
             echo "Attempt $((attempts + 1))/$max_attempts: Waiting for server to be live..."
             sleep 5
@@ -107,13 +117,16 @@ TheShowRunner_onetime() {
 
     get_value_from_key "server_setup_isLocal" "VARIABLE03"
 
-    if [ "$VARIABLE03" == "Yes" ]; then
-        echo -e "\e[32mRunning Server Locally\e[0m"
-        $HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
-    else
-        echo -e "\e[32mRunning Server Publicly\e[0m"
-        $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
-    fi
+    # if [ "$VARIABLE03" == "Yes" ]; then
+    #     echo -e "\e[32mRunning Server Locally\e[0m"
+    #     $HOME/.jiotv_go/bin/jiotv_go run > /dev/null 2>&1 &
+    # else
+    #     echo -e "\e[32mRunning Server Publicly\e[0m"
+    #     $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
+    # fi
+
+    echo -e "\e[32mRunning Server\e[0m"
+    $HOME/.jiotv_go/bin/jiotv_go run -P > /dev/null 2>&1 &
 
     # Wait for the server to be live, with a maximum of 5 tries
     attempts=0
@@ -254,9 +267,9 @@ Setup_Extra() {
 
 SDK_VERSION=$(getprop ro.build.version.sdk)
 if [ "$SDK_VERSION" -le 23 ]; then
-    echo "Script: v6.9.6p [5 series]"
+    echo "Script: v6.9.6x [5 series]"
 else
-    echo "Script: v6.9.6p [7 series]"
+    echo "Script: v6.9.6x [7 series]"
 fi
 
 FILE_PATH="$HOME/.jiotv_go/bin/jiotv_go"
