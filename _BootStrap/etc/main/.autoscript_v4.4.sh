@@ -95,10 +95,10 @@ TheShowRunner() {
     while [ $attempts -lt $max_attempts ]; do
         if curl -s http://localhost:$port_to_use > /dev/null; then
             # Start the activity when the server is live
-            # am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
-            # break
-            # Create launch flag
-            touch "$HOME/.launch"
+            am start --user 0 -a com.termux.SKY_ACTION -n com.termux/.SkyActionActivity -e mode "loginstatus2" &
+            break
+        
+            # touch "$HOME/.launch"
         else
             echo "Attempt $((attempts + 1))/$max_attempts: Waiting for server to be live..."
             sleep 5
