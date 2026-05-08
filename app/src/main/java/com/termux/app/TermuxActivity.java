@@ -69,7 +69,7 @@ import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
 import com.termux.sky.SkySharedPref;
-import com.termux.sky.TermuxController;
+import com.termux.sky.TxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import com.termux.sky.plugins.PluginManagerActivity;
@@ -229,7 +229,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TxStartupChecker startup;
 
 
-    TermuxController termuxController = new TermuxController(this);
+    TxController termuxController = new TxController(this);
     TxStartupChecker txStartupChecker = new TxStartupChecker(this);
 
     private TextView ipAddressText;

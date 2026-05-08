@@ -131,18 +131,42 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageButton
-            android:id="@+id/deleteBtn"
+        <LinearLayout
+            android:id="@+id/buttonContainerBottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="12dp"
-            android:background="@drawable/img_btn_selector"
-            android:contentDescription="Delete"
-            android:tooltipText="Delete Plugin"
-            android:scaleType="fitCenter"
-            android:focusable="true"
-            android:padding="2dp"
-            android:src="@drawable/tx_del" />
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/supportBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/img_btn_selector"
+                android:contentDescription="Support"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/tx_support"
+                android:tooltipText="Plugin Support" />
+
+            <ImageButton
+                android:id="@+id/deleteBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/img_btn_selector"
+                android:contentDescription="Delete"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/tx_del"
+                android:tooltipText="Delete Plugin"/>
+
+        </LinearLayout>
+
 
 
     </LinearLayout>

@@ -7,7 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-public class TermuxController {
+public class TxController {
 
     private final Activity activity;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -15,7 +15,7 @@ public class TermuxController {
     private int rerunCount = 0;
     private static final int MAX_RERUN_COUNT = 2;
 
-    public TermuxController(Activity activity) {
+    public TxController(Activity activity) {
         this.activity = activity;
     }
 

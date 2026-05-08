@@ -101,7 +101,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         list = PluginStorage.load(this);
 
-        adapter = new PluginAdapter(this, list, this::loginPlugin, this::updatePlugin, this::watchPlugin, this::deletePlugin );
+        adapter = new PluginAdapter(this, list, this::loginPlugin, this::updatePlugin, this::watchPlugin, this::supportPlugin, this::deletePlugin );
 
         listView.setLayoutManager(new LinearLayoutManager(this));
         listView.setAdapter(adapter);
@@ -886,6 +886,36 @@ public class PluginManagerActivity extends AppCompatActivity {
 //        intent.putExtra("url", plugin.watch_url);
 //        startActivity(intent);
 
+    }
+
+    private void supportPlugin(Plugin plugin, int position) {
+        String openUrl = (plugin.support_url != null && !plugin.support_url.trim().isEmpty())
+            ? plugin.support_url.trim()
+            : (plugin.repo != null ? plugin.repo.trim() : "");
+
+        if (openUrl.isEmpty()) {
+            Toast.makeText(this, "Support URL not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean isGithub = openUrl.toLowerCase().contains("github");
+        String title = isGithub ? "Open GitHub Page?" : "Open Support Page?";
+        String msg = isGithub
+            ? "Get support for " + plugin.title + " on GitHub."
+            : "Open support page for " + plugin.title + "?";
+
+        new AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(msg)
+            .setPositiveButton("Open", (d, w) -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(openUrl)));
+                } catch (Exception e) {
+                    Toast.makeText(this, "No browser found", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
 

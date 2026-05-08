@@ -10,6 +10,7 @@ public class Plugin {
     public String server_check_url;
     public String login_url;
     public String watch_url;
+    public String support_url;
     public String[] pkg;
     public String post_install_script;
     public Boolean updatable;
