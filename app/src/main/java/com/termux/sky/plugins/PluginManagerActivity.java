@@ -1,5 +1,6 @@
 package com.termux.sky.plugins;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -162,7 +163,11 @@ public class PluginManagerActivity extends AppCompatActivity {
                             "The developer is not responsible for any damage caused by third-party plugins."
                     )
                     .setPositiveButton("I Understand", (dialog, which) -> {
-                        filePicker.launch("application/json");
+                        try {
+                            filePicker.launch("application/json");
+                        } catch (ActivityNotFoundException e) {
+                            Toast.makeText(this, "No File Manager found to select JSON files", Toast.LENGTH_LONG).show();
+                        }
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
@@ -1111,7 +1116,11 @@ public class PluginManagerActivity extends AppCompatActivity {
                 verifyUrlHasData(urlString);
             })
             .setNeutralButton("Choose File", (dialog, which) -> {
-                filePicker.launch("*/*");
+                try {
+                    filePicker.launch("*/*");
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(this, "No File Manager found to select file", Toast.LENGTH_LONG).show();
+                }
             })
             .setNegativeButton("Cancel", null)
             .show();
