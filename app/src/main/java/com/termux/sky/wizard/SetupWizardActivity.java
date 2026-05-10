@@ -2,11 +2,13 @@ package com.termux.sky.wizard;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
@@ -24,12 +26,12 @@ import com.termux.sky.TxUtils;
 public class SetupWizardActivity extends AppCompatActivity {
 
     ViewFlipper flipper;
-    Button btnNext, btnBack, btnGrantStorage, btnGrantOverlay;
-        TextView statusStorage, statusOverlay;
+    Button btnNext, btnBack, btnGrantStorage, btnGrantOverlay, btnGrantBattery;
+        TextView statusStorage, statusOverlay, statusBattery;
     LinearLayout dots;
 
     int step = 0;
-    int totalSteps = 4;
+    int totalSteps = 5;
 
 
     ActivityResultLauncher<String> storagePermissionLauncher;
@@ -48,6 +50,8 @@ public class SetupWizardActivity extends AppCompatActivity {
         btnGrantOverlay = findViewById(R.id.btnGrantOverlay);
         statusStorage = findViewById(R.id.txtStorageStatus);
         statusOverlay = findViewById(R.id.txtOverlayStatus);
+        btnGrantBattery = findViewById(R.id.btnGrantBattery);
+        statusBattery = findViewById(R.id.txtBatteryStatus);
 
 
 
@@ -64,6 +68,7 @@ public class SetupWizardActivity extends AppCompatActivity {
 
         btnGrantStorage.setOnClickListener(v -> requestStorage());
         btnGrantOverlay.setOnClickListener(v -> requestOverlay());
+        btnGrantBattery.setOnClickListener(v -> requestBatteryOptimization());
 
         btnNext.setOnClickListener(v -> handleNext());
         btnBack.setOnClickListener(v -> backStep());
@@ -132,34 +137,138 @@ public class SetupWizardActivity extends AppCompatActivity {
     // OVERLAY
     private void requestOverlay() {
 
-        // Already granted
         if (hasOverlayPermission()) {
             TxUtils.showCustomToast(this, "Overlay already granted");
             updatePermissionStatus();
             return;
         }
 
-        // Try normal flow (phones/tablets)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                Intent intent = new Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getPackageName())
-                );
-                startActivity(intent);
-                return;
-            } catch (Exception ignored) {}
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            TxUtils.showCustomToast(this, "Overlay permission is managed by the system on this Android version");
+            return;
         }
 
-        // Fallback (TV / Fire TV)
         try {
-            openAppSettings();
-            TxUtils.showCustomToast(this, "Enable 'Display over apps' if available");
-        } catch (Exception e) {
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName())
+            );
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please allow 'Display over other apps'");
+            return;
+        } catch (Exception e1) {
+            // Failed. Likely an Android TV or custom ROM that doesn't support the specific package URI.
+        }
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please find CTx Engine and allow 'Display over other apps'");
+            return;
+        } catch (Exception e2) {
+            // Failed. The device entirely lacks the dedicated overlay settings menu.
+        }
+
+        try {
+            Intent intent = new Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:" + getPackageName())
+            );
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please enable 'Display over other apps' in Permissions/Advanced settings");
+            return;
+        } catch (Exception e3) {
+            // Failed.
+        }
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please navigate to Apps -> Permissions and enable Overlay");
+        } catch (Exception e4) {
             TxUtils.showCustomToast(this, "Overlay setting not available on this device");
         }
     }
 
+
+    // BATTERY
+    private boolean isBatteryOptimized() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null) {
+                return !pm.isIgnoringBatteryOptimizations(getPackageName());
+            }
+        }
+        return false;
+    }
+
+    private void requestBatteryOptimization() {
+        if (!isBatteryOptimized()) {
+            TxUtils.showCustomToast(this, "Optimization already disabled");
+            updatePermissionStatus();
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            TxUtils.showCustomToast(this, "Not required on this Android version");
+            return;
+        }
+
+
+        try {
+            @SuppressLint("BatteryLife")
+            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+            return;
+        } catch (Exception e1) {
+            // Failed.
+        }
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please find CTx Engine and set to 'Don't Optimize' or 'Unrestricted'");
+            return;
+        } catch (Exception e2) {
+            // Failed.
+        }
+
+
+        try {
+            Intent intent = new Intent(Intent.ACTION_POWER_USAGE_SUMMARY);
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please find 'Energy' or 'Power' settings and unrestrict CTx Engine");
+            return;
+        } catch (Exception e3) {
+            try {
+                Intent intentSaver = new Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS);
+                startActivity(intentSaver);
+                TxUtils.showCustomToast(this, "Check 'Energy Saver' settings to unrestrict CTx Engine");
+                return;
+            } catch (Exception e3b) {
+                // Both TV Power fallbacks failed.
+            }
+        }
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please check 'Battery' or 'Energy' settings in this menu and set to Unrestricted");
+            return;
+        } catch (Exception e4) {
+            // Failed.
+        }
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+            startActivity(intent);
+            TxUtils.showCustomToast(this, "Please navigate to Battery or Energy settings and remove restrictions");
+        } catch (Exception e5) {
+            TxUtils.showCustomToast(this, "Optimization settings not accessible on this device");
+        }
+    }
 
 
     private void openAppSettings() {
@@ -260,26 +369,68 @@ public class SetupWizardActivity extends AppCompatActivity {
 
     private void updatePermissionStatus() {
 
-        if (statusStorage != null) {
-            boolean granted = hasStoragePermission();
-            statusStorage.setText(granted ? "✅ Granted" : "❌ Not Granted");
-            statusStorage.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
-            btnGrantStorage.setVisibility(hasStoragePermission() ? View.GONE : View.VISIBLE);
+        boolean isPreM = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+        boolean isTV = isAndroidTV();
+
+        if (statusStorage != null && btnGrantStorage != null) {
+            if (isPreM) {
+                statusStorage.setText("✅ Granted (Default)");
+                statusStorage.setTextColor(0xFF4ADE80);
+                btnGrantStorage.setVisibility(View.GONE);
+            } else {
+                boolean granted = hasStoragePermission();
+                statusStorage.setText(granted ? "✅ Granted" : "❌ Not Granted");
+                statusStorage.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
+                btnGrantStorage.setVisibility(granted ? View.GONE : View.VISIBLE);
+            }
         }
 
-        if (statusOverlay != null) {
-
-            boolean granted = hasOverlayPermission();
-
-            if (!granted && isAndroidTV()) {
-                statusOverlay.setText("⚠️ Try enabling in App Settings");
-                statusOverlay.setTextColor(0xFFFBBF24);
+        // 2. OVERLAY
+        if (statusOverlay != null && btnGrantOverlay != null) {
+            if (isPreM) {
+                statusOverlay.setText("✅ Granted (System Managed)");
+                statusOverlay.setTextColor(0xFF4ADE80);
+                btnGrantOverlay.setVisibility(View.GONE);
             } else {
-                statusOverlay.setText(granted ? "✅ Granted" : "❌ Not Granted");
-                statusOverlay.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
-            }
+                boolean granted = hasOverlayPermission();
 
-            btnGrantOverlay.setVisibility(granted ? View.GONE : View.VISIBLE);
+                if (!granted && isTV) {
+                    statusOverlay.setText("⚠️ Check App Settings");
+                    statusOverlay.setTextColor(0xFFFBBF24);
+                } else {
+                    statusOverlay.setText(granted ? "✅ Granted" : "❌ Not Granted");
+                    statusOverlay.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
+                }
+
+                btnGrantOverlay.setVisibility(granted ? View.GONE : View.VISIBLE);
+            }
+        }
+
+        if (statusBattery != null && btnGrantBattery != null) {
+            if (isPreM) {
+                statusBattery.setText("✅ Not Applicable (Android 5)");
+                statusBattery.setTextColor(0xFF4ADE80); // Green
+                btnGrantBattery.setVisibility(View.GONE);
+            } else {
+                boolean isIgnoring = !isBatteryOptimized();
+
+                String typeLabel = isTV ? "Energy" : "Battery";
+
+                if (isIgnoring) {
+                    statusBattery.setText("✅ " + typeLabel + " Unrestricted");
+                    statusBattery.setTextColor(0xFF4ADE80);
+                } else {
+                    if (isTV) {
+                        statusBattery.setText("⚠️ " + typeLabel + " Restricted (Check Settings)");
+                        statusBattery.setTextColor(0xFFFBBF24);
+                    } else {
+                        statusBattery.setText("❌ " + typeLabel + " Optimized (Restricted)");
+                        statusBattery.setTextColor(0xFFF87171);
+                    }
+                }
+
+                btnGrantBattery.setVisibility(isIgnoring ? View.GONE : View.VISIBLE);
+            }
         }
     }
 

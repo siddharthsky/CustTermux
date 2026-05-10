@@ -41,6 +41,7 @@
                 android:textAllCaps="false"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
+                android:visibility="gone"
                 android:tooltipText="Minimize" />
 
             <androidx.appcompat.widget.AppCompatButton

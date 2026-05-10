@@ -8,6 +8,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -294,28 +295,28 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setFocusable(true);
         chip.setClickable(true);
 
+        float density = getResources().getDisplayMetrics().density;
+
+        float chipHeightPx = 30f * density;
+        float paddingPx = 12f * density;
+
         chip.setEnsureMinTouchTargetSize(false);
-        chip.setChipMinHeight(65f);
-        chip.setChipStartPadding(16f);
-        chip.setChipEndPadding(16f);
+        chip.setChipMinHeight(chipHeightPx);
+        chip.setChipStartPadding(paddingPx);
+        chip.setChipEndPadding(paddingPx);
+
+        chip.setCheckedIconVisible(false);
+
+        chip.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f);
+
+        chip.setTextStartPadding(4f * density);
+        chip.setTextEndPadding(4f * density);
 
         chip.setChipBackgroundColor(getChipBackgroundStates());
         chip.setTextColor(Color.WHITE);
         chip.setChipStrokeWidth(0);
 
-
-        GradientDrawable focusedDrawable = new GradientDrawable();
-        focusedDrawable.setShape(GradientDrawable.RECTANGLE);
-        focusedDrawable.setCornerRadius(50);
-        focusedDrawable.setStroke(4, Color.parseColor("#FFD700"));
-        focusedDrawable.setColor(Color.TRANSPARENT);
-
-        InsetDrawable insetFocused = new InsetDrawable(focusedDrawable, 2, 4, 2, 4);
-        StateListDrawable states = new StateListDrawable();
-        states.addState(new int[]{android.R.attr.state_focused}, insetFocused);
-        states.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
-
-        chip.setForeground(states);
+        chip.setForeground(getTvFocusBorder(this));
 
         if (selectedPorts.contains(portValue)) {
             chip.setChecked(true);
@@ -344,6 +345,30 @@ public class HanaPlayerActivity extends AppCompatActivity {
         });
 
         chipGroup.addView(chip);
+    }
+
+    private StateListDrawable getTvFocusBorder(Context context) {
+        float density = context.getResources().getDisplayMetrics().density;
+
+        int strokeWidthPx = (int) (3 * density);
+        int cornerRadiusPx = (int) (50 * density);
+
+        int insetHPx = (int) (2 * density);
+        int insetVPx = (int) (2 * density);
+
+        GradientDrawable focusedDrawable = new GradientDrawable();
+        focusedDrawable.setShape(GradientDrawable.RECTANGLE);
+        focusedDrawable.setCornerRadius(cornerRadiusPx);
+        focusedDrawable.setStroke(strokeWidthPx, Color.parseColor("#FFD700"));
+        focusedDrawable.setColor(Color.TRANSPARENT);
+
+        InsetDrawable insetFocused = new InsetDrawable(focusedDrawable, insetHPx, insetVPx, insetHPx, insetVPx);
+
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_focused}, insetFocused);
+        states.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
+
+        return states;
     }
 
     private ColorStateList getChipBackgroundStates() {
@@ -514,27 +539,28 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setFocusable(true);
         chip.setClickable(true);
 
+        float density = getResources().getDisplayMetrics().density;
+
+        float chipHeightPx = 30f * density;
+        float paddingPx = 12f * density;
+
         chip.setEnsureMinTouchTargetSize(false);
-        chip.setChipMinHeight(65f);
-        chip.setChipStartPadding(16f);
-        chip.setChipEndPadding(16f);
+        chip.setChipMinHeight(chipHeightPx);
+        chip.setChipStartPadding(paddingPx);
+        chip.setChipEndPadding(paddingPx);
+
+        chip.setCheckedIconVisible(false);
+
+        chip.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f);
+
+        chip.setTextStartPadding(4f * density);
+        chip.setTextEndPadding(4f * density);
 
         chip.setChipBackgroundColor(getChipBackgroundStates());
         chip.setTextColor(Color.WHITE);
-        chip.setChipStrokeWidth(0);
+        chip.setChipStrokeWidth(0);;
 
-        GradientDrawable focusedDrawable = new GradientDrawable();
-        focusedDrawable.setShape(GradientDrawable.RECTANGLE);
-        focusedDrawable.setCornerRadius(50);
-        focusedDrawable.setStroke(4, Color.parseColor("#FFD700"));
-        focusedDrawable.setColor(Color.TRANSPARENT);
-
-        InsetDrawable insetFocused = new InsetDrawable(focusedDrawable, 2, 4, 2, 4);
-        StateListDrawable states = new StateListDrawable();
-        states.addState(new int[]{android.R.attr.state_focused}, insetFocused);
-        states.addState(new int[]{}, new ColorDrawable(Color.TRANSPARENT));
-
-        chip.setForeground(states);
+        chip.setForeground(getTvFocusBorder(this));
 
         if (selectedGroups.contains(groupName)) {
             chip.setChecked(true);

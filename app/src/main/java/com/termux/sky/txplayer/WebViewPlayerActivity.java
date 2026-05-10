@@ -117,6 +117,19 @@ public class WebViewPlayerActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
                 CookieManager.getInstance().flush();
                 backCount = 0;
+
+                if (url.contains("/mpd/")) {
+                    view.loadUrl("javascript:(function() { " +
+                        "var video = document.getElementsByTagName('video')[0]; " +
+                        "if (video) { " +
+                        "  video.style.width = '100vw'; " +
+                        "  video.style.height = '100vh'; " +
+                        "  video.style.objectFit = 'contain'; " +
+                        "  video.play(); " +
+                        "} " +
+                        "})()");
+                }
+
             }
         });
 
@@ -181,7 +194,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(android.view.KeyEvent event) {
-        // Intercept the key press before the WebView can consume it for scrolling
         if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
 
@@ -238,7 +250,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
     private void pauseWebViewMedia() {
         if (webView != null) {
-            // Force pause any HTML5 media elements instantly
             webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
         }
     }
@@ -280,24 +291,20 @@ public class WebViewPlayerActivity extends AppCompatActivity {
 
     private void killWebView() {
         if (webView != null) {
-            // 1. One final attempt to pause media natively via JS
             webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
 
-            // 2. Stop page and media
             webView.stopLoading();
             webView.loadUrl("about:blank");
             webView.onPause();
             webView.pauseTimers();
             webView.clearHistory();
-            webView.clearCache(true); // Clear cache to prevent memory leaks
+            webView.clearCache(true);
 
-            // 3. Detach from parent
             android.view.ViewGroup parent = (android.view.ViewGroup) webView.getParent();
             if (parent != null) {
                 parent.removeView(webView);
             }
 
-            // 4. Destroy
             webView.removeAllViews();
             webView.destroy();
             webView = null;

@@ -138,7 +138,53 @@
                     android:focusable="true"/>
             </LinearLayout>
 
-            <!-- STEP 4 -->
+            <!-- STEP 4: Battery Optimization -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#111827"
+                android:padding="22dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
+                android:elevation="6dp">
+
+                <TextView
+                    android:text="🔋 Battery Optimization"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="Disable optimization to ensure background services run reliably."
+                    android:textColor="#9CA3AF"
+                    android:layout_marginTop="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- STATUS -->
+                <TextView
+                    android:id="@+id/txtBatteryStatus"
+                    android:text="❌ Optimized (Restricted)"
+                    android:textColor="#F87171"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <!-- BUTTON -->
+                <Button
+                    android:id="@+id/btnGrantBattery"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Disable Battery Optimization"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tv_plugin_add_btn"
+                    android:layout_marginTop="16dp"
+                    android:focusable="true"/>
+            </LinearLayout>
+
+            <!-- STEP 5 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

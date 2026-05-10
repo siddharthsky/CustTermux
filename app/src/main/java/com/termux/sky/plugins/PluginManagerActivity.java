@@ -304,7 +304,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                     return;
                 }
 
-                fetchPluginFromServer(port);
+                fetchPluginFromServer(port, true);
                 dialog.dismiss();
             });
         });
@@ -359,7 +359,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                     return;
                 }
 
-                fetchPluginFromServer(port);
+                fetchPluginFromServer(port,false);
                 dialog.dismiss();
             });
 
@@ -370,11 +370,17 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
 
-    private void fetchPluginFromServer(String port) {
+    private void fetchPluginFromServer(String port, Boolean debug) {
 
         new Thread(() -> {
             try {
-                String urlStr = "https://raw.githubusercontent.com/siddharthsky/ctx-plugins/refs/heads/main/plugins/" + port + ".json";
+
+                String urlStr =
+                    (debug
+                        ? "https://raw.githubusercontent.com/siddharthsky/Extrix/refs/heads/main/Misc/" // true
+                        : "https://raw.githubusercontent.com/siddharthsky/ctx-plugins/refs/heads/main/plugins/" ) // false
+                        + port.trim() + ".json";
+
 
                 URL url = new URL(urlStr);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();

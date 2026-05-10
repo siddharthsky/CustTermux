@@ -47,35 +47,43 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context ctx = parent.getContext();
 
+        float density = ctx.getResources().getDisplayMetrics().density;
+
+        int marginPx = (int) (8 * density);      // Outer card margin
+        int paddingPx = (int) (12 * density);    // Inner card padding
+        int imgHeightPx = (int) (80 * density);  // Image container height
+        int logoPaddingPx = (int) (4 * density); // Padding around the channel logo
+        int favIconSizePx = (int) (24 * density); // Favorite star icon size
+        int textTopPaddingPx = (int) (8 * density); // Gap between logo and text
+
         // --- Create Programmatic Card Layout ---
         CardView card = new CardView(ctx);
-        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        params.setMargins(16, 16, 16, 16);
+        RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(marginPx, marginPx, marginPx, marginPx);
         card.setLayoutParams(params);
-        card.setRadius(24f);
-        card.setCardElevation(8f);
+
+        card.setRadius(16f * density);
+        card.setCardElevation(4f * density);
 
         Drawable selector = ContextCompat.getDrawable(card.getContext(), R.drawable.tv_plugin_card_bg);
         card.setBackground(selector);
 
-        // Enable Focus and Long Click for TV Remotes
         card.setFocusable(true);
         card.setClickable(true);
         card.setLongClickable(true);
 
         LinearLayout layout = new LinearLayout(ctx);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(20, 20, 20, 20);
+        layout.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
         layout.setGravity(Gravity.CENTER);
 
-        // FrameLayout to hold Logo and optional Favorite indicator
         FrameLayout imageContainer = new FrameLayout(ctx);
-        int sizePx = (int) (100 * ctx.getResources().getDisplayMetrics().density);
         LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            sizePx
+            imgHeightPx
         );
         imageContainer.setLayoutParams(containerParams);
 
@@ -86,10 +94,10 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         );
         logo.setLayoutParams(logoParams);
         logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        logo.setPadding(8, 8, 8, 8);
+        logo.setPadding(logoPaddingPx, logoPaddingPx, logoPaddingPx, logoPaddingPx);
 
         ImageView favIcon = new ImageView(ctx);
-        FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(48, 48);
+        FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(favIconSizePx, favIconSizePx);
         favParams.gravity = Gravity.TOP | Gravity.END;
         favIcon.setLayoutParams(favParams);
         favIcon.setImageResource(R.drawable.tx_star);
@@ -102,10 +110,10 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         TextView name = new TextView(ctx);
         name.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        name.setPadding(0, 10, 0, 0);
+
+        name.setPadding(0, textTopPaddingPx, 0, 0);
         name.setTextSize(14);
         name.setTextColor(Color.WHITE);
-//        name.setTypeface(null, Typeface.BOLD);
         name.setEllipsize(TextUtils.TruncateAt.END);
         name.setMaxLines(1);
 
