@@ -104,7 +104,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnSearch.setImageResource(R.drawable.tx_search);
         btnSearch.setBackgroundResource(R.drawable.img_btn_selector);
         btnSearch.setColorFilter(Color.WHITE);
-        btnSearch.setPadding(0, 10, 0, 10);
+        btnSearch.setPadding(10, 10, 10, 10);
         btnSearch.setOnClickListener(v -> toggleSearch());
         header.addView(btnSearch);
 
@@ -113,48 +113,72 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
-        btnMenu.setPadding(0, 10, 0, 10);
+        btnMenu.setPadding(10, 10, 10, 10);
         btnMenu.setOnClickListener(this::showPopupMenu);
         header.addView(btnMenu);
 
         root.addView(header);
 
         //Search Box
+        float density = getResources().getDisplayMetrics().density;
+        FrameLayout searchContainer = new FrameLayout(this);
+        searchContainer.setVisibility(View.GONE);
+
+        LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int horizontalMargin = (int) (16 * density);
+        int topMargin = (int) (8 * density);
+        int bottomMargin = (int) (16 * density);
+        containerParams.setMargins(horizontalMargin, topMargin, horizontalMargin, bottomMargin);
+        searchContainer.setLayoutParams(containerParams);
+
         searchBox = new EditText(this);
         searchBox.setHint("Search channels...");
         searchBox.setHintTextColor(Color.LTGRAY);
         searchBox.setTextColor(Color.WHITE);
         searchBox.setSingleLine(true);
-        searchBox.setPadding(30, 20, 30, 20);
+        searchBox.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15f);
+
+        int paddingSides = (int) (20 * density);
+        int paddingTopBottom = (int) (12 * density);
+        int paddingRightClear = (int) (50 * density);
+        searchBox.setPadding(paddingSides, paddingTopBottom, paddingRightClear, paddingTopBottom);
+
         GradientDrawable searchBg = new GradientDrawable();
         searchBg.setColor(Color.parseColor("#1E2738"));
-        searchBg.setCornerRadius(50f);
+        searchBg.setCornerRadius(50f * density);
         searchBox.setBackground(searchBg);
-        searchBox.setVisibility(View.GONE);
 
-        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        );
+        ImageButton btnClear = new ImageButton(this);
+        btnClear.setImageResource(R.drawable.tx_cancel_r);
+        btnClear.setColorFilter(Color.GRAY);
+        btnClear.setBackgroundResource(R.drawable.img_btn_selector);
+        btnClear.setVisibility(View.GONE);
 
-        searchParams.setMargins(16, 16, 16, 16);
-        searchBox.setLayoutParams(searchParams);
-
-
+        int btnSize = (int) (40 * density);
+        FrameLayout.LayoutParams clearBtnParams = new FrameLayout.LayoutParams(btnSize, btnSize);
+        clearBtnParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        clearBtnParams.rightMargin = (int) (8 * density); // Small offset from the edge
+        btnClear.setLayoutParams(clearBtnParams);
         searchBox.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 currentSearchQuery = s.toString();
+                btnClear.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
                 applyGroupFilter();
             }
-
             @Override
             public void afterTextChanged(Editable s) {}
         });
-        root.addView(searchBox);
+        btnClear.setOnClickListener(v -> searchBox.setText(""));
+        searchContainer.addView(searchBox);
+        searchContainer.addView(btnClear);
+        root.addView(searchContainer);
+
 
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
         chipScroll.setPadding(10, 0, 10, 0);
@@ -490,15 +514,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void toggleSearch() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        View container = (View) searchBox.getParent();
 
-        if (searchBox.getVisibility() == View.VISIBLE) {
-            searchBox.setVisibility(View.GONE);
+        if (container.getVisibility() == View.VISIBLE) {
+            container.setVisibility(View.GONE);
             searchBox.setText("");
             if (imm != null) {
                 imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
             }
         } else {
-            searchBox.setVisibility(View.VISIBLE);
+            container.setVisibility(View.VISIBLE);
             searchBox.requestFocus();
             if (imm != null) {
                 imm.showSoftInput(searchBox, InputMethodManager.SHOW_IMPLICIT);

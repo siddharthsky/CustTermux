@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -81,7 +82,38 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        disableSSLCertificateChecking();
+        Intent intent = getIntent();
+        Uri data = intent.getData();
+
+        String videoUrl = null;
+        String videoName = null;
+        String licenseUrl = null;
+        String intentUserAgent = null;
+
+        // Check if launched from Home Screen Deep Link
+        boolean isFromHome = data != null && "hanaplayer".equals(data.getScheme());
+
+        if (isFromHome) {
+            videoUrl = data.getQueryParameter("url");
+            videoName = data.getQueryParameter("name");
+            licenseUrl = data.getQueryParameter("license");
+            intentUserAgent = data.getQueryParameter("user_agent");
+            getIntent().putExtra("show_banner", true);
+
+            if (port_no == null && videoUrl != null) {
+                port_no = videoUrl.contains("5007") ? "5007" : "0";
+            }
+        } else {
+            // Standard internal intent
+            videoUrl = intent.getStringExtra("url");
+            videoName = intent.getStringExtra("name");
+            licenseUrl = intent.getStringExtra("license_key");
+            intentUserAgent = intent.getStringExtra("user_agent");
+
+            if (port_no == null && videoUrl != null) {
+                port_no = videoUrl.contains("5007") ? "5007" : "0";
+            }
+        }
 
         try {
             getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -103,21 +135,18 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         errorOverlay.setBackground(shape);
         errorOverlay.setTextColor(android.graphics.Color.WHITE);
         errorOverlay.setGravity(android.view.Gravity.CENTER);
-        errorOverlay.setTextSize(14); // Slightly smaller text
+        errorOverlay.setTextSize(14);
         errorOverlay.setPadding(40, 40, 40, 40);
         errorOverlay.setLineSpacing(0, 1.1f);
         errorOverlay.setVisibility(View.GONE);
-
 
         playerView = new PlayerView(this);
         playerView.setKeepScreenOn(true);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
         root.addView(playerView);
 
-
         playerView.setControllerAutoShow(false);
         playerView.hideController();
-
         playerView.setShowNextButton(false);
         playerView.setShowPreviousButton(false);
         playerView.setShowFastForwardButton(false);
@@ -138,7 +167,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             pauseBtn.setColorFilter(android.graphics.Color.WHITE);
         }
 
-
         View nextButton = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_next);
         if (nextButton != null && nextButton.getParent() instanceof android.view.ViewGroup) {
             android.view.ViewGroup controlGroup = (android.view.ViewGroup) nextButton.getParent();
@@ -146,23 +174,18 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
             ImageButton btnResize = createCustomControl(nextButton, R.drawable.tx_resize, v ->
                 showScreenScaleMenu());
-
             ImageButton btnAudio = createCustomControl(nextButton, R.drawable.tx_audio, v ->
                 showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track"));
-
             ImageButton btnVideo = createCustomControl(nextButton, R.drawable.tx_videohd, v ->
                 showCustomVideoTrackSelector());
-
             ImageButton btnCC = createCustomControl(nextButton, R.drawable.tx_closed_caption, v ->
                 showTrackSelector(C.TRACK_TYPE_TEXT, "Select Subtitles / CC"));
-
 
             controlGroup.addView(btnResize, nextButtonIndex + 1);
             controlGroup.addView(btnAudio, nextButtonIndex + 2);
             controlGroup.addView(btnVideo, nextButtonIndex + 3);
             controlGroup.addView(btnCC, nextButtonIndex + 4);
         }
-
 
         int savedScale = prefs.getInt("global_screen_scale", AspectRatioFrameLayout.RESIZE_MODE_FIT);
         playerView.setResizeMode(savedScale);
@@ -174,14 +197,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         FrameLayout.LayoutParams errorParams = new FrameLayout.LayoutParams(
-            (int) (screenWidth * 0.6), // 60% width
+            (int) (screenWidth * 0.6),
             FrameLayout.LayoutParams.WRAP_CONTENT
         );
         errorParams.gravity = android.view.Gravity.CENTER;
 
         root.addView(errorOverlay, errorParams);
-
-
         setContentView(root);
 
         bannerManager = new ChannelBannerManager(root);
@@ -196,54 +217,39 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         hideSystemUI();
 
-        port_no = getIntent().getStringExtra("plugin_port");
+        if (isFromHome && errorOverlay != null) {
+            errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
+            errorOverlay.setVisibility(View.VISIBLE);
+        }
 
-        String rawUrl = getIntent().getStringExtra("url");
-        String licenseUrl = getIntent().getStringExtra("license_key");
-        String intentUserAgent = getIntent().getStringExtra("user_agent");
+        if (!isFromHome) {
+            if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) {
+                String portToLoad = (port_no != null) ? port_no : "0";
+                List<ChannelModel> savedChannels = M3UParser.getFromPrefs(this, portToLoad);
 
-        if (rawUrl != null) {
-            String v_url = rawUrl;
-            String origin = null;
-            String referer = null;
-            String userAgent = intentUserAgent;
-
-            try {
-                v_url = URLDecoder.decode(v_url, "UTF-8");
-
-                if (v_url.contains("|")) {
-                    String[] parts = v_url.split("\\|");
-                    v_url = parts[0].trim();
-                    for (int i = 1; i < parts.length; i++) {
-                        String part = parts[i].trim();
-                        String lowerPart = part.toLowerCase();
-                        if (lowerPart.startsWith("origin=")) origin = part.substring(7);
-                        else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
-                        else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
-                    }
+                if (savedChannels != null && !savedChannels.isEmpty()) {
+                    PlaylistManager.currentList = savedChannels;
                 }
-
-                v_url = v_url.replaceAll("&$", "");
-
-            } catch (Exception e) {
-                Log.e("DRM_PLAYER", "URL Decoding failed", e);
             }
+        } else {
+            PlaylistManager.currentList = null;
+        }
 
-            checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer);
-
-            
+        if (videoUrl != null) {
+            if (!isFromHome) {
+                syncPlaylistIndex(videoUrl, videoName);
+            }
+            processIncomingUrl(videoUrl, licenseUrl, intentUserAgent, isFromHome);
         }
     }
 
     @NonNull
     private ImageButton createCustomControl(View template, int iconResId, View.OnClickListener listener) {
         ImageButton button = new ImageButton(this);
-
         button.setImageResource(iconResId);
         button.setBackgroundResource(R.drawable.img_btn_selector);
         button.setColorFilter(android.graphics.Color.WHITE);
         button.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
-
         button.setLayoutParams(template.getLayoutParams());
         button.setPadding(
             template.getPaddingLeft(),
@@ -251,10 +257,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             template.getPaddingRight(),
             template.getPaddingBottom()
         );
-
         button.setOnClickListener(listener);
         button.setFocusable(true);
-
         return button;
     }
 
@@ -264,8 +268,27 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
-    private void checkStatusAndPlay(String videoUrl, String licenseUrl, String userAgent, String origin, String referer) {
+    // Helper method to Ping the URL
+    private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
+        try {
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
 
+            String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0";
+            connection.setRequestProperty("User-Agent", ua);
+
+            if (origin != null && !origin.isEmpty()) connection.setRequestProperty("Origin", origin);
+            if (referer != null && !referer.isEmpty()) connection.setRequestProperty("Referer", referer);
+
+            return connection.getResponseCode();
+        } catch (Exception e) {
+            return -1; // Network error / timeout
+        }
+    }
+
+    private void checkStatusAndPlay(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, boolean isFromHome) {
         if (currentCheckThread != null && currentCheckThread.isAlive()) {
             currentCheckThread.interrupt();
         }
@@ -273,77 +296,84 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         final int myZapToken = currentZapToken;
 
         currentCheckThread = new Thread(() -> {
-            try {
-                java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
-                connection.setRequestMethod("HEAD");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+            // 1. Initial Ping
+            int initialCode = pingUrl(videoUrl, userAgent, origin, referer);
+            boolean isAlive = (initialCode >= 200 && initialCode < 400);
 
-                String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
-                connection.setRequestProperty("User-Agent", ua);
+            if (Thread.currentThread().isInterrupted()) return;
 
-                if (origin != null && !origin.isEmpty()) connection.setRequestProperty("Origin", origin);
-                if (referer != null && !referer.isEmpty()) connection.setRequestProperty("Referer", referer);
-
-                int responseCode = connection.getResponseCode();
-                if (Thread.currentThread().isInterrupted()) return;
-                Log.d("DRM_PLAYER", "Response Code: " + responseCode);
-
-                boolean isUrlValid = (responseCode >= 200 && responseCode < 400);
-                boolean isSpecialPort = "5007".equals(port_no);
-
+            if (isAlive) {
+                // SERVER IS ALIVE: Play instantly
                 runOnUiThread(() -> {
                     if (myZapToken != currentZapToken) return;
-                    if (Thread.currentThread().isInterrupted()) return;
+                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                });
+            } else {
+                // SERVER IS DEAD OR ERROR
+                if (isFromHome) {
+                    // Start server and show UI
+                    runOnUiThread(() -> {
+                        if (myZapToken != currentZapToken) return;
+                        if (errorOverlay != null) {
+                            errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
+                            errorOverlay.setVisibility(View.VISIBLE);
+                        }
+                    });
+                    ensureServerIsRunning(ExoPlayerActivityDRM.this);
 
-                    if (isUrlValid && !isSpecialPort) {
-                        initializePlayer(videoUrl, licenseUrl, ua, origin, referer);
-                    } else {
-                        if (!videoUrl.contains("/live/")) {
-                            if (errorOverlay != null) {
-                                String sb = "⚠️ CONNECTION ISSUE\n" +
-                                    "────────────────\n" +
-                                    "HTTP CODE: " + responseCode + "\n" +
-                                    "STATUS: " + (responseCode == 403 ? "Access Denied" : "Server Error") + "\n";
-                                errorOverlay.setText(sb);
-                                errorOverlay.setVisibility(View.VISIBLE);
-                            }
-                        } else {
-                            switchToWebView(videoUrl);
+                    // Retry logic
+                    int maxRetries = 5;
+                    boolean retrySuccess = false;
+
+                    for (int i = 0; i < maxRetries; i++) {
+                        if (Thread.currentThread().isInterrupted()) return;
+                        try { Thread.sleep(2000); } catch (InterruptedException e) { return; }
+
+                        int retryCode = pingUrl(videoUrl, userAgent, origin, referer);
+                        if (retryCode >= 200 && retryCode < 400) {
+                            retrySuccess = true;
+                            break;
                         }
                     }
-                });
 
-            } catch (Exception e) {
-                if (Thread.currentThread().isInterrupted()) return;
-                Log.e("DRM_PLAYER", "Network error during check", e);
+                    if (Thread.currentThread().isInterrupted()) return;
 
-                runOnUiThread(() -> {
-                    if (myZapToken != currentZapToken) return;
-
-                    String errorMsg = e instanceof java.net.SocketTimeoutException ?
-                        "Connection Timeout: Server not responding" :
-                        "Network error: " + e.getMessage();
-
-                    if (errorOverlay != null) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("⚠️ NETWORK FAILURE\n");
-                        sb.append("────────────────\n");
-                        sb.append("TYPE: ").append(e.getClass().getSimpleName()).append("\n");
-                        sb.append("INFO: ").append(errorMsg);
-
-                        errorOverlay.setText(sb.toString());
-                        errorOverlay.setVisibility(View.VISIBLE);
+                    if (retrySuccess) {
+                        runOnUiThread(() -> {
+                            if (myZapToken != currentZapToken) return;
+                            if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+                            initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                        });
+                    } else {
+                        showErrorOrFallback(videoUrl, myZapToken, initialCode);
                     }
-                });
+                } else {
+                    // Not from Home, fail immediately (e.g. normal app zap)
+                    showErrorOrFallback(videoUrl, myZapToken, initialCode);
+                }
             }
         });
         currentCheckThread.start();
     }
 
+    private void showErrorOrFallback(String videoUrl, int zapToken, int responseCode) {
+        runOnUiThread(() -> {
+            if (zapToken != currentZapToken) return;
+            if (!videoUrl.contains("/live/")) {
+                if (errorOverlay != null) {
+                    String msg = (responseCode == -1) ? "⚠️ SERVER TIMEOUT\nTermux or Server is not responding." :
+                        "⚠️ CONNECTION ISSUE\nHTTP CODE: " + responseCode;
+                    errorOverlay.setText(msg);
+                    errorOverlay.setVisibility(View.VISIBLE);
+                }
+            } else {
+                switchToWebView(videoUrl);
+            }
+        });
+    }
 
     private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer) {
-
         Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
 
         Map<String, String> headers = new HashMap<>();
@@ -474,7 +504,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-
         if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
             showSettingsMenu();
             return true;
@@ -487,11 +516,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
 
                 playerView.showController();
-
                 return true;
             }
         }
-
 
         if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
             if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
@@ -506,7 +533,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     }
 
     private void changeChannel(int direction) {
-        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
+        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) {
+            return;
+        }
 
         currentZapToken++;
 
@@ -532,11 +561,20 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             errorOverlay.setVisibility(View.GONE);
         }
 
-        zapRunnable = () -> {
-            processAndPlayChannel(nextChannel);
-        };
-
+        zapRunnable = () -> processAndPlayChannel(nextChannel);
         zapHandler.postDelayed(zapRunnable, ZAP_DELAY_MS);
+    }
+
+    private void syncPlaylistIndex(String videoUrl, String videoName) {
+        if (PlaylistManager.currentList != null && videoUrl != null) {
+            for (int i = 0; i < PlaylistManager.currentList.size(); i++) {
+                ChannelModel cm = PlaylistManager.currentList.get(i);
+                if (videoUrl.equals(cm.url)) {
+                    PlaylistManager.currentIndex = i;
+                    return;
+                }
+            }
+        }
     }
 
     private void processAndPlayChannel(ChannelModel nextChannel) {
@@ -563,7 +601,57 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             Log.e("DRM_PLAYER", "URL Decoding failed", e);
         }
 
-        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer);
+        // isFromHome is false when Zapping internally
+        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer, false);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        Uri data = intent.getData();
+        if (data != null && "hanaplayer".equals(data.getScheme())) {
+            String url = data.getQueryParameter("url");
+            String name = data.getQueryParameter("name");
+            String license = data.getQueryParameter("license");
+            String ua = data.getQueryParameter("user_agent");
+
+            if (url != null) {
+                PlaylistManager.currentList = null;
+
+                bannerManager.show(name, intent.getStringExtra("logo_url"));
+                processIncomingUrl(url, license, ua, true);
+            }
+        }
+    }
+
+    private void processIncomingUrl(String rawUrl, String licenseUrl, String intentUserAgent, boolean isFromHome) {
+        String v_url = rawUrl;
+        String origin = null;
+        String referer = null;
+        String userAgent = intentUserAgent;
+
+        try {
+            v_url = URLDecoder.decode(v_url, "UTF-8");
+            if (v_url.contains("|")) {
+                String[] parts = v_url.split("\\|");
+                v_url = parts[0].trim();
+                for (int i = 1; i < parts.length; i++) {
+                    String part = parts[i].trim();
+                    String lowerPart = part.toLowerCase();
+                    if (lowerPart.startsWith("origin=")) origin = part.substring(7);
+                    else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
+                    else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+                }
+            }
+            v_url = v_url.replaceAll("&$", "");
+
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "URL Decoding failed", e);
+        }
+
+        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, isFromHome);
     }
 
     private void showSettingsMenu() {
@@ -576,7 +664,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             .setItems(options, (dialog, which) -> {
                 switch (which) {
                     case 0:
-                        showCustomVideoTrackSelector(); // Call the new custom dialog
+                        showCustomVideoTrackSelector();
                         break;
                     case 1:
                         showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track");
@@ -611,9 +699,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             this, title, trackSelector, rendererIndex
         );
 
-
         builder.setAllowAdaptiveSelections(false);
-
         builder.setShowDisableOption(true);
         builder.setTheme(android.R.style.Theme_DeviceDefault_Dialog_Alert);
 
@@ -661,7 +747,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         List<DefaultTrackSelector.SelectionOverride> overrides = new ArrayList<>();
         List<Integer> groupIndices = new ArrayList<>();
 
-        // Add "Auto" option at the top
         trackNames.add("Auto");
         overrides.add(null);
         groupIndices.add(-1);
@@ -671,22 +756,16 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         for (int groupIndex = 0; groupIndex < trackGroups.length; groupIndex++) {
             TrackGroup group = trackGroups.get(groupIndex);
-
             for (int trackIndex = 0; trackIndex < group.length; trackIndex++) {
                 Format format = group.getFormat(trackIndex);
 
-                // FILTER: Only show tracks with a bitrate above 400 kbps (or unknown)
                 if (format.bitrate == Format.NO_VALUE || format.bitrate > 400000) {
-
                     trackNames.add(nameProvider.getTrackName(format));
-
                     DefaultTrackSelector.SelectionOverride override =
                         new DefaultTrackSelector.SelectionOverride(groupIndex, trackIndex);
-
                     overrides.add(override);
                     groupIndices.add(groupIndex);
 
-                    // Check if this track is the one currently selected by the user
                     DefaultTrackSelector.SelectionOverride currentOverride =
                         currentParams.getSelectionOverride(rendererIndex, trackGroups);
 
@@ -708,10 +787,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 DefaultTrackSelector.ParametersBuilder builder = trackSelector.buildUponParameters();
 
                 if (which == 0) {
-                    // "Auto" selected: clear user overrides
                     builder.clearSelectionOverrides(finalRendererIndex);
                 } else {
-                    // Specific quality selected
                     builder.clearSelectionOverrides(finalRendererIndex);
                     builder.setSelectionOverride(
                         finalRendererIndex,
@@ -727,34 +804,26 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             .show();
     }
 
-
     private void applySavedTrackPreferences() {
         if (trackSelector == null) return;
-
         String savedAudioLang = prefs.getString("pref_audio_lang", null);
-
         if (savedAudioLang != null) {
             DefaultTrackSelector.Parameters currentParameters = trackSelector.getParameters();
             DefaultTrackSelector.Parameters newParameters = currentParameters
                 .buildUpon()
                 .setPreferredAudioLanguage(savedAudioLang)
                 .build();
-
             trackSelector.setParameters(newParameters);
         }
     }
 
-
-
     private void showScreenScaleMenu() {
         String[] options = {"Fit (Default)", "Stretch (Fill Screen)", "Zoom (Crop to Fit)"};
-
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("Screen Scale")
             .setItems(options, (dialog, which) -> {
                 int mode = AspectRatioFrameLayout.RESIZE_MODE_FIT;
                 String toastMsg = "Scale: Fit";
-
                 if (which == 1) {
                     mode = AspectRatioFrameLayout.RESIZE_MODE_FILL;
                     toastMsg = "Scale: Stretch";
@@ -762,11 +831,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     mode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
                     toastMsg = "Scale: Zoom";
                 }
-
                 playerView.setResizeMode(mode);
-
                 prefs.edit().putInt("global_screen_scale", mode).apply();
-
                 Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
             })
             .show();
@@ -776,14 +842,11 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         try {
             TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {}
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {}
                 }
             };
-
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
@@ -793,4 +856,19 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
     }
 
+    private void ensureServerIsRunning(Context context) {
+        try {
+            Intent serviceIntent = new Intent();
+            serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+            serviceIntent.setAction("com.termux.RUN_COMMAND");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutilz.sh");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--run", "boot"});
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", 1);
+            context.startService(serviceIntent);
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "Could not start background server", e);
+        }
+    }
 }

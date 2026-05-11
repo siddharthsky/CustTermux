@@ -280,6 +280,16 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
+        <provider
+            android:name=".sky.tvhome.TvFileProvider"
+            android:authorities="${applicationId}.tvprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/tv_image_paths" />
+        </provider>
+
 
         <receiver
             android:name=".app.TermuxOpenReceiver"
