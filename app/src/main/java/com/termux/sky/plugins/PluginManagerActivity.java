@@ -1,5 +1,7 @@
 package com.termux.sky.plugins;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -35,6 +37,7 @@ import androidx.recyclerview.widget.*;
 
 import com.termux.R;
 import com.termux.sky.txplayer.PlugDRM;
+import com.termux.sky.wizard.FilePickerActivity;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -75,7 +78,6 @@ public class PluginManagerActivity extends AppCompatActivity {
     private TextView progressText;
     private TextView restartBanner;
 
-    // Replace your existing filePicker with this
     ActivityResultLauncher<String> filePicker =
         registerForActivityResult(
             new ActivityResultContracts.GetContent(),
@@ -90,6 +92,25 @@ public class PluginManagerActivity extends AppCompatActivity {
                 }
             }
         );
+
+    ActivityResultLauncher<Intent> customFilePickerLauncher =
+        registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        String path = uri.getPath();
+                        if (path != null && path.toLowerCase().endsWith(".json")) {
+                            handleFile(uri);
+                        } else {
+                            handlePlaylistFile(uri);
+                        }
+                    }
+                }
+            }
+        );
+
 
     @Override
     protected void onCreate(Bundle b) {
@@ -163,11 +184,11 @@ public class PluginManagerActivity extends AppCompatActivity {
                             "The developer is not responsible for any damage caused by third-party plugins."
                     )
                     .setPositiveButton("I Understand", (dialog, which) -> {
-                        try {
-                            filePicker.launch("application/json");
-                        } catch (ActivityNotFoundException e) {
-                            Toast.makeText(this, "No File Manager found to select JSON files", Toast.LENGTH_LONG).show();
-                        }
+                        Intent intent = new Intent(this, FilePickerActivity.class);
+
+                        intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".json"});
+                        customFilePickerLauncher.launch(intent);
+
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
@@ -179,29 +200,35 @@ public class PluginManagerActivity extends AppCompatActivity {
         popup.show();
     }
 
-
     private void handleFile(Uri uri) {
         if (uri == null) return;
 
         try {
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Objects.requireNonNull(getContentResolver().openInputStream(uri)))
-            );
+            InputStream is;
+            if ("file".equals(uri.getScheme())) {
+                is = new FileInputStream(new File(uri.getPath()));
+            } else {
+                is = getContentResolver().openInputStream(uri);
+            }
 
+            if (is == null) {
+                Toast.makeText(this, "Could not open file", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder();
             String line;
 
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
-
             reader.close();
 
             // JSON parse
             Plugin p = PluginUtils.parse(sb.toString());
 
             if (p != null) {
-                // Check if plugin already exists to avoid duplicates
                 for (Plugin existing : list) {
                     if (existing.port == p.port) {
                         Toast.makeText(this, "Plugin on port " + p.port + " already exists", Toast.LENGTH_SHORT).show();
@@ -1062,6 +1089,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("SetTextI18n")
     private void updateProgress(int progress) {
         runOnUiThread(() -> {
             if (progressBar != null) {
@@ -1116,11 +1144,10 @@ public class PluginManagerActivity extends AppCompatActivity {
                 verifyUrlHasData(urlString);
             })
             .setNeutralButton("Choose File", (dialog, which) -> {
-                try {
-                    filePicker.launch("*/*");
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(this, "No File Manager found to select file", Toast.LENGTH_LONG).show();
-                }
+                Intent intent = new Intent(this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".m3u", ".m3u8", ".txt"});
+                customFilePickerLauncher.launch(intent);
+
             })
             .setNegativeButton("Cancel", null)
             .show();
@@ -1164,13 +1191,14 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void handlePlaylistFile(Uri uri) {
 
-        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-        try {
-            getContentResolver().takePersistableUriPermission(uri, takeFlags);
-        } catch (SecurityException e) {
-            Log.e("PluginManager", "Failed to persist URI permission", e);
+        if ("content".equals(uri.getScheme())) {
+            final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+            try {
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+            } catch (SecurityException e) {
+                Log.e("PluginManager", "Failed to persist URI permission", e);
+            }
         }
-
 
         String fileName = getFileName(uri);
 
@@ -1184,26 +1212,59 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             boolean hasData = false;
-            try (InputStream is = getContentResolver().openInputStream(uri);
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+            String errorMsg = null; // Track the exact error so we stop guessing
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (!line.trim().isEmpty()) {
-                        hasData = true;
-                        break;
+            try {
+                InputStream is = null;
+
+                if ("file".equals(uri.getScheme())) {
+                    File file = new File(uri.getPath());
+                    if (file.exists() && file.canRead()) {
+                        is = new FileInputStream(file);
+                    } else {
+                        try {
+                            is = getContentResolver().openInputStream(uri);
+                        } catch (Exception ex) {
+                            errorMsg = "Permission Denied: Android blocked read access.";
+                        }
                     }
+                } else {
+                    is = getContentResolver().openInputStream(uri);
                 }
+
+                if (is != null) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (!line.trim().isEmpty()) {
+                                hasData = true;
+                                break; // Data found, exit loop!
+                            }
+                        }
+                    }
+                    is.close();
+                } else if (errorMsg == null) {
+                    errorMsg = "Failed to open file stream.";
+                }
+
             } catch (Exception e) {
                 Log.e("PluginManager", "File read error", e);
+                errorMsg = e.getMessage();
             }
 
-            boolean finalHasData = hasData;
+            final boolean finalHasData = hasData;
+            final String finalErrorMsg = errorMsg;
+
             handler.post(() -> {
                 if (finalHasData) {
+                    Log.d("FOR", uri.toString());
                     processUrlAsPlugin(uri.toString());
                 } else {
-                    Toast.makeText(this, "File is empty or contains no data", Toast.LENGTH_SHORT).show();
+                    if (finalErrorMsg != null) {
+                        Toast.makeText(this, "Error: " + finalErrorMsg, Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(this, "File is empty or contains no data", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         });
@@ -1217,7 +1278,8 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private String getFileName(Uri uri) {
         String result = null;
-        if (uri.getScheme().equals("content")) {
+
+        if ("content".equals(uri.getScheme())) {
             try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
                     int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -1225,7 +1287,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                 }
             }
         }
-        if (result == null) {
+        if (result == null && uri.getPath() != null) {
             result = uri.getPath();
             int cut = result.lastIndexOf('/');
             if (cut != -1) result = result.substring(cut + 1);
@@ -1233,6 +1295,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         return result;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void processUrlAsPlugin(String url) {
         int uniquePort = findAvailablePort(6001, 6099);
 
@@ -1297,6 +1360,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         int nextNumber = maxNumber + 1;
         return String.format(Locale.US, "Playlist %03d", nextNumber);
     }
+
 
 }
 

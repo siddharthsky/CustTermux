@@ -161,6 +161,11 @@
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             android:exported="true"/>
 
+        <activity
+            android:name=".sky.wizard.FilePickerActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:label="Select File"
+            android:exported="true"/>
 
 
 

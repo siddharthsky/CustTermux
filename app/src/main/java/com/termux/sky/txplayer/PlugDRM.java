@@ -2,6 +2,7 @@ package com.termux.sky.txplayer;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,15 +20,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.termux.R;
-import com.termux.app.TermuxActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
-import com.termux.sky.plugins.PluginManagerActivity;
-
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -48,8 +49,6 @@ public class PlugDRM extends AppCompatActivity {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Handler handler = new Handler(Looper.getMainLooper());
 
-    private ImageButton btnMenu;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,8 +60,8 @@ public class PlugDRM extends AppCompatActivity {
         btnReload = findViewById(R.id.btnReload);
 
         LinearLayout btnWEB = findViewById(R.id.btnWEB);
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
 
-        btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(this::showPopupMenu);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -108,8 +107,14 @@ public class PlugDRM extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filter(s.toString());
             }
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -117,7 +122,6 @@ public class PlugDRM extends AppCompatActivity {
         PopupMenu popup = new PopupMenu(this, view);
         popup.getMenuInflater().inflate(R.menu.channel_menu, popup.getMenu());
 
-        // Update menu text based on current state
         popup.getMenu().findItem(R.id.menu_layout_toggle)
             .setTitle("Clear Favorite");
 
@@ -130,7 +134,7 @@ public class PlugDRM extends AppCompatActivity {
                 Intent intent = new Intent(this, HanaPlayerActivity.class);
                 startActivity(intent);
 
-                Log.d("PlugDRM","Cleared fav.");
+                Log.d("PlugDRM", "Cleared fav.");
                 return true;
             } else if (id == R.id.menu_refresh) {
                 Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
@@ -156,13 +160,10 @@ public class PlugDRM extends AppCompatActivity {
 
                 if (playlistData != null) {
                     if (playlistData.startsWith("http")) {
-                        // It's a Web URL
                         content = downloadUrl(playlistData);
-                    } else if (playlistData.startsWith("content://")) {
-                        // It's a Local File from the picker
+                    } else if (playlistData.startsWith("content://") || playlistData.startsWith("file://")) {
                         content = readFileFromUri(playlistData);
                     } else {
-                        // It's raw text data
                         content = playlistData;
                     }
                 }
@@ -187,51 +188,36 @@ public class PlugDRM extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         try {
             Uri uri = Uri.parse(uriString);
-            InputStream inputStream = getContentResolver().openInputStream(uri);
-            assert inputStream != null;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            InputStream inputStream = null;
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
+            if ("file".equals(uri.getScheme())) {
+                File file = new File(Objects.requireNonNull(uri.getPath()));
+                if (file.exists() && file.canRead()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        inputStream = Files.newInputStream(file.toPath());
+                    }
+                } else {
+                    inputStream = getContentResolver().openInputStream(uri);
+                }
+            } else {
+                inputStream = getContentResolver().openInputStream(uri);
             }
-            reader.close();
-            inputStream.close();
+
+            if (inputStream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                reader.close();
+                inputStream.close();
+            } else {
+                Log.e("PlugDRM", "InputStream is null. Could not open file.");
+            }
         } catch (Exception e) {
             Log.e("PlugDRM", "Error reading local file: " + e.getMessage());
         }
         return sb.toString();
-    }
-
-    private void processPlaylist(String data) {
-        progressBar.setVisibility(View.VISIBLE);
-        executor.execute(() -> {
-            String content = data;
-            if (data.startsWith("http")) {
-                content = downloadUrl(data);
-            }
-
-            List<ChannelModel> channels = M3UParser.parse(content);
-            this.fullList = channels;
-
-            // Extract Port
-            String port = "default";
-            Pattern p = Pattern.compile(":(\\d+)");
-            Matcher m = p.matcher(data);
-            if (m.find()) port = m.group(1);
-
-            // Save all tags (Language, Type, DRM)
-            M3UParser.saveToPrefs(this, port, channels);
-
-            handler.post(() -> {
-                progressBar.setVisibility(View.GONE);
-                if (channels.isEmpty()) {
-                    Toast.makeText(this, "No channels found!", Toast.LENGTH_SHORT).show();
-                }
-                adapter = new ChannelAdapter(channels, this::playVideo, this::toggleFavorite);
-                recyclerView.setAdapter(adapter);
-            });
-        });
     }
 
     private void filter(String text) {
@@ -261,7 +247,9 @@ public class PlugDRM extends AppCompatActivity {
         try {
             java.util.Scanner s = new java.util.Scanner(new java.net.URL(urlString).openStream(), "UTF-8").useDelimiter("\\A");
             return s.hasNext() ? s.next() : "";
-        } catch (Exception e) { return ""; }
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private void setupAdapter(List<ChannelModel> channels) {
