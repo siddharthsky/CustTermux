@@ -39,6 +39,9 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
+    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+
     <application
         android:name=".app.TermuxApplication"
         android:allowBackup="false"
@@ -56,6 +59,8 @@
 
         <activity
             android:name=".app.TermuxActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:banner="@drawable/banner_alt"
             android:exported="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|density|screenLayout|keyboard|keyboardHidden|navigation"
             android:label="@string/application_name"
@@ -149,7 +154,17 @@
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden"/>
+            android:configChanges="orientation|screenSize|keyboardHidden">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="hanaplayer" android:host="play" />
+            </intent-filter>
+        </activity>
+
+
 
         <activity
             android:name=".sky.txplayer.PlugDRM"

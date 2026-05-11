@@ -639,6 +639,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
         PlaylistManager.currentList = displayList;
         PlaylistManager.currentIndex = displayList.indexOf(channel);
 
+        com.termux.sky.tvhome.RecentChannelsManager.addChannelToHome(this, channel);
+
         String activePort = channel.originPort;
         if (activePort == null || channel.url.contains("5007")) {
             activePort = channel.url.contains("5007") ? "5007" : "0";
