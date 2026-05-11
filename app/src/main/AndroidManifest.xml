@@ -162,7 +162,13 @@
             android:exported="true"/>
 
         <activity
-            android:name=".sky.wizard.FilePickerActivity"
+            android:name=".sky.filehandlers.FilePickerActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:label="Select File"
+            android:exported="true"/>
+
+        <activity
+            android:name=".sky.filehandlers.FileManagerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:label="Select File"
             android:exported="true"/>
@@ -247,6 +253,16 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"/>
+        </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.termux.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
         </provider>
 
 

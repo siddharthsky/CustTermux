@@ -1,4 +1,4 @@
-package com.termux.sky.wizard;
+package com.termux.sky.filehandlers;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

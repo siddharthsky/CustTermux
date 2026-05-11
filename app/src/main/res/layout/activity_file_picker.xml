@@ -1,4 +1,6 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -8,15 +10,41 @@
         android:id="@+id/currentPath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="/sdcard"
         android:textColor="@android:color/white"
         android:textSize="18sp"
-        android:text="/sdcard" />
+        android:paddingBottom="8dp" />
 
     <ListView
         android:id="@+id/fileListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:focusable="true"
-        android:choiceMode="singleChoice" />
+        android:choiceMode="singleChoice"
+        android:focusable="true" />
+
+    <LinearLayout
+        android:id="@+id/actionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:paddingTop="8dp">
+
+        <Button
+            android:id="@+id/btnPaste"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PASTE HERE" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CANCEL" />
+
+    </LinearLayout>
+
 </LinearLayout>
