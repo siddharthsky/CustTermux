@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +20,8 @@ import android.widget.ViewFlipper;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.termux.R;
 import com.termux.sky.TxUtils;
@@ -366,69 +369,83 @@ public class SetupWizardActivity extends AppCompatActivity {
         return true;
     }
 
+    private void setStatus(TextView tv, String text, int colorHex, int iconResId) {
+        if (tv == null) return;
+
+        tv.setSingleLine(true);
+        tv.setText(text);
+        tv.setTextColor(colorHex);
+
+        Drawable icon = ContextCompat.getDrawable(this, iconResId);
+
+        if (icon != null) {
+            icon = DrawableCompat.wrap(icon.mutate());
+            DrawableCompat.setTint(icon, colorHex);
+
+            tv.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+
+            tv.setCompoundDrawablePadding(16);
+        }
+    }
+
 
     private void updatePermissionStatus() {
-
         boolean isPreM = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
         boolean isTV = isAndroidTV();
 
+        //STORAGE
         if (statusStorage != null && btnGrantStorage != null) {
             if (isPreM) {
-                statusStorage.setText("✅ Granted (Default)");
-                statusStorage.setTextColor(0xFF4ADE80);
+                setStatus(statusStorage, "Granted (Default)", 0xFF4ADE80, R.drawable.tx_check_circle);
                 btnGrantStorage.setVisibility(View.GONE);
             } else {
                 boolean granted = hasStoragePermission();
-                statusStorage.setText(granted ? "✅ Granted" : "❌ Not Granted");
-                statusStorage.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
-                btnGrantStorage.setVisibility(granted ? View.GONE : View.VISIBLE);
+                if (granted) {
+                    setStatus(statusStorage, "Granted", 0xFF4ADE80, R.drawable.tx_check_circle);
+                    btnGrantStorage.setVisibility(View.GONE);
+                } else {
+                    setStatus(statusStorage, "Not Granted", 0xFFF87171, R.drawable.tx_error_outline);
+                    btnGrantStorage.setVisibility(View.VISIBLE);
+                }
             }
         }
 
-        // 2. OVERLAY
+        //OVERLAY
         if (statusOverlay != null && btnGrantOverlay != null) {
             if (isPreM) {
-                statusOverlay.setText("✅ Granted (System Managed)");
-                statusOverlay.setTextColor(0xFF4ADE80);
+                setStatus(statusOverlay, "Granted (System Managed)", 0xFF4ADE80, R.drawable.tx_check_circle);
                 btnGrantOverlay.setVisibility(View.GONE);
             } else {
                 boolean granted = hasOverlayPermission();
-
                 if (!granted && isTV) {
-                    statusOverlay.setText("⚠️ Check App Settings");
-                    statusOverlay.setTextColor(0xFFFBBF24);
+                    setStatus(statusOverlay, "Check App Settings", 0xFFFBBF24, R.drawable.tx_warning_amber);
+                } else if (granted) {
+                    setStatus(statusOverlay, "Granted", 0xFF4ADE80, R.drawable.tx_check_circle);
                 } else {
-                    statusOverlay.setText(granted ? "✅ Granted" : "❌ Not Granted");
-                    statusOverlay.setTextColor(granted ? 0xFF4ADE80 : 0xFFF87171);
+                    setStatus(statusOverlay, "Not Granted", 0xFFF87171, R.drawable.tx_error_outline);
                 }
-
                 btnGrantOverlay.setVisibility(granted ? View.GONE : View.VISIBLE);
             }
         }
 
+        //BATTERY
         if (statusBattery != null && btnGrantBattery != null) {
             if (isPreM) {
-                statusBattery.setText("✅ Not Applicable (Android 5)");
-                statusBattery.setTextColor(0xFF4ADE80); // Green
+                setStatus(statusBattery, "Not Applicable (Android 5)", 0xFF4ADE80, R.drawable.tx_check_circle);
                 btnGrantBattery.setVisibility(View.GONE);
             } else {
                 boolean isIgnoring = !isBatteryOptimized();
-
                 String typeLabel = isTV ? "Energy" : "Battery";
 
                 if (isIgnoring) {
-                    statusBattery.setText("✅ " + typeLabel + " Unrestricted");
-                    statusBattery.setTextColor(0xFF4ADE80);
+                    setStatus(statusBattery, typeLabel + " Unrestricted", 0xFF4ADE80, R.drawable.tx_check_circle);
                 } else {
                     if (isTV) {
-                        statusBattery.setText("⚠️ " + typeLabel + " Restricted (Check Settings)");
-                        statusBattery.setTextColor(0xFFFBBF24);
+                        setStatus(statusBattery, typeLabel + " Restricted", 0xFFFBBF24, R.drawable.tx_warning_amber);
                     } else {
-                        statusBattery.setText("❌ " + typeLabel + " Optimized (Restricted)");
-                        statusBattery.setTextColor(0xFFF87171);
+                        setStatus(statusBattery, typeLabel + " Optimized", 0xFFF87171, R.drawable.tx_error_outline);
                     }
                 }
-
                 btnGrantBattery.setVisibility(isIgnoring ? View.GONE : View.VISIBLE);
             }
         }

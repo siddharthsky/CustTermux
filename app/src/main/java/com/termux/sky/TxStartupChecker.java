@@ -3,18 +3,24 @@ package com.termux.sky;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.widget.Button;
 
 import androidx.core.content.ContextCompat;
+
+import com.termux.R;
 
 public class TxStartupChecker {
 
@@ -31,35 +37,46 @@ public class TxStartupChecker {
         this.activity = activity;
     }
 
-    /* START FLOW */
     public void startPermissionFlow() {
-
-//        Intent intent = new Intent(activity, WebViewPlayerActivity.class);
-//        intent.putExtra("url", "http://localhost:5350/play/143");
-//        activity.startActivity(intent);
-
         SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
         boolean isSetupDone = prefs.getBoolean("setup_done", false);
 
         if (isSetupDone) {
-//            checkOverlayPermission();
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (!activity.isFinishing() && !activity.isDestroyed()) {
+                    checkOverlayPermission();
+                }
+            }, 1000);
         } else {
             Log.d("SkyLog", "Setup not done, skipping permission flow");
-
         }
     }
 
-    /* ================= OVERLAY ================= */
+    private void applyCustomTheming(AlertDialog dialog) {
+        dialog.show();
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
-    private void checkOverlayPermission() {
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            checkStoragePermission();
-            return;
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(android.graphics.Color.WHITE);
+            posButton.setFocusable(true);
+            posButton.requestFocus();
         }
 
-        if (Settings.canDrawOverlays(activity)) {
-            Log.d("SkyLog", "Overlay granted");
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
+        }
+    }
+
+    /* ================= OVERLAY (WIZARD STYLE) ================= */
+
+    private void checkOverlayPermission() {
+        if (hasOverlayPermission()) {
             checkStoragePermission();
             return;
         }
@@ -76,22 +93,13 @@ public class TxStartupChecker {
     }
 
     private void showOverlayDialog(int cancelCount) {
-
         if (dialog != null && dialog.isShowing()) return;
 
-        dialog = new AlertDialog.Builder(activity)
-            .setTitle("Overlay Permission Required")
+        dialog = new AlertDialog.Builder(activity, R.style.GoldenFocusDialogTheme)
+            .setTitle("Overlay Permission")
             .setMessage("Required to run terminal sessions properly.")
             .setCancelable(false)
-
-            .setPositiveButton("Allow", (d, w) -> {
-                Intent intent = new Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + activity.getPackageName())
-                );
-                activity.startActivity(intent);
-            })
-
+            .setPositiveButton("Allow", (d, w) -> requestOverlay())
             .setNegativeButton("Cancel", (d, w) -> {
                 SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
                 prefs.edit().putInt(KEY_OVERLAY_CANCEL, cancelCount + 1).apply();
@@ -99,84 +107,113 @@ public class TxStartupChecker {
             })
             .create();
 
-        dialog.show();
+        applyCustomTheming(dialog);
     }
 
-    /* ================= STORAGE ================= */
+    private void requestOverlay() {
+        // Fallback sequence from SetupWizard
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivity(intent);
+        } catch (Exception e1) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                activity.startActivity(intent);
+            } catch (Exception e2) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + activity.getPackageName()));
+                    activity.startActivity(intent);
+                } catch (Exception e3) {
+                    Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                    activity.startActivity(intent);
+                }
+            }
+        }
+    }
+
+    /* ================= STORAGE (WIZARD STYLE) ================= */
 
     private void checkStoragePermission() {
+        if (hasStoragePermission()) return;
 
         SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
         int cancelCount = prefs.getInt(KEY_STORAGE_CANCEL, 0);
 
         if (cancelCount >= MAX_CANCELS) return;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-
-            if (Environment.isExternalStorageManager()) {
-                Log.d("SkyLog", "Storage granted");
-                return;
-            }
-
-            showStorageDialog(cancelCount);
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-            if (ContextCompat.checkSelfPermission(activity,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-
-            showStorageDialog(cancelCount);
-        }
+        showStorageDialog(cancelCount);
     }
 
     private void showStorageDialog(int cancelCount) {
-
         if (dialog != null && dialog.isShowing()) return;
 
-        dialog = new AlertDialog.Builder(activity)
-            .setTitle("Storage Permission Required")
+        dialog = new AlertDialog.Builder(activity, R.style.GoldenFocusDialogTheme)
+            .setTitle("Storage Permission")
             .setMessage("Needed to access Termux files.")
             .setCancelable(false)
-
-            .setPositiveButton("Allow", (d, w) -> {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    try {
-                        Intent intent = new Intent(
-                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                        intent.setData(Uri.parse("package:" + activity.getPackageName()));
-                        activity.startActivity(intent);
-                    } catch (Exception e) {
-                        Intent intent = new Intent(
-                            Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                        activity.startActivity(intent);
-                    }
-                } else {
-                    activity.requestPermissions(
-                        new String[]{
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        },
-                        101
-                    );
-                }
-            })
-
+            .setPositiveButton("Allow", (d, w) -> requestStorage())
             .setNegativeButton("Cancel", (d, w) -> {
                 SharedPreferences prefs = activity.getSharedPreferences(PREF, MODE_PRIVATE);
                 prefs.edit().putInt(KEY_STORAGE_CANCEL, cancelCount + 1).apply();
             })
             .create();
 
-        dialog.show();
+        applyCustomTheming(dialog);
     }
 
-    /* ================= RETURN FROM SETTINGS ================= */
+    @SuppressLint("ObsoleteSdkInt")
+    private void requestStorage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(intent);
+            } catch (Exception e) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    activity.startActivity(intent);
+                } catch (Exception ex) {
+                    openAppSettings();
+                }
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                activity.requestPermissions(new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                }, 101);
+            } catch (Exception e) {
+                openAppSettings();
+            }
+        }
+    }
+
+    /* ================= HELPERS ================= */
+
+    private boolean hasStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return android.os.Environment.isExternalStorageManager();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
+    private boolean hasOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.canDrawOverlays(activity);
+        }
+        return true;
+    }
+
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.parse("package:" + activity.getPackageName()));
+        activity.startActivity(intent);
+    }
 
     public void onResumeCheck() {
         startPermissionFlow();

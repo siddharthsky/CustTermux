@@ -1,4 +1,4 @@
-package com.termux.sky.tvhome;
+package com.termux.sky.tv_home_preview;
 
 import androidx.core.content.FileProvider;
 

@@ -11,10 +11,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.termux.R;
+import androidx.appcompat.widget.PopupMenu;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
+
+    private static final int MENU_LOGIN = 1;
+    private static final int MENU_UPDATE = 2;
+    private static final int MENU_SUPPORT = 3;
+    private static final int MENU_DELETE = 4;
 
     public interface OnDeleteClick {
         void onDelete(Plugin plugin, int position);
@@ -69,7 +77,6 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         h.playlist.setText(getDisplayName(current.playlist));
 
         new Thread(() -> {
-
             String checkUrl = (current.server_check_url != null && !current.server_check_url.isEmpty())
                 ? current.server_check_url
                 : current.playlist;
@@ -79,9 +86,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             ((Activity) ctx).runOnUiThread(() -> {
                 if (h.getAdapterPosition() != RecyclerView.NO_POSITION &&
                     list.get(h.getAdapterPosition()) == current) {
-
                     h.status.setText(run ? "Running" : "Stopped");
-//                    h.toggle.setText(run ? "Stop" : "Start");
                 }
             });
 
@@ -99,23 +104,11 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             Toast.makeText(ctx, "URL Copied", Toast.LENGTH_SHORT).show();
         });
 
-//        h.toggle.setOnClickListener(v -> {
-//            new Thread(() -> {
-//                boolean run = PluginUtils.isRunning(current.playlist);
-//
-//                if (!run) {
-//                    PluginUtils.run(current.start);
-//                } else {
-//                    PluginUtils.run("pkill -f " + current.port);
-//                }
-//            }).start();
-//        });
-
         if (current.login_url == null || current.login_url.trim().isEmpty()) {
             h.login.setVisibility(View.GONE);
+            h.login.setOnClickListener(null);
         } else {
             h.login.setVisibility(View.VISIBLE);
-
             h.login.setOnClickListener(v -> {
                 if (loginListener != null) {
                     loginListener.onLogin(current, h.getAdapterPosition());
@@ -123,51 +116,72 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             });
         }
 
-
-        if (Boolean.TRUE.equals(current.updatable)) {
-            h.update.setVisibility(View.VISIBLE);
-
-            h.update.setOnClickListener(v -> {
-                int position = h.getAdapterPosition();
-                if (updateListener != null && position != RecyclerView.NO_POSITION) {
-                    updateListener.onUpdate(current, position);
-                }
-            });
-
-        } else {
-            h.update.setVisibility(View.GONE);
-            h.update.setOnClickListener(null);
-        }
-
-
-
         h.watch.setOnClickListener(v -> {
             if (watchListener != null) {
                 watchListener.onWatch(current, h.getAdapterPosition());
             }
         });
 
+        h.settingsBtn.setOnClickListener(v -> {
 
-        boolean hasSupport = (current.support_url != null && !current.support_url.trim().isEmpty())
-            || (current.repo != null && !current.repo.trim().isEmpty());
+            Context wrapper = new ContextThemeWrapper(ctx, R.style.CustomPopupMenuTheme);
+            PopupMenu popup = new PopupMenu(wrapper, h.settingsBtn);
 
-        if (hasSupport) {
-            h.support.setVisibility(View.VISIBLE);
-            h.support.setOnClickListener(v -> {
-                if (supportListener != null) {
-                    supportListener.onSupport(current, pos);
+            try {
+                Field field = popup.getClass().getDeclaredField("mPopup");
+                field.setAccessible(true);
+                Object menuPopupHelper = field.get(popup);
+                Class<?> cls = Class.forName(menuPopupHelper.getClass().getName());
+                Method setForceIcons = cls.getMethod("setForceShowIcon", boolean.class);
+                setForceIcons.invoke(menuPopupHelper, true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (current.login_url != null && !current.login_url.trim().isEmpty()) {
+                popup.getMenu().add(Menu.NONE, MENU_LOGIN, 0, "Login")
+                    .setIcon(R.drawable.tx_passkey);
+            }
+
+            if (Boolean.TRUE.equals(current.updatable)) {
+                popup.getMenu().add(Menu.NONE, MENU_UPDATE, 1, "Update")
+                    .setIcon(R.drawable.tx_reload);
+            }
+
+            boolean hasSupport = (current.support_url != null && !current.support_url.trim().isEmpty())
+                || (current.repo != null && !current.repo.trim().isEmpty());
+
+            if (hasSupport) {
+                popup.getMenu().add(Menu.NONE, MENU_SUPPORT, 2, "Support")
+                    .setIcon(R.drawable.tx_support);
+            }
+
+            popup.getMenu().add(Menu.NONE, MENU_DELETE, 3, "Delete Plugin")
+                .setIcon(R.drawable.tx_del);
+
+            popup.setOnMenuItemClickListener(item -> {
+                int position = h.getAdapterPosition();
+                if (position == RecyclerView.NO_POSITION) return false;
+
+                switch (item.getItemId()) {
+                    case MENU_LOGIN:
+                        if (loginListener != null) loginListener.onLogin(current, position);
+                        return true;
+                    case MENU_UPDATE:
+                        if (updateListener != null) updateListener.onUpdate(current, position);
+                        return true;
+                    case MENU_SUPPORT:
+                        if (supportListener != null) supportListener.onSupport(current, position);
+                        return true;
+                    case MENU_DELETE:
+                        if (deleteListener != null) deleteListener.onDelete(current, position);
+                        return true;
+                    default:
+                        return false;
                 }
             });
-        } else {
-            h.support.setVisibility(View.GONE);
-            h.support.setOnClickListener(null);
-        }
 
-
-        h.delete.setOnClickListener(v -> {
-            if (deleteListener != null) {
-                deleteListener.onDelete(current, h.getAdapterPosition());
-            }
+            popup.show();
         });
     }
 
@@ -197,20 +211,18 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist;
-        ImageButton login, delete, update, support;
+        ImageButton login, settingsBtn;
         LinearLayout watch;
-
 
         VH(View v) {
             super(v);
             name = v.findViewById(R.id.pluginName);
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
-            login = v.findViewById(R.id.loginBtn);
-            update = v.findViewById(R.id.updateBtn);
             watch = v.findViewById(R.id.watchBtn);
-            support = v.findViewById(R.id.supportBtn);
-            delete = v.findViewById(R.id.deleteBtn);
+
+            login = v.findViewById(R.id.loginBtn);
+            settingsBtn = v.findViewById(R.id.settingsBtn);
         }
     }
 }

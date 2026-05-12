@@ -172,7 +172,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                 return true;
             } else if (id == R.id.menu_add_json) {
 
-                new AlertDialog.Builder(this)
+                new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
                     .setTitle("⚠ Security Warning")
                     .setMessage(
                         "JSON plugins can execute scripts and run commands on your device.\n\n" +
@@ -287,7 +287,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         container.addView(tapPrompt);
         container.addView(input);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("⚠ Experimental Plugins")
             .setMessage("This feature is for advanced users. If you don't know what this is, please cancel.")
             .setView(container)
@@ -364,7 +364,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         container.addView(input);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Add Plugin")
             .setView(container)
             .setPositiveButton("Load", null)
@@ -643,7 +643,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     private void restart_request(PluginManagerActivity activity) {
         SharedPreferences settings = activity.getSharedPreferences("settings", MODE_PRIVATE);
         settings.edit().putBoolean("plugin_restart", true).apply();
-        
+
         runOnUiThread(this::checkRestartRequired);
     }
 
@@ -787,7 +787,7 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void deletePlugin(Plugin plugin, int position) {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Delete Plugin")
             .setMessage("Are you sure you want to remove the plugin: " + plugin.title + "?")
             .setPositiveButton("Delete", (d, w) -> {
@@ -836,7 +836,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void loginPlugin(Plugin plugin, int position) {
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Open Login Web Page?")
             .setMessage("URL: " + plugin.login_url)
             .setPositiveButton("Open", (d, w) -> {
@@ -852,7 +852,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void updatePlugin(Plugin plugin, int position) {
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Update Plugin?")
             .setMessage(plugin.title + " on port " + plugin.port)
             .setPositiveButton("Update", (d, w) -> {
@@ -884,6 +884,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                     }
                 }
 
+                restart_request(this);
 
                 Intent intent = new Intent();
                 intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
@@ -940,7 +941,7 @@ public class PluginManagerActivity extends AppCompatActivity {
             ? "Get support for " + plugin.title + " on GitHub."
             : "Open support page for " + plugin.title + "?";
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle(title)
             .setMessage(msg)
             .setPositiveButton("Open", (d, w) -> {
@@ -1079,7 +1080,7 @@ public class PluginManagerActivity extends AppCompatActivity {
             layout.addView(progressBar);
             layout.addView(progressText);
 
-            progressDialog = new AlertDialog.Builder(this)
+            progressDialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
                 .setTitle(title)
                 .setView(layout)
                 .setCancelable(false)
@@ -1121,7 +1122,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         input.setHint("https://example.com/playlist.m3u");
         input.setPadding(50, 20, 50, 20);
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Add M3U URL")
             .setMessage("Enter the playlist URL or select a file:")
             .setView(input)
@@ -1210,7 +1211,7 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             boolean hasData = false;
-            String errorMsg = null; // Track the exact error so we stop guessing
+            String errorMsg = null;
 
             try {
                 InputStream is = null;

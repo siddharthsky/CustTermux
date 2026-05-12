@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Left side content: Name, Status, Playlist -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,7 +50,6 @@
                 android:padding="2dp" />
         </LinearLayout>
 
-        <!-- Top Right Corner Button Container -->
         <LinearLayout
             android:id="@+id/buttonContainer"
             android:layout_width="wrap_content"
@@ -62,31 +60,17 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/updateBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/img_btn_selector"
-                android:contentDescription="Reload"
-                android:focusable="true"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/tx_reload"
-                android:tooltipText="Reload" />
-
-            <ImageButton
                 android:id="@+id/loginBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:background="@drawable/img_btn_selector"
                 android:contentDescription="Login"
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/tx_passkey"
-                android:tooltipText="Login to Service"/>
-
-        </LinearLayout>
+                android:tooltipText="Login to Service"
+                android:visibility="gone" /> </LinearLayout>
 
     </RelativeLayout>
 
@@ -141,33 +125,18 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/supportBtn"
+                android:id="@+id/settingsBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/img_btn_selector"
-                android:contentDescription="Support"
+                android:contentDescription="More Options"
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/tx_support"
-                android:tooltipText="Plugin Support" />
-
-            <ImageButton
-                android:id="@+id/deleteBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/img_btn_selector"
-                android:contentDescription="Delete"
-                android:focusable="true"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/tx_del"
-                android:tooltipText="Delete Plugin"/>
+                android:src="@drawable/tx_m_more"
+                android:tooltipText="Settings" />
 
         </LinearLayout>
-
-
 
     </LinearLayout>
 

@@ -1,4 +1,4 @@
-package com.termux.sky.tvhome;
+package com.termux.sky.tv_home_preview;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -21,8 +21,8 @@ public class TvHomeScreenHelper {
 
     public static long createPreviewChannel(Context context) {
         android.content.ContentValues values = new android.content.ContentValues();
-        values.put(TvContractCompat.Channels.COLUMN_DISPLAY_NAME, "Currently Playing");
-        values.put(TvContractCompat.Channels.COLUMN_DESCRIPTION, "Recently watched channels");
+        values.put(TvContractCompat.Channels.COLUMN_DISPLAY_NAME, "Recent Channels");
+        values.put(TvContractCompat.Channels.COLUMN_DESCRIPTION, "Continue watching channels");
 
         Intent appLaunchIntent = new Intent(context, HanaPlayerActivity.class);
         appLaunchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

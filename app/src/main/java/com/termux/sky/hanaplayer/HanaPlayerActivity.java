@@ -8,7 +8,6 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -17,7 +16,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -664,7 +662,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         PlaylistManager.currentList = displayList;
         PlaylistManager.currentIndex = displayList.indexOf(channel);
 
-        com.termux.sky.tvhome.RecentChannelsManager.addChannelToHome(this, channel);
+        com.termux.sky.tv_home_preview.RecentChannelsManager.addChannelToHome(this, channel);
 
         String activePort = channel.originPort;
         if (activePort == null || channel.url.contains("5007")) {

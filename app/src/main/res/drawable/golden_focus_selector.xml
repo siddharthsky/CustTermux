@@ -7,13 +7,13 @@
         </shape>
     </item>
 
-    <item android:state_pressed="true">
-        <shape>
-            <solid android:color="#44FFFFFF"/>
-            <stroke android:width="3dp" android:color="#FFD700" />
-            <corners android:radius="4dp" />
-        </shape>
-    </item>
+<!--    <item android:state_pressed="true">-->
+<!--        <shape>-->
+<!--            <solid android:color="#44FFFFFF"/>-->
+<!--            <stroke android:width="3dp" android:color="#FFD700" />-->
+<!--            <corners android:radius="4dp" />-->
+<!--        </shape>-->
+<!--    </item>-->
 
     <item>
         <shape>
