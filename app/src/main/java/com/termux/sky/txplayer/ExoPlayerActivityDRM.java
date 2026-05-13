@@ -453,6 +453,14 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 }
             });
 
+            player.setAudioAttributes(
+                new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MOVIE)
+                    .build(),
+                true
+            );
+
             playerView.setPlayer(player);
         }
 
@@ -492,6 +500,15 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         super.onDestroy();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (playerView != null && playerView.isControllerVisible()) {
+            playerView.hideController();
+            return;
+        }
+        super.onBackPressed();
+    }
+
     private void killExoPlayer() {
         if (player != null) {
             player.stop();
@@ -507,6 +524,13 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
             showSettingsMenu();
             return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (playerView != null && playerView.isControllerVisible()) {
+                playerView.hideController();
+                return true;
+            }
         }
 
         if (playerView != null && !playerView.isControllerVisible()) {

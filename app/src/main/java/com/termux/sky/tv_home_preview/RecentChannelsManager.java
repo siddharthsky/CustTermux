@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.util.Log;
+
 import androidx.tvprovider.media.tv.TvContractCompat;
 import com.termux.sky.txplayer.ChannelModel;
 
@@ -16,51 +18,57 @@ public class RecentChannelsManager {
 
     public static void addChannelToHome(final Context context, final ChannelModel channel) {
         new Thread(() -> {
-            long channelId = getOrCreateChannel(context);
-            if (channelId == -1) return;
+            try {
+                long channelId = getOrCreateChannel(context);
+                if (channelId == -1) return;
 
-            ContentResolver resolver = context.getContentResolver();
+                ContentResolver resolver = context.getContentResolver();
 
-            Uri channelUri = TvContractCompat.buildPreviewProgramsUriForChannel(channelId);
-            String[] projection = {BaseColumns._ID, TvContractCompat.PreviewPrograms.COLUMN_TITLE};
+                Uri channelUri = TvContractCompat.buildPreviewProgramsUriForChannel(channelId);
+                String[] projection = {BaseColumns._ID, TvContractCompat.PreviewPrograms.COLUMN_TITLE};
 
-            Cursor cursor = resolver.query(channelUri, projection, null, null, null);
-            if (cursor != null) {
-                try {
-                    while (cursor.moveToNext()) {
-                        String existingTitle = cursor.getString(cursor.getColumnIndexOrThrow(TvContractCompat.PreviewPrograms.COLUMN_TITLE));
-                        if (channel.name != null && channel.name.equals(existingTitle)) {
-                            long internalId = cursor.getLong(cursor.getColumnIndexOrThrow(BaseColumns._ID));
-                            resolver.delete(TvContractCompat.buildPreviewProgramUri(internalId), null, null);
+                Cursor cursor = resolver.query(channelUri, projection, null, null, null);
+                if (cursor != null) {
+                    try {
+                        while (cursor.moveToNext()) {
+                            String existingTitle = cursor.getString(cursor.getColumnIndexOrThrow(TvContractCompat.PreviewPrograms.COLUMN_TITLE));
+                            if (channel.name != null && channel.name.equals(existingTitle)) {
+                                long internalId = cursor.getLong(cursor.getColumnIndexOrThrow(BaseColumns._ID));
+                                resolver.delete(TvContractCompat.buildPreviewProgramUri(internalId), null, null);
+                            }
                         }
+                    } finally {
+                        cursor.close();
                     }
-                } finally {
-                    cursor.close();
                 }
+
+                String deepLink = "hanaplayer://play?" +
+                    "url=" + Uri.encode(channel.url) +
+                    "&name=" + Uri.encode(channel.name) +
+                    "&license=" + Uri.encode(channel.licenseKey != null ? channel.licenseKey : "") +
+                    "&user_agent=" + Uri.encode(channel.userAgent != null ? channel.userAgent : "");
+
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_CHANNEL_ID, channelId);
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_TITLE, channel.name);
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_INTENT_URI, deepLink);
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_TYPE, TvContractCompat.PreviewPrograms.TYPE_CHANNEL);
+
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_ASPECT_RATIO, TvContractCompat.PreviewPrograms.ASPECT_RATIO_4_3);
+
+                values.put("weight", (int) (System.currentTimeMillis() / 1000));
+                values.put("last_engagement_time_utc_millis", System.currentTimeMillis());
+
+                values.put(TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_URI, channel.logo);
+
+                resolver.insert(TvContractCompat.PreviewPrograms.CONTENT_URI, values);
+                pruneOldPrograms(context, channelId);
+
+            } catch (IllegalArgumentException e) {
+                Log.e("TV_HOME", "Unknown URL: device likely missing TvProvider", e);
+            } catch (Exception e) {
+                Log.e("TV_HOME", "Error adding channel to home screen", e);
             }
-
-            String deepLink = "hanaplayer://play?" +
-                "url=" + Uri.encode(channel.url) +
-                "&name=" + Uri.encode(channel.name) +
-                "&license=" + Uri.encode(channel.licenseKey != null ? channel.licenseKey : "") +
-                "&user_agent=" + Uri.encode(channel.userAgent != null ? channel.userAgent : "");
-
-            android.content.ContentValues values = new android.content.ContentValues();
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_CHANNEL_ID, channelId);
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_TITLE, channel.name);
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_INTENT_URI, deepLink);
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_TYPE, TvContractCompat.PreviewPrograms.TYPE_CHANNEL);
-
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_ASPECT_RATIO, TvContractCompat.PreviewPrograms.ASPECT_RATIO_4_3);
-
-            values.put("weight", (int) (System.currentTimeMillis() / 1000));
-            values.put("last_engagement_time_utc_millis", System.currentTimeMillis());
-
-            values.put(TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_URI, channel.logo);
-
-            resolver.insert(TvContractCompat.PreviewPrograms.CONTENT_URI, values);
-            pruneOldPrograms(context, channelId);
-
         }).start();
     }
 

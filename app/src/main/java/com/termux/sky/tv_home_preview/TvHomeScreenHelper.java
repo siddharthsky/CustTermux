@@ -1,6 +1,7 @@
 package com.termux.sky.tv_home_preview;
 
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,32 +21,39 @@ import com.termux.sky.hanaplayer.HanaPlayerActivity;
 public class TvHomeScreenHelper {
 
     public static long createPreviewChannel(Context context) {
-        android.content.ContentValues values = new android.content.ContentValues();
-        values.put(TvContractCompat.Channels.COLUMN_DISPLAY_NAME, "Recent Channels");
-        values.put(TvContractCompat.Channels.COLUMN_DESCRIPTION, "Continue watching channels");
+        if (context.getPackageManager().resolveContentProvider(TvContractCompat.AUTHORITY, 0) == null) {
+            Log.w("TV_HOME", "TvProvider not found. This device likely doesn't support TV Channels.");
+            return -1;
+        }
 
-        Intent appLaunchIntent = new Intent(context, HanaPlayerActivity.class);
-        appLaunchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        try {
+            ContentValues values = new ContentValues();
+            values.put(TvContractCompat.Channels.COLUMN_DISPLAY_NAME, "Recent Channels");
+            values.put(TvContractCompat.Channels.COLUMN_DESCRIPTION, "Continue watching channels");
 
-        String intentUriString = appLaunchIntent.toUri(Intent.URI_INTENT_SCHEME);
+            Intent appLaunchIntent = new Intent(context, HanaPlayerActivity.class);
+            appLaunchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            String intentUriString = appLaunchIntent.toUri(Intent.URI_INTENT_SCHEME);
 
-        values.put(TvContractCompat.Channels.COLUMN_APP_LINK_INTENT_URI, intentUriString);
+            values.put(TvContractCompat.Channels.COLUMN_APP_LINK_INTENT_URI, intentUriString);
+            values.put(TvContractCompat.Channels.COLUMN_TYPE, TvContractCompat.Channels.TYPE_PREVIEW);
 
+            Uri channelUri = context.getContentResolver().insert(
+                TvContractCompat.Channels.CONTENT_URI,
+                values
+            );
 
-        values.put(TvContractCompat.Channels.COLUMN_TYPE, TvContractCompat.Channels.TYPE_PREVIEW);
+            if (channelUri == null) return -1;
 
-        Uri channelUri = context.getContentResolver().insert(
-            TvContractCompat.Channels.CONTENT_URI,
-            values
-        );
+            long channelId = ContentUris.parseId(channelUri);
+            writeChannelLogo(context, channelId);
+            TvContractCompat.requestChannelBrowsable(context, channelId);
 
-        long channelId = ContentUris.parseId(channelUri);
-
-        writeChannelLogo(context, channelId);
-
-        TvContractCompat.requestChannelBrowsable(context, channelId);
-
-        return channelId;
+            return channelId;
+        } catch (Exception e) {
+            Log.e("TV_HOME", "Failed to create preview channel", e);
+            return -1;
+        }
     }
 
     private static void writeChannelLogo(Context context, long channelId) {

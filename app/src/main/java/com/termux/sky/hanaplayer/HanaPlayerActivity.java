@@ -11,17 +11,23 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -75,12 +81,47 @@ public class HanaPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         isLaunch = prefs.getBoolean("auto_launch_channel", false);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.parseColor("#0E1628"));
+
+        root.setLayoutParams(new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+
+        try {
+            Window window = getWindow();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                window.getAttributes().layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            }
+
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+
+            WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(window, window.getDecorView());
+
+            if (controller != null) {
+                controller.hide(WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.navigationBars());
+                controller.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                );
+            }
+
+            ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+                // for status bar area
+                return insets;
+            });
+
+        } catch (Exception e) {
+            Log.d("HANA_PLAYER", "SystemUI flags error");
+        }
+
+        setContentView(root);
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
@@ -662,7 +703,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         PlaylistManager.currentList = displayList;
         PlaylistManager.currentIndex = displayList.indexOf(channel);
 
-        com.termux.sky.tv_home_preview.RecentChannelsManager.addChannelToHome(this, channel);
+        if (isTv(this)) {
+            com.termux.sky.tv_home_preview.RecentChannelsManager.addChannelToHome(this, channel);
+        }
 
         String activePort = channel.originPort;
         if (activePort == null || channel.url.contains("5007")) {
@@ -682,6 +725,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
         startActivity(intent);
 
 //        Toast.makeText(this, "Playing: " + channel.name, Toast.LENGTH_SHORT).show();
+    }
+
+    public static boolean isTv(Context context) {
+        android.app.UiModeManager uiModeManager = (android.app.UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
+        return uiModeManager.getCurrentModeType() == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION;
     }
 
     private void onChannelLongClick(ChannelModel channel) {

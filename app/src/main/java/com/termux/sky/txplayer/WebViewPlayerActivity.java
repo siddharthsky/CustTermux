@@ -39,7 +39,13 @@ public class WebViewPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        try {
+            getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        } catch (Exception e) {
+            Log.d("DRM_PLAYER_WEB", "SystemUI flags error");
+        }
+
         webView = new WebView(this);
         setContentView(webView);
         hideSystemUI();
