@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -637,15 +638,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
-private final Runnable refreshRunnable = new Runnable() {
-    @Override
-    public void run() {
-        updateIpAddress();
-        updatePermissionStatus();
+    private final Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateIpAddress();
+            updatePermissionStatus();
 
-        handler.postDelayed(this, 2000); // refresh every 2 sec
-    }
-};
+            boolean alreadyDone = getSharedPreferences("settings", MODE_PRIVATE)
+                .getBoolean("setup_done_permanently", false);
+
+            if (!alreadyDone) {
+                boolean justFinished = checkSetupDone();
+
+                if (justFinished) {
+                    Log.d(LOG_TAG, "Setup just finished! Stopping setup check.");
+                }
+            }
+
+            handler.postDelayed(this, 2000);
+        }
+    };
 
     private void updateIpAddress() {
         try {
@@ -760,6 +772,8 @@ private final Runnable refreshRunnable = new Runnable() {
 
         hanaPlayerViz();
 
+        checkSetupDone();
+
         checkRestartRequired();
 
         File homeDir = new File(getFilesDir(), "home");
@@ -815,11 +829,36 @@ private final Runnable refreshRunnable = new Runnable() {
         mIsOnResumeAfterOnCreate = false;
     }
 
+    private boolean checkSetupDone() {
+        File homeDir = new File(getFilesDir(), "home");
+        File ctxFile = new File(homeDir, ".CTxEngine");
+
+        if (ctxFile.exists()) {
+            restartBanner.setVisibility(View.GONE);
+            Log.d("TxActivity", "Setup confirmed: Marker file found.");
+
+            getSharedPreferences("settings", MODE_PRIVATE)
+                .edit()
+                .putBoolean("setup_done_permanently", true)
+                .apply();
+
+            return true;
+        } else {
+            restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_notice_bg));
+            restartBanner.setText("Initial setup in progress: Downloading dependencies and configuring environment...");
+            restartBanner.setVisibility(View.VISIBLE);
+            return false;
+        }
+    }
+
+
     private void checkRestartRequired() {
         SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
         boolean needsRestart = settings.getBoolean("plugin_restart", false);
 
         if (needsRestart) {
+            restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_warning_bg));
+            restartBanner.setText("Action Required: Please restart the server for changes to take effect.");
             restartBanner.setVisibility(View.VISIBLE);
         } else {
             restartBanner.setVisibility(View.GONE);

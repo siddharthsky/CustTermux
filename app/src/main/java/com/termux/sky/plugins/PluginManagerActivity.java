@@ -32,6 +32,7 @@ import androidx.activity.result.*;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.*;
 
 import com.termux.R;
@@ -150,6 +151,8 @@ public class PluginManagerActivity extends AppCompatActivity {
         boolean needsRestart = settings.getBoolean("plugin_restart", false);
 
         if (needsRestart) {
+            restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_warning_bg));
+            restartBanner.setText("Action Required: Please restart the server for changes to take effect.");
             restartBanner.setVisibility(View.VISIBLE);
         } else {
             restartBanner.setVisibility(View.GONE);

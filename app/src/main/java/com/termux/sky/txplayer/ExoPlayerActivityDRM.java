@@ -683,7 +683,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         String[] options = {"⚙️ Video Quality", "🎵 Audio Track", "📺 Screen Scale"};
 
-        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Player Settings")
             .setItems(options, (dialog, which) -> {
                 switch (which) {
@@ -725,7 +725,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         builder.setAllowAdaptiveSelections(false);
         builder.setShowDisableOption(true);
-        builder.setTheme(android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTheme(R.style.GoldenFocusDialogTheme);
 
         Dialog dialog = builder.build();
 
@@ -805,7 +805,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         final int finalRendererIndex = rendererIndex;
         String[] options = trackNames.toArray(new String[0]);
 
-        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Select Video Quality")
             .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
                 DefaultTrackSelector.ParametersBuilder builder = trackSelector.buildUponParameters();
@@ -843,7 +843,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private void showScreenScaleMenu() {
         String[] options = {"Fit (Default)", "Stretch (Fill Screen)", "Zoom (Crop to Fit)"};
-        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Screen Scale")
             .setItems(options, (dialog, which) -> {
                 int mode = AspectRatioFrameLayout.RESIZE_MODE_FIT;

@@ -69,6 +69,12 @@
         <item name="android:textColorAlertDialogListItem">#FFFFFF</item>
         <item name="android:listChoiceBackgroundIndicator">@drawable/golden_focus_selector</item>
 
+        <item name="android:listSelector">@drawable/golden_focus_selector</item>
+        <item name="android:drawSelectorOnTop">true</item>
+
+        <item name="selectableItemBackground">@drawable/golden_focus_selector</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/golden_focus_selector</item>
+
         <item name="buttonBarPositiveButtonStyle">@style/GoldenDialogButtonStyle</item>
         <item name="buttonBarNegativeButtonStyle">@style/GoldenDialogButtonStyle</item>
         <item name="buttonBarNeutralButtonStyle">@style/GoldenDialogButtonStyle</item>

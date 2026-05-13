@@ -101,7 +101,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 
             ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("url", current.playlist));
-            Toast.makeText(ctx, "URL Copied", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, "Playlist URL Copied", Toast.LENGTH_SHORT).show();
         });
 
         if (current.login_url == null || current.login_url.trim().isEmpty()) {

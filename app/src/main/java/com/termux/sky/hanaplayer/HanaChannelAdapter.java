@@ -49,14 +49,13 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         float density = ctx.getResources().getDisplayMetrics().density;
 
-        int marginPx = (int) (8 * density);      // Outer card margin
-        int paddingPx = (int) (12 * density);    // Inner card padding
+        int marginPx = (int) (4 * density);      // Outer card margin
+        int paddingPx = (int) (12 * density);    // Inner content padding
         int imgHeightPx = (int) (80 * density);  // Image container height
         int logoPaddingPx = (int) (4 * density); // Padding around the channel logo
         int favIconSizePx = (int) (24 * density); // Favorite star icon size
         int textTopPaddingPx = (int) (8 * density); // Gap between logo and text
 
-        // --- Create Programmatic Card Layout ---
         CardView card = new CardView(ctx);
         RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -75,9 +74,19 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         card.setClickable(true);
         card.setLongClickable(true);
 
+        FrameLayout rootFrame = new FrameLayout(ctx);
+        rootFrame.setLayoutParams(new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
         LinearLayout layout = new LinearLayout(ctx);
+        layout.setLayoutParams(new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+        layout.setPadding(paddingPx, paddingPx, paddingPx, paddingPx); // The padding stays here!
         layout.setGravity(Gravity.CENTER);
 
         FrameLayout imageContainer = new FrameLayout(ctx);
@@ -96,21 +105,10 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         logo.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         logo.setPadding(logoPaddingPx, logoPaddingPx, logoPaddingPx, logoPaddingPx);
 
-        ImageView favIcon = new ImageView(ctx);
-        FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(favIconSizePx, favIconSizePx);
-        favParams.gravity = Gravity.TOP | Gravity.END;
-        favIcon.setLayoutParams(favParams);
-        favIcon.setImageResource(R.drawable.tx_star);
-        favIcon.setColorFilter(Color.parseColor("#FFD700"));
-        favIcon.setAlpha(0.9f);
-        favIcon.setVisibility(View.GONE);
-
         imageContainer.addView(logo);
-        imageContainer.addView(favIcon);
 
         TextView name = new TextView(ctx);
         name.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
         name.setPadding(0, textTopPaddingPx, 0, 0);
         name.setTextSize(14);
         name.setTextColor(Color.WHITE);
@@ -119,7 +117,25 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         layout.addView(imageContainer);
         layout.addView(name);
-        card.addView(layout);
+
+        ImageView favIcon = new ImageView(ctx);
+        FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(favIconSizePx, favIconSizePx);
+        favParams.gravity = Gravity.TOP | Gravity.END;
+
+        int cornerGap = (int) (6 * density);
+        favParams.topMargin = cornerGap;
+        favParams.rightMargin = cornerGap;
+
+        favIcon.setLayoutParams(favParams);
+        favIcon.setImageResource(R.drawable.tx_star);
+        favIcon.setColorFilter(Color.parseColor("#FFD700"));
+        favIcon.setAlpha(0.9f);
+        favIcon.setVisibility(View.GONE);
+
+        rootFrame.addView(layout);
+        rootFrame.addView(favIcon);
+
+        card.addView(rootFrame);
 
         return new VH(card, logo, name, favIcon);
     }

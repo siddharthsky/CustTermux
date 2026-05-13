@@ -133,7 +133,7 @@
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/tx_m_more"
+                android:src="@drawable/tx_more_"
                 android:tooltipText="Settings" />
 
         </LinearLayout>
