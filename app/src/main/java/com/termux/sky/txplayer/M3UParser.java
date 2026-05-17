@@ -2,6 +2,15 @@ package com.termux.sky.txplayer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -15,8 +24,6 @@ public class M3UParser {
     public static List<ChannelModel> parse(String content) {
         List<ChannelModel> channels = new ArrayList<>();
 
-        // Regex split: Splits at #EXTINF but keeps the delimiter.
-        // This handles messy formatting where URLs and Tags are on the same line.
         String[] blocks = content.split("(?=#EXTINF)");
 
         for (String block : blocks) {
@@ -30,20 +37,14 @@ public class M3UParser {
                 line = line.trim();
 
                 if (line.startsWith("#EXTINF")) {
-                    // Extract name (everything after the last comma)
                     if (line.contains(",")) {
                         current.name = line.substring(line.lastIndexOf(",") + 1).trim();
                     }
-
-                    // Extract Standard Attributes
                     current.id = getAttribute(line, "tvg-id");
                     current.logo = getAttribute(line, "tvg-logo");
                     current.group = getAttribute(line, "group-title");
-
-                    // Extract Extended Attributes
                     current.language = getAttribute(line, "tvg-language");
                     current.type = getAttribute(line, "tvg-type");
-
                 } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_type")) {
                     current.licenseType = getValue(line);
                 } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) {
@@ -53,12 +54,10 @@ public class M3UParser {
                 } else if (line.startsWith("#EXTVLCOPT:http-user-agent")) {
                     current.userAgent = getValue(line);
                 } else if (line.startsWith("http")) {
-                    // Captures the full URL (including pipe-delimited headers)
                     current.url = line;
                 }
             }
 
-            // Only add if we actually found a stream URL
             if (current.url != null && !current.url.isEmpty()) {
                 channels.add(current);
             }
@@ -74,15 +73,15 @@ public class M3UParser {
     }
 
     private static String getAttribute(String line, String key) {
-        // Regex to find key="value"
         Pattern pattern = Pattern.compile(key + "=\"(.*?)\"");
         Matcher matcher = pattern.matcher(line);
         return matcher.find() ? matcher.group(1) : "";
     }
 
-    /**
-     * Saves the list of channels to SharedPreferences.
-     */
+    // ==========================================
+    // SHAREDPREFERENCES
+    // ==========================================
+
     public static void saveToPrefs(Context context, String port, List<ChannelModel> channels) {
         SharedPreferences prefs = context.getSharedPreferences("port_" + port, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -100,31 +99,20 @@ public class M3UParser {
             editor.putString(prefix + "group", ch.group);
             editor.putString(prefix + "lang", ch.language);
             editor.putString(prefix + "type", ch.type);
-
-            // DRM Info
             editor.putString(prefix + "lic_type", ch.licenseType);
             editor.putString(prefix + "lic_key", ch.licenseKey);
             editor.putString(prefix + "man_type", ch.manifestType);
             editor.putString(prefix + "ua", ch.userAgent);
-
             editor.putBoolean(prefix + "is_fav", ch.isFavorite);
         }
-
         editor.apply();
     }
 
-    /**
-     * Checks if data for a specific port already exists in SharedPreferences.
-     */
     public static boolean existsInPrefs(Context context, String port) {
         SharedPreferences prefs = context.getSharedPreferences("port_" + port, Context.MODE_PRIVATE);
-        // If "count" exists and is greater than 0, we have data.
         return prefs.contains("count") && prefs.getInt("count", 0) > 0;
     }
 
-    /**
-     * Retrieves the list of channels from SharedPreferences.
-     */
     public static List<ChannelModel> getFromPrefs(Context context, String port) {
         List<ChannelModel> channels = new ArrayList<>();
         SharedPreferences prefs = context.getSharedPreferences("port_" + port, Context.MODE_PRIVATE);
@@ -142,16 +130,12 @@ public class M3UParser {
             ch.group = prefs.getString(prefix + "group", "");
             ch.language = prefs.getString(prefix + "lang", "");
             ch.type = prefs.getString(prefix + "type", "");
-
-            // DRM Info
             ch.licenseType = prefs.getString(prefix + "lic_type", "");
             ch.licenseKey = prefs.getString(prefix + "lic_key", "");
             ch.manifestType = prefs.getString(prefix + "man_type", "");
             ch.userAgent = prefs.getString(prefix + "ua", "");
-
             ch.isFavorite = prefs.getBoolean(prefix + "is_fav", false);
 
-            // Safety check: ensure we don't add empty/broken records
             if (ch.url != null && !ch.url.isEmpty()) {
                 channels.add(ch);
             }
@@ -159,4 +143,91 @@ public class M3UParser {
         return channels;
     }
 
+    // ==========================================
+    // JSON FILE CACHE
+    // ==========================================
+
+    public static boolean existsInCache(Context context, String port) {
+        File file = new File(context.getCacheDir(), "playlist_" + port + ".json");
+        return file.exists();
+    }
+
+    public static void saveToCache(Context context, String port, List<ChannelModel> channels) {
+        File file = new File(context.getCacheDir(), "playlist_" + port + ".json");
+
+        try (FileWriter writer = new FileWriter(file)) {
+            JSONArray array = new JSONArray();
+            for (ChannelModel ch : channels) {
+                JSONObject obj = new JSONObject();
+                obj.put("name", ch.name != null ? ch.name : "");
+                obj.put("id", ch.id != null ? ch.id : "");
+                obj.put("url", ch.url != null ? ch.url : "");
+                obj.put("logo", ch.logo != null ? ch.logo : "");
+                obj.put("group", ch.group != null ? ch.group : "");
+                obj.put("lang", ch.language != null ? ch.language : "");
+                obj.put("type", ch.type != null ? ch.type : "");
+                obj.put("originPort", ch.originPort != null ? ch.originPort : "");
+
+                // DRM Info
+                obj.put("lic_type", ch.licenseType != null ? ch.licenseType : "");
+                obj.put("lic_key", ch.licenseKey != null ? ch.licenseKey : "");
+                obj.put("man_type", ch.manifestType != null ? ch.manifestType : "");
+                obj.put("ua", ch.userAgent != null ? ch.userAgent : "");
+
+                obj.put("is_fav", ch.isFavorite);
+
+                array.put(obj);
+            }
+            writer.write(array.toString());
+        } catch (Exception e) {
+            Log.e("M3UParser", "Error saving playlist cache", e);
+        }
+    }
+
+    public static List<ChannelModel> getFromCache(Context context, String port) {
+        List<ChannelModel> channels = new ArrayList<>();
+        File file = new File(context.getCacheDir(), "playlist_" + port + ".json");
+
+        if (!file.exists()) return channels;
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line);
+                }
+            }
+
+            JSONArray array = new JSONArray(sb.toString());
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                ChannelModel ch = new ChannelModel();
+
+                ch.name = obj.optString("name", "");
+                ch.id = obj.optString("id", "");
+                ch.url = obj.optString("url", "");
+                ch.logo = obj.optString("logo", "");
+                ch.group = obj.optString("group", "");
+                ch.language = obj.optString("lang", "");
+                ch.type = obj.optString("type", "");
+                ch.originPort = obj.optString("originPort", "");
+
+                // DRM Info
+                ch.licenseType = obj.optString("lic_type", "");
+                ch.licenseKey = obj.optString("lic_key", "");
+                ch.manifestType = obj.optString("man_type", "");
+                ch.userAgent = obj.optString("ua", "");
+
+                ch.isFavorite = obj.optBoolean("is_fav", false);
+
+                if (ch.url != null && !ch.url.isEmpty()) {
+                    channels.add(ch);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("M3UParser", "Error reading playlist cache", e);
+        }
+        return channels;
+    }
 }

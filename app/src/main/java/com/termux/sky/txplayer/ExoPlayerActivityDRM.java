@@ -298,6 +298,27 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         final int myZapToken = currentZapToken;
 
         currentCheckThread = new Thread(() -> {
+
+            if (true) { //skipping check
+                runOnUiThread(() -> {
+                    if (myZapToken != currentZapToken) return;
+                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                });
+                return;
+            }
+
+            boolean isLocalPlugin = videoUrl.contains("127.0.0.1") || videoUrl.contains("localhost") || videoUrl.contains("5007");
+
+            if (!isLocalPlugin) {
+                runOnUiThread(() -> {
+                    if (myZapToken != currentZapToken) return;
+                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                });
+                return;
+            }
+
             // 1. Initial Ping
             int initialCode = pingUrl(videoUrl, userAgent, origin, referer);
             boolean isAlive = (initialCode >= 200 && initialCode < 400);
