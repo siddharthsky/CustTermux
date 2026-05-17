@@ -9,6 +9,10 @@ import android.util.Log;
 
 import androidx.tvprovider.media.tv.TvContractCompat;
 import com.termux.sky.txplayer.ChannelModel;
+import com.termux.sky.txplayer.ExoPlayerActivityDRM;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecentChannelsManager {
 
@@ -46,7 +50,8 @@ public class RecentChannelsManager {
                     "url=" + Uri.encode(channel.url) +
                     "&name=" + Uri.encode(channel.name) +
                     "&license=" + Uri.encode(channel.licenseKey != null ? channel.licenseKey : "") +
-                    "&user_agent=" + Uri.encode(channel.userAgent != null ? channel.userAgent : "");
+                    "&user_agent=" + Uri.encode(channel.userAgent != null ? channel.userAgent : "") +
+                    "&playlist_type=recents";
 
                 android.content.ContentValues values = new android.content.ContentValues();
                 values.put(TvContractCompat.PreviewPrograms.COLUMN_CHANNEL_ID, channelId);
@@ -100,5 +105,51 @@ public class RecentChannelsManager {
                 cursor.close();
             }
         }
+    }
+
+    public static List<ChannelModel> getRecentChannels(Context context) {
+        List<ChannelModel> recentList = new ArrayList<>();
+        try {
+            long channelId = getOrCreateChannel(context);
+            if (channelId == -1) return recentList;
+
+            ContentResolver resolver = context.getContentResolver();
+            Uri channelUri = TvContractCompat.buildPreviewProgramsUriForChannel(channelId);
+
+            String[] projection = {
+                TvContractCompat.PreviewPrograms.COLUMN_INTENT_URI,
+                TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_URI
+            };
+
+            Cursor cursor = resolver.query(channelUri, projection, null, null, "weight DESC");
+
+            if (cursor != null) {
+                try {
+                    while (cursor.moveToNext()) {
+                        String intentUriString = cursor.getString(cursor.getColumnIndexOrThrow(TvContractCompat.PreviewPrograms.COLUMN_INTENT_URI));
+                        String logoUri = cursor.getString(cursor.getColumnIndexOrThrow(TvContractCompat.PreviewPrograms.COLUMN_POSTER_ART_URI));
+
+                        if (intentUriString != null) {
+                            Uri parsedUri = Uri.parse(intentUriString);
+                            ChannelModel model = new ChannelModel();
+                            model.url = parsedUri.getQueryParameter("url");
+                            model.name = parsedUri.getQueryParameter("name");
+                            model.licenseKey = parsedUri.getQueryParameter("license");
+                            model.userAgent = parsedUri.getQueryParameter("user_agent");
+                            model.logo = logoUri;
+
+                            if (model.url != null) {
+                                recentList.add(model);
+                            }
+                        }
+                    }
+                } finally {
+                    cursor.close();
+                }
+            }
+        } catch (Exception e) {
+            Log.e("TV_HOME", "Error fetching recent channels", e);
+        }
+        return recentList;
     }
 }

@@ -39,6 +39,8 @@ import com.termux.R;
 import com.termux.sky.playlistmanager.PlaylistManager;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
+import com.termux.sky.tv_home_preview.FavoriteChannelsManager;
+import com.termux.sky.tv_home_preview.RecentChannelsManager;
 import com.termux.sky.txplayer.ChannelModel;
 import com.termux.sky.txplayer.ExoPlayerActivityDRM;
 import com.termux.sky.txplayer.M3UParser;
@@ -335,6 +337,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
         Plugin activePlugin = null;
         List<Plugin> others = new ArrayList<>();
         for (Plugin p : plugins) {
+            boolean isTool = (p.tool != null && p.tool);
+            if (isTool) {
+                continue;
+            }
+
             if (String.valueOf(p.port).equals(activePort)) {
                 activePlugin = p;
             } else {
@@ -455,9 +462,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
             List<Plugin> targetPlugins = new ArrayList<>();
             if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
-                targetPlugins.addAll(plugins);
+                for (Plugin p : plugins) {
+                    boolean isTool = (p.tool != null && p.tool);
+                    if (isTool) continue;
+
+                    targetPlugins.add(p);
+                }
             } else {
                 for (Plugin p : plugins) {
+                    boolean isTool = (p.tool != null && p.tool);
+                    if (isTool) continue;
+
                     if (selectedPorts.contains(String.valueOf(p.port))) {
                         targetPlugins.add(p);
                     }
@@ -704,11 +719,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
         PlaylistManager.currentIndex = displayList.indexOf(channel);
 
         if (isTv(this)) {
-            com.termux.sky.tv_home_preview.RecentChannelsManager.addChannelToHome(this, channel);
+            RecentChannelsManager.addChannelToHome(this, channel);
         }
 
         String activePort = channel.originPort;
-        if (activePort == null || channel.url.contains("5007")) {
+        if (activePort == null || activePort.trim().isEmpty()) {
             activePort = channel.url.contains("5007") ? "5007" : "0";
         }
 
@@ -764,6 +779,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
             } else {
                 adapter.notifyItemChanged(position);
             }
+        }
+
+        if (isTv(this)) {
+            FavoriteChannelsManager.syncFavoritesToHome(this, currentPortChannels);
         }
 
         String msg = channel.isFavorite ? "Added to Favorites" : "Removed from Favorites";

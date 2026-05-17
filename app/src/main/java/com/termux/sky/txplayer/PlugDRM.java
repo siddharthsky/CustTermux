@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PlugDRM extends AppCompatActivity {
 
@@ -91,7 +89,7 @@ public class PlugDRM extends AppCompatActivity {
             btnWEB.setOnClickListener(v -> {
                 Toast.makeText(this, "Opening Plugin Webpage...", Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent(this, WebViewPlayerActivity.class);
+                Intent intent = new Intent(this, GenericWebActivity.class);
                 intent.putExtra("url", finalUrl);
                 intent.putExtra("port", "");
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

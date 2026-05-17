@@ -150,6 +150,15 @@
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
+            android:name=".sky.txplayer.GenericWebActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:ignore="DiscouragedApi"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
+
+        <activity
             android:name=".sky.txplayer.ExoPlayerActivityDRM"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppCompat.NoActionBar"

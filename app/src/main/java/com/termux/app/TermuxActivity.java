@@ -858,7 +858,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (needsRestart) {
             restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_warning_bg));
-            restartBanner.setText("Action Required: Please restart the server for changes to take effect.");
+            restartBanner.setText("Action Required: Please restart app after plugin installation.");
             restartBanner.setVisibility(View.VISIBLE);
         } else {
             restartBanner.setVisibility(View.GONE);

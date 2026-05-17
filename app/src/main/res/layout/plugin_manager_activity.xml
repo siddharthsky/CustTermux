@@ -55,7 +55,7 @@
         android:textColor="#FFFFFF"
         android:padding="12dp"
         android:gravity="center"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold"
         android:visibility="gone" />
 

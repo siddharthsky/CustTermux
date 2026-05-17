@@ -1,0 +1,254 @@
+package com.termux.sky.txplayer;
+
+import android.annotation.SuppressLint;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
+
+public class GenericWebActivity extends AppCompatActivity {
+
+    private WebView webView;
+    private int backCount = 0;
+    private static final int MAX_BACK = 5;
+
+
+    String port_no = null;
+
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        try {
+            getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        } catch (Exception e) {
+            Log.d("DRM_PLAYER_WEB", "SystemUI flags error");
+        }
+
+        webView = new WebView(this);
+        setContentView(webView);
+        hideSystemUI();
+
+        String url = getIntent().getStringExtra("url");
+        port_no = getIntent().getStringExtra("port");
+
+        Log.d("DRM_PLAYER_WEB", "url received: " + url+" on port: " + port_no);
+
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportMultipleWindows(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        cookieManager.setAcceptThirdPartyCookies(webView, true);
+        cookieManager.flush();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+        }
+
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    runOnUiThread(() -> {
+                        for (String resource : request.getResources()) {
+
+                            if (android.webkit.PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID.equals(resource)) {
+                                request.grant(new String[]{resource});
+                                return;
+                            }
+                        }
+
+                        request.deny();
+                    });
+                }
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient() {
+
+            // Modern version (API 24+)
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    String url = request.getUrl().toString();
+                    String finalUrl = rewriteUrl(url);
+                    view.loadUrl(finalUrl);
+                }
+                return true;
+            }
+
+            // Deprecated version (Fallback for API < 24)
+            @SuppressWarnings("deprecation")
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                String finalUrl = rewriteUrl(url);
+                view.loadUrl(finalUrl);
+                return true;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                CookieManager.getInstance().flush();
+                backCount = 0;
+
+                if (url.contains("/mpd/")) {
+                    view.loadUrl("javascript:(function() { " +
+                        "var video = document.getElementsByTagName('video')[0]; " +
+                        "if (video) { " +
+                        "  video.style.width = '100vw'; " +
+                        "  video.style.height = '100vh'; " +
+                        "  video.style.objectFit = 'contain'; " +
+                        "  video.play(); " +
+                        "} " +
+                        "})()");
+                }
+
+            }
+        });
+
+        if (url != null) {
+            webView.loadUrl(rewriteUrl(url));
+        }
+    }
+
+    private void hideSystemUI() {
+        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), webView);
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+    }
+
+    private String rewriteUrl(String url) {
+        if (url == null) return null;
+
+        try {
+            Uri uri = Uri.parse(url);
+            String path = uri.getPath();
+
+            if (port_no != null && !port_no.isEmpty()) {
+
+                assert path != null;
+                if (path.contains("/live/")) {
+                    Log.d("DRM_PLAYER_WEB", "Port 5006,5007 logic applied");
+                    path = path.replace("/live/", "/mpd/");
+
+                    if (path.endsWith(".m3u8")) {
+                        path = path.substring(0, path.length() - ".m3u8".length());
+                    }
+                }
+            }
+            
+
+            return uri.buildUpon()
+                .path(path)
+                .build()
+                .toString();
+
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER_WEB", String.valueOf(e));
+            return url;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+            backCount++;
+
+            if (backCount >= MAX_BACK) {
+                finish();
+            }
+
+        } else {
+            finish();
+        }
+    }
+
+
+    private void pauseWebViewMedia() {
+        if (webView != null) {
+            webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        pauseWebViewMedia();
+        if (webView != null) {
+            webView.onPause();
+            webView.pauseTimers();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.onResume();
+            webView.resumeTimers();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        pauseWebViewMedia();
+        if (webView != null) {
+            webView.stopLoading();
+            webView.loadUrl("about:blank");
+        }
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        killWebView();
+        super.onDestroy();
+    }
+
+    private void killWebView() {
+        if (webView != null) {
+            webView.evaluateJavascript("document.querySelectorAll('video, audio').forEach(media => media.pause());", null);
+
+            webView.stopLoading();
+            webView.loadUrl("about:blank");
+            webView.onPause();
+            webView.pauseTimers();
+            webView.clearHistory();
+            webView.clearCache(true);
+
+            android.view.ViewGroup parent = (android.view.ViewGroup) webView.getParent();
+            if (parent != null) {
+                parent.removeView(webView);
+            }
+
+            webView.removeAllViews();
+            webView.destroy();
+            webView = null;
+        }
+    }
+}

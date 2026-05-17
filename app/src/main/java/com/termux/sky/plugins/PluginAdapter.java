@@ -76,20 +76,50 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         h.name.setText(current.title);
         h.playlist.setText(getDisplayName(current.playlist));
 
-        new Thread(() -> {
-            String checkUrl = (current.server_check_url != null && !current.server_check_url.isEmpty())
-                ? current.server_check_url
-                : current.playlist;
+        final boolean isTool = (current.tool != null) ? current.tool : false;
 
-            boolean run = PluginUtils.isRunning(checkUrl);
+        h.status.setText("Checking...");
+
+        new Thread(() -> {
+            if (!isTool && (current == null || current.playlist == null)) {
+                ((Activity) ctx).runOnUiThread(() -> {
+                    int adapterPos = h.getAdapterPosition();
+                    if (adapterPos != RecyclerView.NO_POSITION) {
+                        h.status.setText("Stopped");
+                    }
+                });
+                return;
+            }
+
+            boolean run = isTool || PluginUtils.isRunning(
+                (current.server_check_url != null && !current.server_check_url.isEmpty())
+                    ? current.server_check_url
+                    : current.playlist,
+                isTool
+            );
 
             ((Activity) ctx).runOnUiThread(() -> {
-                if (h.getAdapterPosition() != RecyclerView.NO_POSITION &&
-                    list.get(h.getAdapterPosition()) == current) {
-                    h.status.setText(run ? "Running" : "Stopped");
+                int adapterPos = h.getAdapterPosition();
+
+                if (adapterPos != RecyclerView.NO_POSITION) {
+                    Plugin itemAtPos = list.get(adapterPos);
+
+                    if (itemAtPos != null) {
+                        boolean isSameItem = false;
+
+                        if (isTool) {
+                            isSameItem = itemAtPos.title != null && itemAtPos.title.equals(current.title);
+                        } else {
+                            isSameItem = itemAtPos.playlist != null && itemAtPos.playlist.equals(current.playlist);
+                        }
+
+
+                        if (isSameItem) {
+                            h.status.setText(run ? "Running" : "Stopped");
+                        }
+                    }
                 }
             });
-
         }).start();
 
         h.playlist.setOnClickListener(v -> {
@@ -116,6 +146,11 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             });
         }
 
+
+        if (isTool) {
+            h.watchBtnText.setText("OPEN");
+        }
+        h.watch.setVisibility(View.VISIBLE);
         h.watch.setOnClickListener(v -> {
             if (watchListener != null) {
                 watchListener.onWatch(current, h.getAdapterPosition());
@@ -210,7 +245,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
 
     static class VH extends RecyclerView.ViewHolder {
 
-        TextView name, status, playlist;
+        TextView name, status, playlist, watchBtnText;
         ImageButton login, settingsBtn;
         LinearLayout watch;
 
@@ -220,6 +255,7 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             status = v.findViewById(R.id.pluginStatus);
             playlist = v.findViewById(R.id.pluginPlaylist);
             watch = v.findViewById(R.id.watchBtn);
+            watchBtnText = v.findViewById(R.id.watchBtnText);
 
             login = v.findViewById(R.id.loginBtn);
             settingsBtn = v.findViewById(R.id.settingsBtn);

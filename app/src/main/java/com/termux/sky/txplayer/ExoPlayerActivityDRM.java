@@ -45,13 +45,18 @@ import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.termux.R;
 import com.termux.sky.playlistmanager.PlaylistManager;
+import com.termux.sky.plugins.Plugin;
+import com.termux.sky.plugins.PluginStorage;
+import com.termux.sky.tv_home_preview.RecentChannelsManager;
 
 import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -89,6 +94,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String videoName = null;
         String licenseUrl = null;
         String intentUserAgent = null;
+        String playlistType = null;
 
         // Check if launched from Home Screen Deep Link
         boolean isFromHome = data != null && "hanaplayer".equals(data.getScheme());
@@ -98,6 +104,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             videoName = data.getQueryParameter("name");
             licenseUrl = data.getQueryParameter("license");
             intentUserAgent = data.getQueryParameter("user_agent");
+            playlistType = data.getQueryParameter("playlist_type");
             getIntent().putExtra("show_banner", true);
 
             if (port_no == null && videoUrl != null) {
@@ -217,31 +224,26 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         hideSystemUI();
 
-        if (isFromHome && errorOverlay != null) {
-            errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
-            errorOverlay.setVisibility(View.VISIBLE);
-        }
-
         if (!isFromHome) {
             if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) {
-                String portToLoad = (port_no != null) ? port_no : "0";
-                List<ChannelModel> savedChannels = M3UParser.getFromPrefs(this, portToLoad);
-
-                if (savedChannels != null && !savedChannels.isEmpty()) {
-                    PlaylistManager.currentList = savedChannels;
-                }
+                setupNormalPlaylist(videoUrl, videoName);
             }
         } else {
-            PlaylistManager.currentList = null;
+            if ("favorites".equals(playlistType)) {
+                setupFavoritesPlaylist();
+            } else if ("recents".equals(playlistType)) {
+                setupRecentsPlaylist();
+            } else {
+                setupNormalPlaylist(videoUrl, videoName);
+            }
         }
 
         if (videoUrl != null) {
-            if (!isFromHome) {
-                syncPlaylistIndex(videoUrl, videoName);
-            }
+            syncPlaylistIndex(videoUrl, videoName);
             processIncomingUrl(videoUrl, licenseUrl, intentUserAgent, isFromHome);
         }
     }
+
 
     @NonNull
     private ImageButton createCustomControl(View template, int iconResId, View.OnClickListener listener) {
@@ -589,17 +591,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         zapHandler.postDelayed(zapRunnable, ZAP_DELAY_MS);
     }
 
-    private void syncPlaylistIndex(String videoUrl, String videoName) {
-        if (PlaylistManager.currentList != null && videoUrl != null) {
-            for (int i = 0; i < PlaylistManager.currentList.size(); i++) {
-                ChannelModel cm = PlaylistManager.currentList.get(i);
-                if (videoUrl.equals(cm.url)) {
-                    PlaylistManager.currentIndex = i;
-                    return;
-                }
-            }
-        }
-    }
 
     private void processAndPlayChannel(ChannelModel nextChannel) {
         String vUrl = nextChannel.url;
@@ -640,9 +631,20 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             String name = data.getQueryParameter("name");
             String license = data.getQueryParameter("license");
             String ua = data.getQueryParameter("user_agent");
+            String playlistType = data.getQueryParameter("playlist_type");
 
             if (url != null) {
-                PlaylistManager.currentList = null;
+                port_no = url.contains("5007") ? "5007" : "0";
+
+                if ("favorites".equals(playlistType)) {
+                    setupFavoritesPlaylist();
+                } else if ("recents".equals(playlistType)) {
+                    setupRecentsPlaylist();
+                } else {
+                    setupNormalPlaylist(url, name);
+                }
+
+                syncPlaylistIndex(url, name);
 
                 bannerManager.show(name, intent.getStringExtra("logo_url"));
                 processIncomingUrl(url, license, ua, true);
@@ -894,5 +896,93 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         } catch (Exception e) {
             Log.e("DRM_PLAYER", "Could not start background server", e);
         }
+    }
+
+    private void syncPlaylistIndex(String videoUrl, String videoName) {
+        if (PlaylistManager.currentList != null) {
+            for (int i = 0; i < PlaylistManager.currentList.size(); i++) {
+                ChannelModel cm = PlaylistManager.currentList.get(i);
+                if ((videoName != null && videoName.equals(cm.name)) ||
+                    (videoUrl != null && videoUrl.equals(cm.url))) {
+                    PlaylistManager.currentIndex = i;
+                    return;
+                }
+            }
+        }
+    }
+
+    private void setupFavoritesPlaylist() {
+        List<ChannelModel> favorites = new ArrayList<>();
+
+        Set<String> portsToCheck = new HashSet<>();
+        portsToCheck.add("0");
+        portsToCheck.add("5007");
+        portsToCheck.add("99000");
+
+        try {
+            List<Plugin> plugins = PluginStorage.load(this);
+            if (plugins != null) {
+                for (Plugin p : plugins) {
+                    portsToCheck.add(String.valueOf(p.port));
+                }
+            }
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "Failed to load plugins for favorites", e);
+        }
+
+        for (String p : portsToCheck) {
+            List<ChannelModel> channels = M3UParser.getFromPrefs(this, p);
+            if (channels != null) {
+                for (ChannelModel cm : channels) {
+                    if (cm.isFavorite) {
+                        favorites.add(cm);
+                    }
+                }
+            }
+        }
+
+        PlaylistManager.currentList = favorites.isEmpty() ? null : favorites;
+    }
+
+    private void setupNormalPlaylist(String targetUrl, String targetName) {
+        String portToLoad = (port_no != null) ? port_no : "0";
+        List<ChannelModel> savedChannels = M3UParser.getFromPrefs(this, portToLoad);
+
+        boolean found = false;
+        if (savedChannels != null) {
+            for (ChannelModel cm : savedChannels) {
+                if ((targetName != null && targetName.equals(cm.name)) ||
+                    (targetUrl != null && targetUrl.equals(cm.url))) {
+                    found = true; break;
+                }
+            }
+        }
+
+
+        if (!found) {
+            String altPort = "0".equals(portToLoad) ? "5007" : "0";
+            List<ChannelModel> altChannels = M3UParser.getFromPrefs(this, altPort);
+            if (altChannels != null) {
+                savedChannels = altChannels;
+                port_no = altPort;
+            }
+        }
+
+        PlaylistManager.currentList = (savedChannels != null && !savedChannels.isEmpty()) ? savedChannels : null;
+    }
+
+    private void setupRecentsPlaylist() {
+        try {
+            List<ChannelModel> recents = RecentChannelsManager.getRecentChannels(this);
+
+            if (recents != null && !recents.isEmpty()) {
+                PlaylistManager.currentList = recents;
+                return;
+            }
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "Failed to load recents loop", e);
+        }
+
+        PlaylistManager.currentList = null;
     }
 }

@@ -15,7 +15,10 @@ public class Plugin {
     public String post_install_script;
     public Boolean updatable;
     public String start;
-//    public Boolean is_util;
+    public Boolean tool;
+    public Boolean app_start_url;
+
+
 
     public Plugin() {}
 }

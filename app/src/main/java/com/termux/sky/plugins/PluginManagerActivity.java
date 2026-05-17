@@ -38,6 +38,7 @@ import androidx.recyclerview.widget.*;
 import com.termux.R;
 import com.termux.sky.txplayer.PlugDRM;
 import com.termux.sky.filehandlers.FilePickerActivity;
+import com.termux.sky.txplayer.GenericWebActivity;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -195,6 +196,12 @@ public class PluginManagerActivity extends AppCompatActivity {
                     .show();
 
                 return true;
+            } else if  (id == R.id.menu_repo_url) {
+                Intent intent = new Intent(this, GenericWebActivity.class);
+                intent.putExtra("url", "https://siddharthsky.github.io/ctx-plugins/");
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                startActivity(intent);
             }
             return false;
         });
@@ -624,21 +631,34 @@ public class PluginManagerActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 File postFile = new File(pluginDir, ".post_install_script.sh");
+                String scriptContent = postInstallScript.trim();
 
-                showProgress("Downloading script...");
+                if (scriptContent.toLowerCase().startsWith("http://") ||
+                    scriptContent.toLowerCase().startsWith("https://")) {
 
-                downloadFile(postInstallScript, postFile);
+                    showProgress("Downloading script...");
+                    downloadFile(scriptContent, postFile);
+                    hideProgress();
+                } else {
+                    showProgress("Configuring custom script...");
+
+                    if (!scriptContent.startsWith("#!")) {
+                        scriptContent = "#!/bin/bash\n" + scriptContent;
+                    }
+
+                    FileOutputStream fos = new FileOutputStream(postFile);
+                    fos.write(scriptContent.getBytes());
+                    fos.close();
+
+                    hideProgress();
+                }
 
                 postFile.setExecutable(true);
-
-                hideProgress();
-
                 run_post_script(this, pluginDir, port);
-
                 restart_request(this);
 
             } catch (Exception e) {
-                handleError("Post-install script failed", e);
+                handleError("Post-install setup failed", e);
             }
         }).start();
     }
@@ -911,20 +931,32 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void watchPlugin(Plugin plugin, int position) {
 
-        Log.d("GIO", plugin.port + " "+plugin.playlist);
+        boolean isTool = (plugin.tool != null) ? plugin.tool : false;
 
-        Intent intent = new Intent(this, PlugDRM.class);
-        intent.putExtra("playlist_url", plugin.playlist);
-        intent.putExtra("port", plugin.port);
+        if (!isTool) {
+            Log.d("GIO", plugin.port + " "+plugin.playlist);
 
-        intent.putExtra("login_url", plugin.login_url);
-        intent.putExtra("watch_url", plugin.watch_url);
+            Intent intent = new Intent(this, PlugDRM.class);
+            intent.putExtra("playlist_url", plugin.playlist);
+            intent.putExtra("port", plugin.port);
 
-        startActivity(intent);
+            intent.putExtra("login_url", plugin.login_url);
+            intent.putExtra("watch_url", plugin.watch_url);
 
-//        Intent intent = new Intent(this, ExoPlayerActivityDRM.class);
-//        intent.putExtra("url", plugin.watch_url);
-//        startActivity(intent);
+            startActivity(intent);
+        } else {
+
+            Log.d("GIO", plugin.port + " "+plugin.playlist);
+
+            Intent intent = new Intent(this, GenericWebActivity.class);
+            intent.putExtra("url", plugin.playlist);
+            intent.putExtra("port", plugin.port);
+            startActivity(intent);
+
+        }
+
+
+
 
     }
 

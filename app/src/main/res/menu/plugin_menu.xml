@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_repo_url"
+        android:title="Official Plugins"
+        android:icon="@drawable/tx_play"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_add_url"
         android:title="Add M3U URL / Playlist"
         android:icon="@drawable/tx_play"
