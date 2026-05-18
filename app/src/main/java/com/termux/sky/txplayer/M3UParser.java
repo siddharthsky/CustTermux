@@ -189,7 +189,7 @@ public class M3UParser {
                 obj.put("lic_key", ch.licenseKey != null ? ch.licenseKey : "");
                 obj.put("man_type", ch.manifestType != null ? ch.manifestType : "");
                 obj.put("ua", ch.userAgent != null ? ch.userAgent : "");
-                obj.put("cookie", ch.cookie != null ? ch.cookie : ""); 
+                obj.put("cookie", ch.cookie != null ? ch.cookie : "");
 
                 obj.put("is_fav", ch.isFavorite);
 
