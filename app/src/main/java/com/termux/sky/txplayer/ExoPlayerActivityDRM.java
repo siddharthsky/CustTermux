@@ -82,10 +82,17 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     String port_no;
 
+    private String lastAttemptedUrl = null;
+    private int currentFormatTrackIndex = 0;
+    private static final int FORMAT_DASH = 0;
+    private static final int FORMAT_HLS = 1;
+    private static final int FORMAT_PROGRESSIVE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        disableSSLCertificateChecking();
 
         Intent intent = getIntent();
         Uri data = intent.getData();
@@ -94,6 +101,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String videoName = null;
         String licenseUrl = null;
         String intentUserAgent = null;
+        String intentCookie = null;
         String playlistType = null;
 
         // Check if launched from Home Screen Deep Link
@@ -104,6 +112,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             videoName = data.getQueryParameter("name");
             licenseUrl = data.getQueryParameter("license");
             intentUserAgent = data.getQueryParameter("user_agent");
+            intentCookie = data.getQueryParameter("cookie");
             playlistType = data.getQueryParameter("playlist_type");
             getIntent().putExtra("show_banner", true);
 
@@ -116,6 +125,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             videoName = intent.getStringExtra("name");
             licenseUrl = intent.getStringExtra("license_key");
             intentUserAgent = intent.getStringExtra("user_agent");
+            intentCookie = intent.getStringExtra("cookie");
 
             if (port_no == null && videoUrl != null) {
                 port_no = videoUrl.contains("5007") ? "5007" : "0";
@@ -240,7 +250,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
         if (videoUrl != null) {
             syncPlaylistIndex(videoUrl, videoName);
-            processIncomingUrl(videoUrl, licenseUrl, intentUserAgent, isFromHome);
+            processIncomingUrl(videoUrl, licenseUrl, intentUserAgent, intentCookie, isFromHome);
         }
     }
 
@@ -290,7 +300,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
     }
 
-    private void checkStatusAndPlay(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, boolean isFromHome) {
+    private void checkStatusAndPlay(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie, boolean isFromHome) {
         if (currentCheckThread != null && currentCheckThread.isAlive()) {
             currentCheckThread.interrupt();
         }
@@ -298,81 +308,60 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         final int myZapToken = currentZapToken;
 
         currentCheckThread = new Thread(() -> {
-
-            if (true) { //skipping check
+            if (!isFromHome) {
                 runOnUiThread(() -> {
                     if (myZapToken != currentZapToken) return;
                     if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
-                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
                 });
                 return;
             }
 
-            boolean isLocalPlugin = videoUrl.contains("127.0.0.1") || videoUrl.contains("localhost") || videoUrl.contains("5007");
-
-            if (!isLocalPlugin) {
-                runOnUiThread(() -> {
-                    if (myZapToken != currentZapToken) return;
-                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
-                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
-                });
-                return;
-            }
-
-            // 1. Initial Ping
-            int initialCode = pingUrl(videoUrl, userAgent, origin, referer);
+            int initialCode = pingUrl(videoUrl, userAgent, origin, referer); // Standard validation ping
             boolean isAlive = (initialCode >= 200 && initialCode < 400);
 
             if (Thread.currentThread().isInterrupted()) return;
 
             if (isAlive) {
-                // SERVER IS ALIVE: Play instantly
                 runOnUiThread(() -> {
                     if (myZapToken != currentZapToken) return;
                     if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
-                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
                 });
             } else {
-                // SERVER IS DEAD OR ERROR
-                if (isFromHome) {
-                    // Start server and show UI
+                runOnUiThread(() -> {
+                    if (myZapToken != currentZapToken) return;
+                    if (errorOverlay != null) {
+                        errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
+                        errorOverlay.setVisibility(View.VISIBLE);
+                    }
+                });
+
+                ensureServerIsRunning(ExoPlayerActivityDRM.this);
+
+                int maxRetries = 5;
+                boolean retrySuccess = false;
+
+                for (int i = 0; i < maxRetries; i++) {
+                    if (Thread.currentThread().isInterrupted()) return;
+                    try { Thread.sleep(2000); } catch (InterruptedException e) { return; }
+
+                    int retryCode = pingUrl(videoUrl, userAgent, origin, referer);
+                    if (retryCode >= 200 && retryCode < 400) {
+                        retrySuccess = true;
+                        break;
+                    }
+                }
+
+                if (Thread.currentThread().isInterrupted()) return;
+
+                if (retrySuccess) {
                     runOnUiThread(() -> {
                         if (myZapToken != currentZapToken) return;
-                        if (errorOverlay != null) {
-                            errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
-                            errorOverlay.setVisibility(View.VISIBLE);
-                        }
+                        if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+                        initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
                     });
-                    ensureServerIsRunning(ExoPlayerActivityDRM.this);
-
-                    // Retry logic
-                    int maxRetries = 5;
-                    boolean retrySuccess = false;
-
-                    for (int i = 0; i < maxRetries; i++) {
-                        if (Thread.currentThread().isInterrupted()) return;
-                        try { Thread.sleep(2000); } catch (InterruptedException e) { return; }
-
-                        int retryCode = pingUrl(videoUrl, userAgent, origin, referer);
-                        if (retryCode >= 200 && retryCode < 400) {
-                            retrySuccess = true;
-                            break;
-                        }
-                    }
-
-                    if (Thread.currentThread().isInterrupted()) return;
-
-                    if (retrySuccess) {
-                        runOnUiThread(() -> {
-                            if (myZapToken != currentZapToken) return;
-                            if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
-                            initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer);
-                        });
-                    } else {
-                        showErrorOrFallback(videoUrl, myZapToken, initialCode);
-                    }
                 } else {
-                    // Not from Home, fail immediately (e.g. normal app zap)
                     showErrorOrFallback(videoUrl, myZapToken, initialCode);
                 }
             }
@@ -396,43 +385,73 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         });
     }
 
-    private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer) {
+    private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie) {
         Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
+
+        if (lastAttemptedUrl == null || !lastAttemptedUrl.equals(videoUrl)) {
+            lastAttemptedUrl = videoUrl;
+            currentFormatTrackIndex = 0;
+        }
 
         Map<String, String> headers = new HashMap<>();
         if (userAgent != null && !userAgent.isEmpty()) headers.put("User-Agent", userAgent);
         if (origin != null && !origin.isEmpty()) headers.put("Origin", origin);
         if (referer != null && !referer.isEmpty()) headers.put("Referer", referer);
 
+        if (cookie != null && !cookie.isEmpty()) {
+            headers.put("Cookie", cookie);
+            Log.d("DRM_PLAYER", "Dynamic Cookie Injected: " + cookie);
+        }
+
         DefaultHttpDataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(headers);
 
         MediaItem.Builder mediaItemBuilder = new MediaItem.Builder().setUri(Uri.parse(videoUrl));
-
         MediaSource mediaSource;
-        if (videoUrl.toLowerCase().contains(".m3u8") || videoUrl.contains("index.php") || videoUrl.contains("stream.php")) {
-            mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
-            mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
-                .setAllowChunklessPreparation(true)
-                .createMediaSource(mediaItemBuilder.build());
-        } else {
-            mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
-            if (licenseUrl != null && !licenseUrl.isEmpty()) {
-                mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
-                    .setLicenseUri(licenseUrl)
-                    .setLicenseRequestHeaders(headers)
-                    .build());
-            }
-            mediaSource = new DashMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(mediaItemBuilder.build());
+
+        if (currentFormatTrackIndex == 0) {
+            boolean initialCheckIsHls = videoUrl.toLowerCase().contains(".m3u8")
+                || videoUrl.contains("index.php")
+                || videoUrl.contains("stream.php");
+
+            currentFormatTrackIndex = initialCheckIsHls ? FORMAT_HLS : FORMAT_DASH;
+        }
+
+        switch (currentFormatTrackIndex) {
+            case FORMAT_DASH:
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
+                if (licenseUrl != null && !licenseUrl.isEmpty()) {
+                    mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
+                        .setLicenseUri(licenseUrl)
+                        .setLicenseRequestHeaders(headers)
+                        .build());
+                }
+                mediaSource = new DashMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(mediaItemBuilder.build());
+                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD)");
+                break;
+
+            case FORMAT_HLS:
+                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
+                mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
+                    .setAllowChunklessPreparation(true)
+                    .createMediaSource(mediaItemBuilder.build());
+                Log.d("DRM_PLAYER", "Attempting playback as: HLS (M3U8)");
+                break;
+
+            case FORMAT_PROGRESSIVE:
+            default:
+                mediaSource = new com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(mediaItemBuilder.build());
+                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
+                break;
         }
 
         if (player == null) {
-            DefaultRenderersFactory renderersFactory =
-                new DefaultRenderersFactory(this)
-                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
-                    .setEnableDecoderFallback(true);
+            DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                .setEnableDecoderFallback(true);
 
             trackSelector = new DefaultTrackSelector(this);
             trackSelector.setParameters(trackSelector.buildUponParameters()
@@ -447,6 +466,30 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             player.addListener(new Player.Listener() {
                 @Override
                 public void onPlayerError(@NonNull PlaybackException error) {
+                    Throwable cause = error.getCause();
+
+                    boolean isContainerError = (error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED
+                        || error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
+                        || error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
+                        || cause instanceof com.google.android.exoplayer2.ParserException
+                        || (cause != null && cause.getMessage() != null && cause.getMessage().contains("org.xmlpull")));
+
+                    if (isContainerError) {
+                        if (currentFormatTrackIndex == FORMAT_DASH) {
+                            Log.w("DRM_PLAYER", "DASH parsing failed. Cycling to HLS layout.");
+                            currentFormatTrackIndex = FORMAT_HLS;
+                            retryPlaybackLoop();
+                            return;
+                        } else if (currentFormatTrackIndex == FORMAT_HLS) {
+                            Log.w("DRM_PLAYER", "HLS parsing failed. Cycling to Progressive Media (MP4/MKV).");
+                            currentFormatTrackIndex = FORMAT_PROGRESSIVE;
+                            retryPlaybackLoop();
+                            return;
+                        } else if (currentFormatTrackIndex == FORMAT_PROGRESSIVE) {
+                            Log.e("DRM_PLAYER", "All container formats failed parsing targets.");
+                        }
+                    }
+
                     if (errorOverlay != null && !videoUrl.contains("/live/")) {
                         StringBuilder sb = new StringBuilder();
                         sb.append("⚠️ ERROR DETAILS\n");
@@ -457,15 +500,19 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                         if (error.getMessage() != null) {
                             sb.append("Details: ").append(error.getMessage()).append("\n");
                         }
-                        if (error.getCause() != null) {
-                            sb.append("INFO: ").append(error.getCause().getClass().getSimpleName());
-                        }
-
                         errorOverlay.setText(sb.toString());
                         errorOverlay.setVisibility(View.VISIBLE);
                     } else {
                         switchToWebView(videoUrl);
                     }
+                }
+
+                private void retryPlaybackLoop() {
+                    if (player != null) {
+                        player.stop();
+                        player.clearMediaItems();
+                    }
+                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
                 }
 
                 @Override
@@ -618,6 +665,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String origin = null;
         String referer = null;
         String userAgent = nextChannel.userAgent;
+        String cookie = nextChannel.cookie;
 
         try {
             vUrl = java.net.URLDecoder.decode(vUrl, "UTF-8");
@@ -630,6 +678,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     if (lowerPart.startsWith("origin=")) origin = part.substring(7);
                     else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
                     else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+                    else if (lowerPart.startsWith("cookie=")) cookie = part.substring(7);
                 }
             }
             vUrl = vUrl.replaceAll("&$", "");
@@ -637,8 +686,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             Log.e("DRM_PLAYER", "URL Decoding failed", e);
         }
 
-        // isFromHome is false when Zapping internally
-        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer, false);
+        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer, cookie, false);
     }
 
     @Override
@@ -652,6 +700,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             String name = data.getQueryParameter("name");
             String license = data.getQueryParameter("license");
             String ua = data.getQueryParameter("user_agent");
+            String intentCookie = data.getQueryParameter("cookie");
             String playlistType = data.getQueryParameter("playlist_type");
 
             if (url != null) {
@@ -668,16 +717,17 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 syncPlaylistIndex(url, name);
 
                 bannerManager.show(name, intent.getStringExtra("logo_url"));
-                processIncomingUrl(url, license, ua, true);
+                processIncomingUrl(url, license, ua, intentCookie, true);
             }
         }
     }
 
-    private void processIncomingUrl(String rawUrl, String licenseUrl, String intentUserAgent, boolean isFromHome) {
+    private void processIncomingUrl(String rawUrl, String licenseUrl, String intentUserAgent, String intentCookie, boolean isFromHome) {
         String v_url = rawUrl;
         String origin = null;
         String referer = null;
         String userAgent = intentUserAgent;
+        String cookie = intentCookie;
 
         try {
             v_url = URLDecoder.decode(v_url, "UTF-8");
@@ -690,15 +740,15 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                     if (lowerPart.startsWith("origin=")) origin = part.substring(7);
                     else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
                     else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+                    else if (lowerPart.startsWith("cookie=")) cookie = part.substring(7);
                 }
             }
             v_url = v_url.replaceAll("&$", "");
-
         } catch (Exception e) {
             Log.e("DRM_PLAYER", "URL Decoding failed", e);
         }
 
-        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, isFromHome);
+        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, cookie, isFromHome);
     }
 
     private void showSettingsMenu() {

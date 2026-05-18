@@ -150,6 +150,7 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         Glide.with(holder.itemView.getContext())
             .load(channel.logo)
             .placeholder(R.drawable.tx_broken_image)
+            .dontAnimate()
             .into(holder.logo);
 
         // Standard Click Listener

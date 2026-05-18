@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 public class M3UParser {
 
     /**
-     * Parses M3U content and extracts metadata, DRM info, and stream URLs.
+     * Parses M3U content and extracts metadata, DRM info, cookies, and stream URLs.
      */
     public static List<ChannelModel> parse(String content) {
         List<ChannelModel> channels = new ArrayList<>();
@@ -53,8 +53,22 @@ public class M3UParser {
                     current.manifestType = getValue(line);
                 } else if (line.startsWith("#EXTVLCOPT:http-user-agent")) {
                     current.userAgent = getValue(line);
+                } else if (line.startsWith("#EXTVLCOPT:http-cookie")) {
+                    current.cookie = getValue(line);
                 } else if (line.startsWith("http")) {
                     current.url = line;
+
+                    if (line.contains("|")) {
+                        String[] parts = line.split("\\|");
+                        for (int i = 1; i < parts.length; i++) {
+                            String part = parts[i].trim();
+                            if (part.toLowerCase().startsWith("cookie=")) {
+                                current.cookie = part.substring(7);
+                            } else if (part.toLowerCase().startsWith("user-agent=")) {
+                                current.userAgent = part.substring(11);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -103,6 +117,7 @@ public class M3UParser {
             editor.putString(prefix + "lic_key", ch.licenseKey);
             editor.putString(prefix + "man_type", ch.manifestType);
             editor.putString(prefix + "ua", ch.userAgent);
+            editor.putString(prefix + "cookie", ch.cookie); // Save Cookie string
             editor.putBoolean(prefix + "is_fav", ch.isFavorite);
         }
         editor.apply();
@@ -134,6 +149,7 @@ public class M3UParser {
             ch.licenseKey = prefs.getString(prefix + "lic_key", "");
             ch.manifestType = prefs.getString(prefix + "man_type", "");
             ch.userAgent = prefs.getString(prefix + "ua", "");
+            ch.cookie = prefs.getString(prefix + "cookie", ""); // Retrieve Cookie string
             ch.isFavorite = prefs.getBoolean(prefix + "is_fav", false);
 
             if (ch.url != null && !ch.url.isEmpty()) {
@@ -168,11 +184,12 @@ public class M3UParser {
                 obj.put("type", ch.type != null ? ch.type : "");
                 obj.put("originPort", ch.originPort != null ? ch.originPort : "");
 
-                // DRM Info
+                // DRM Info & Headers
                 obj.put("lic_type", ch.licenseType != null ? ch.licenseType : "");
                 obj.put("lic_key", ch.licenseKey != null ? ch.licenseKey : "");
                 obj.put("man_type", ch.manifestType != null ? ch.manifestType : "");
                 obj.put("ua", ch.userAgent != null ? ch.userAgent : "");
+                obj.put("cookie", ch.cookie != null ? ch.cookie : ""); 
 
                 obj.put("is_fav", ch.isFavorite);
 
@@ -213,11 +230,12 @@ public class M3UParser {
                 ch.type = obj.optString("type", "");
                 ch.originPort = obj.optString("originPort", "");
 
-                // DRM Info
+                // DRM Info & Headers
                 ch.licenseType = obj.optString("lic_type", "");
                 ch.licenseKey = obj.optString("lic_key", "");
                 ch.manifestType = obj.optString("man_type", "");
                 ch.userAgent = obj.optString("ua", "");
+                ch.cookie = obj.optString("cookie", ""); // Pull out from JSON cache layer
 
                 ch.isFavorite = obj.optBoolean("is_fav", false);
 

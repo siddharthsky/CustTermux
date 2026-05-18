@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.termux.R;
+import com.termux.sky.filehandlers.FileManagerActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import java.io.BufferedReader;
 import java.io.File;
@@ -138,7 +139,11 @@ public class PlugDRM extends AppCompatActivity {
                 Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
                 loadData(true);
                 return true;
-            }
+            } else if (id == R.id.menu_file) {
+                Intent intent = new Intent(this, FileManagerActivity.class);
+                startActivity(intent);
+                return true;
+        }
             return false;
         });
         popup.show();

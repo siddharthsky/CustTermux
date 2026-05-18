@@ -663,6 +663,80 @@ public class PluginManagerActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void executeUninstallScriptFromCache(String scriptContent, int port) {
+        new Thread(() -> {
+            try {
+                File cacheDir = getCacheDir();
+                if (!cacheDir.exists()) cacheDir.mkdirs();
+
+                File tempUninstallFile = new File(cacheDir, "uninstall_" + port + ".sh");
+
+                if (scriptContent.toLowerCase().startsWith("http://") ||
+                    scriptContent.toLowerCase().startsWith("https://")) {
+
+                    showProgress("Downloading uninstall script...");
+                    downloadFile(scriptContent, tempUninstallFile);
+                    hideProgress();
+                } else {
+                    showProgress("Configuring uninstall script...");
+
+                    String completeScript = scriptContent;
+                    if (!completeScript.startsWith("#!")) {
+                        completeScript = "#!/bin/bash\n" + completeScript;
+                    }
+
+                    FileOutputStream fos = new FileOutputStream(tempUninstallFile);
+                    fos.write(completeScript.getBytes());
+                    fos.close();
+
+                    hideProgress();
+                }
+
+                tempUninstallFile.setExecutable(true);
+
+                run_cached_uninstall_runner(this, tempUninstallFile, port);
+
+            } catch (Exception e) {
+                handleError("Uninstall script tracking failed", e);
+            }
+        }).start();
+    }
+
+    private void run_cached_uninstall_runner(PluginManagerActivity activity, File scriptFile, int port) {
+
+        // Required for stopping auto-redirect
+        File homeDir = new File(getFilesDir(), "home");
+        File launchFile = new File(homeDir, ".launch");
+
+        if (launchFile.exists()) {
+            if (launchFile.delete()) {
+                Log.d("FILE", ".launch deleted successfully");
+            } else {
+                Log.d("FILE", "Failed to delete .launch");
+            }
+        }
+
+        String TERMUX_PACKAGE = "com.termux";
+        String TERMUX_SERVICE = "com.termux.app.RunCommandService";
+        String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
+
+        File fallbackWorkDir = new File(getFilesDir(), "home");
+        String SCRIPT_PATH = scriptFile.getAbsolutePath();
+        String port_no = String.valueOf(port);
+
+        Intent intent = new Intent();
+        intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
+        intent.setAction(ACTION_RUN_COMMAND);
+
+        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
+        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", fallbackWorkDir.getAbsolutePath());
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+        activity.startService(intent);
+        Log.d("SkyLog", "Termux isolated script triggered out of cache: " + SCRIPT_PATH);
+    }
+
     private void restart_request(PluginManagerActivity activity) {
         SharedPreferences settings = activity.getSharedPreferences("settings", MODE_PRIVATE);
         settings.edit().putBoolean("plugin_restart", true).apply();
@@ -815,12 +889,15 @@ public class PluginManagerActivity extends AppCompatActivity {
             .setMessage("Are you sure you want to remove the plugin: " + plugin.title + "?")
             .setPositiveButton("Delete", (d, w) -> {
 
+                if (plugin.uninstall_script != null && !plugin.uninstall_script.trim().isEmpty()) {
+                    executeUninstallScriptFromCache(plugin.uninstall_script.trim(), plugin.port);
+                }
+
                 list.remove(position);
                 PluginStorage.save(this, list);
                 adapter.notifyItemRemoved(position);
 
                 String prefName = "port_" + plugin.port;
-
                 getSharedPreferences(prefName, MODE_PRIVATE).edit().clear().commit();
 
                 boolean apiDeleted = false;
@@ -837,7 +914,6 @@ public class PluginManagerActivity extends AppCompatActivity {
                     if (backupFile.exists()) backupFile.delete();
                 }
 
-
                 File baseDir = new File(getFilesDir(), "home/plugins");
                 File pluginDir = new File(baseDir, String.valueOf(plugin.port));
                 if (pluginDir.exists()) {
@@ -846,11 +922,10 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                 File zip = new File(getCacheDir(), plugin.port + ".zip");
                 if (zip.exists()) {
-                    if (!zip.delete()) {
-                        Log.w("PluginDelete", "Failed to delete zip: " + zip.getAbsolutePath());
-                    }
+                    zip.delete();
                 }
 
+                restart_request(this);
                 Toast.makeText(this, "Plugin " + plugin.port + " deleted", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("Cancel", null)

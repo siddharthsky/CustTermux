@@ -13,4 +13,10 @@
         android:title="Refetch Playlist"
         android:icon="@drawable/tx_reload"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_file"
+        android:title="Exp. File Manger"
+        android:icon="@drawable/tx_resize"
+        app:showAsAction="never" />
 </menu>

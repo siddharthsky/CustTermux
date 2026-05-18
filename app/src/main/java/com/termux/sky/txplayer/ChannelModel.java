@@ -14,6 +14,7 @@ public class ChannelModel {
     public String licenseKey = "";
     public String manifestType = "";
     public String userAgent = "";
+    public String cookie = "";
 
     public boolean isFavorite = false;
     public String originPort;

@@ -17,6 +17,7 @@ public class Plugin {
     public String start;
     public Boolean tool;
     public Boolean app_start_url;
+    public String uninstall_script;
 
 
 
