@@ -117,7 +117,7 @@ public class M3UParser {
             editor.putString(prefix + "lic_key", ch.licenseKey);
             editor.putString(prefix + "man_type", ch.manifestType);
             editor.putString(prefix + "ua", ch.userAgent);
-            editor.putString(prefix + "cookie", ch.cookie); // Save Cookie string
+            editor.putString(prefix + "cookie", ch.cookie);
             editor.putBoolean(prefix + "is_fav", ch.isFavorite);
         }
         editor.apply();
@@ -149,7 +149,7 @@ public class M3UParser {
             ch.licenseKey = prefs.getString(prefix + "lic_key", "");
             ch.manifestType = prefs.getString(prefix + "man_type", "");
             ch.userAgent = prefs.getString(prefix + "ua", "");
-            ch.cookie = prefs.getString(prefix + "cookie", ""); // Retrieve Cookie string
+            ch.cookie = prefs.getString(prefix + "cookie", "");
             ch.isFavorite = prefs.getBoolean(prefix + "is_fav", false);
 
             if (ch.url != null && !ch.url.isEmpty()) {
@@ -235,7 +235,7 @@ public class M3UParser {
                 ch.licenseKey = obj.optString("lic_key", "");
                 ch.manifestType = obj.optString("man_type", "");
                 ch.userAgent = obj.optString("ua", "");
-                ch.cookie = obj.optString("cookie", ""); // Pull out from JSON cache layer
+                ch.cookie = obj.optString("cookie", "");
 
                 ch.isFavorite = obj.optBoolean("is_fav", false);
 
