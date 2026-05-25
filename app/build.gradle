@@ -10,35 +10,31 @@ ext {
     // by replacing $PREFIX since app code is dependant on the variant used to build the APK.
     // Currently supported values are: [ "apt-android-7" "apt-android-5" ]
     packageVariant = System.getenv("TERMUX_PACKAGE_VARIANT") ?: "apt-android-7" // Default: "apt-android-7"
-    bootstrapMinSdk = packageVariant == "apt-android-5" ? 21 : 24
-    bootstrapMinRelease = packageVariant == "apt-android-5" ? "5.0" : "7.0"
-    bootstrapMaxSdk = packageVariant == "apt-android-5" ? 23 : null
-    bootstrapMaxRelease = packageVariant == "apt-android-5" ? "6.0" : null
-
-    buildMinSdk = bootstrapMinSdk
-    buildTargetSdk = project.properties.targetSdkVersion.toInteger()
 }
 
 android {
+    namespace "com.termux"
+
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
     ndkVersion = System.getenv("JITPACK_NDK_VERSION") ?: project.properties.ndkVersion
     def appVersionName = System.getenv("TERMUX_APP_VERSION_NAME") ?: ""
     def apkVersionTag = System.getenv("TERMUX_APK_VERSION_TAG") ?: ""
     def splitAPKsForDebugBuilds = System.getenv("TERMUX_SPLIT_APKS_FOR_DEBUG_BUILDS") ?: "1"
-    def splitAPKsForReleaseBuilds = System.getenv("TERMUX_SPLIT_APKS_FOR_RELEASE_BUILDS") ?: "1" // F-Droid does not support split APKs #1904
+    def splitAPKsForReleaseBuilds = System.getenv("TERMUX_SPLIT_APKS_FOR_RELEASE_BUILDS") ?: "0" // F-Droid does not support split APKs #1904
 
     dependencies {
-        implementation "androidx.annotation:annotation:1.3.0"
-        implementation "androidx.core:core:1.6.0"
-        implementation "androidx.drawerlayout:drawerlayout:1.1.1"
-        implementation "androidx.preference:preference:1.1.1"
+        implementation "androidx.annotation:annotation:1.9.0"
+        implementation "androidx.core:core:1.13.1"
+        implementation "androidx.drawerlayout:drawerlayout:1.2.0"
+        implementation "androidx.preference:preference:1.2.1"
         implementation "androidx.viewpager:viewpager:1.0.0"
-        implementation "com.google.android.material:material:1.4.0"
-        implementation ("com.google.guava:guava:24.1-jre")
+        implementation "com.google.android.material:material:1.12.0"
+        implementation "com.google.guava:guava:24.1-jre"
         implementation "io.noties.markwon:core:$markwonVersion"
         implementation "io.noties.markwon:ext-strikethrough:$markwonVersion"
         implementation "io.noties.markwon:linkify:$markwonVersion"
         implementation "io.noties.markwon:recycler:$markwonVersion"
+        implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
 
         implementation project(":terminal-view")
         implementation project(":termux-shared")
@@ -55,9 +51,7 @@ android {
         annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
 
         implementation 'androidx.tvprovider:tvprovider:1.0.0'
-
     }
-
 
     configurations.all {
         resolutionStrategy {
@@ -65,23 +59,15 @@ android {
         }
     }
 
-
     defaultConfig {
-        applicationId "com.termux"
-        minSdk buildMinSdk
-        targetSdk buildTargetSdk
+        minSdkVersion project.properties.minSdkVersion.toInteger()
+        targetSdkVersion project.properties.targetSdkVersion.toInteger()
         versionCode 5
         versionName "0.5"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
 
-        buildConfigField "Integer", "TERMUX_APP__BOOTSTRAP_MIN_SDK", project.ext.bootstrapMinSdk.toString()
-        buildConfigField "String", "TERMUX_APP__BOOTSTRAP_MIN_RELEASE",
-                project.ext.bootstrapMinRelease ? "\"" + project.ext.bootstrapMinRelease + "\"" : "null"
-        buildConfigField "Integer", "TERMUX_APP__BOOTSTRAP_MAX_SDK", project.ext.bootstrapMaxSdk.toString()
-        buildConfigField "String", "TERMUX_APP__BOOTSTRAP_MAX_RELEASE",
-                project.ext.bootstrapMaxRelease ? "\"" + project.ext.bootstrapMaxRelease + "\"" : "null"
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
 
         manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.termux"
@@ -145,9 +131,12 @@ android {
         }
     }
 
-    lintOptions {
-        checkReleaseBuilds = false
-        abortOnError = false
+    // lintOptions {
+    //     checkReleaseBuilds = false
+    //     abortOnError = false
+    // }
+
+    lint {
         disable 'ProtectedPermissions'
     }
 
@@ -175,6 +164,9 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
@@ -255,26 +247,25 @@ task downloadBootstraps() {
     doLast {
         def packageVariant = project.ext.packageVariant
         if (packageVariant == "apt-android-7") {
-            def version =  "2025.03.28-r1" + "+" + packageVariant
-            downloadBootstrap("aarch64", "c8d702b6f742935001c37cda81b8ac69504a95d5cf28f2899532dd8cd4b057eb", version)
-            downloadBootstrap("arm",     "f3bb9d1b32552b34fff41861dbf193ec5ba2848d67d779ac1c7256da6640f85d", version)
-            downloadBootstrap("i686",    "36db3e1ac3547f9a174fd763bd9a484fa1a3449cdd81e1cf2408ff0454f839c6", version)
-            downloadBootstrap("x86_64",  "1c124ec2396ee70a51b0b0a574f29aa659526aa2b9f558f993b2fb05d1e51855", version)
+            def version = "2026.02.12-r1" + "%2B" + "apt.android-7"
+            downloadBootstrap("aarch64", "ea2aeba8819e517db711f8c32369e89e7c52cee73e07930ff91185e1ab93f4f3", version)
+            downloadBootstrap("arm", "a38f4d3b2f735f83be2bf54eff463e86dc32a3e2f9f861c1557c4378d249c018", version)
+            downloadBootstrap("i686", "f5bc0b025b9f3b420b5fcaeefc064f888f5f22a0d6fd7090f4aac0c33eb3555b", version)
+            downloadBootstrap("x86_64", "b7fd0f2e3a4de534be3144f9f91acc768630fc463eaf134ab2e64c545e834f7a", version)
         } else if (packageVariant == "apt-android-5") {
-            def version = "2025.03.28-r3" + "+" + packageVariant
-            downloadBootstrap("aarch64", "147c98e610a30588665a89776314833c293006b12c70e65dcde6eb54c2344113", version)
-            downloadBootstrap("arm", "363c28dd4b70c995302498beae79fb5917af7d3b0ca9fbd9da7de96ab64c6122", version)
-            downloadBootstrap("i686", "a2e742381ab24cf8c9a78ae4e2425ee44d8fb9625a2b0ef63e4cd32e292f7186", version)
-            downloadBootstrap("x86_64", "4f6866c222b0f1ae1b180220ffc6e8e1afbc10b9cbb7a462c062c490eda90044", version)
+            def version = "2022.04.28-r6" + "+" + packageVariant
+            downloadBootstrap("aarch64", "913609d439415c828c5640be1b0561467e539cb1c7080662decaaca2fb4820e7", version)
+            downloadBootstrap("arm", "26bfb45304c946170db69108e5eb6e3641aad751406ce106c80df80cad2eccf8", version)
+            downloadBootstrap("i686", "46dcfeb5eef67ba765498db9fe4c50dc4690805139aa0dd141a9d8ee0693cd27", version)
+            downloadBootstrap("x86_64", "615b590679ee6cd885b7fd2ff9473c845e920f9b422f790bb158c63fe42b8481", version)
         } else {
             throw new GradleException("Unsupported TERMUX_PACKAGE_VARIANT \"" + packageVariant + "\"")
         }
     }
 }
 
-// Disable automatic bootstrap download
-// afterEvaluate {
-//     android.applicationVariants.all { variant ->
-//         variant.javaCompileProvider.get().dependsOn(downloadBootstraps)
-//     }
-// }
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        variant.javaCompileProvider.get().dependsOn(downloadBootstraps)
+    }
+}
