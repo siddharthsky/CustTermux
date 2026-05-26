@@ -1301,6 +1301,12 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void verifyUrlHasData(String urlString) {
+        String lowerUrl = urlString.toLowerCase();
+        if (lowerUrl.contains("localhost") || lowerUrl.contains("127.0.0.1")) {
+            processUrlAsPlugin(urlString);
+            return;
+        }
+
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
@@ -1309,15 +1315,18 @@ public class PluginManagerActivity extends AppCompatActivity {
             try {
                 URL url = new URL(urlString);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("HEAD");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+
+                connection.setRequestMethod("GET");
+
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(15000);
 
                 int responseCode = connection.getResponseCode();
 
-                if (responseCode == HttpURLConnection.HTTP_OK) {
+                if (responseCode >= 200 && responseCode < 400) {
                     hasData = true;
                 }
+
                 connection.disconnect();
 
             } catch (Exception e) {

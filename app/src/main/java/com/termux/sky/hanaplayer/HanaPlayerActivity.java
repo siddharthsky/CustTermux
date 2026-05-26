@@ -450,7 +450,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setTextColor(Color.WHITE);
         chip.setChipStrokeWidth(0);
 
-        chip.setForeground(getTvFocusBorder(this));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            chip.setForeground(getTvFocusBorder(this));
+        }
 
         if (selectedPorts.contains(portValue)) {
             chip.setChecked(true);
@@ -705,7 +707,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setTextColor(Color.WHITE);
         chip.setChipStrokeWidth(0);;
 
-        chip.setForeground(getTvFocusBorder(this));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            chip.setForeground(getTvFocusBorder(this));
+        }
 
         if (selectedGroups.contains(groupName)) {
             chip.setChecked(true);
@@ -773,10 +777,58 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private String downloadUrl(String urlString) {
-        try {
-            Scanner s = new Scanner(new URL(urlString).openStream(), "UTF-8").useDelimiter("\\A");
-            return s.hasNext() ? s.next() : "";
-        } catch (Exception e) { return ""; }
+        int maxRetries = 3;
+        int delayMs = 2000;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            StringBuilder sb = new StringBuilder();
+            java.net.HttpURLConnection conn = null;
+
+            try {
+                java.net.URL url = new java.net.URL(urlString);
+                conn = (java.net.HttpURLConnection) url.openConnection();
+
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(15000);
+                conn.setRequestMethod("GET");
+
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode >= 200 && responseCode < 400) {
+                    java.io.InputStream in = conn.getInputStream();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in, "UTF-8"));
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line).append("\n");
+                    }
+
+                    reader.close();
+                    in.close();
+                    return sb.toString();
+                } else {
+                    Log.w("PlugDRM", "Attempt " + attempt + " returned HTTP " + responseCode);
+                }
+
+            } catch (Exception e) {
+                Log.e("PlugDRM", "Download attempt " + attempt + " failed: " + e.getMessage());
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+
+            if (attempt < maxRetries) {
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return "";
+                }
+            }
+        }
+
+        return "";
     }
 
     private void onChannelClick(ChannelModel channel) {
