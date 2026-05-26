@@ -33,6 +33,7 @@ import java.util.Objects;
 
 public class AutoAppRedirectDialog {
 
+    private boolean isRedirecting = false;
     private static final String TAG = "AutoAppRedirect";
     private AlertDialog dialog;
     private CountDownTimer timer;
@@ -41,8 +42,10 @@ public class AutoAppRedirectDialog {
     @SuppressLint("UseCompatLoadingForDrawables")
     public void show(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
-            return; // Prevent WindowManager$BadTokenException
+            return;
         }
+
+        isRedirecting = false;
 
         SharedPreferences prefs = activity.getSharedPreferences("settings", MODE_PRIVATE);
 
@@ -51,9 +54,6 @@ public class AutoAppRedirectDialog {
         String pkg = prefs.getString("pkg", null);
         String cls = prefs.getString("activity", null);
         boolean minimize = prefs.getBoolean("minimize", false);
-
-        // TODO: Decide if you want to use this boolean or remove the method call
-        boolean isLaunchFilePresent = isFilePresentInHome(activity, ".launch");
 
         if (!autoStart || pkg == null || cls == null) return;
 
@@ -88,17 +88,21 @@ public class AutoAppRedirectDialog {
             dialog = builder.create();
             Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
 
-            // Re-verify activity state right before showing
+            dialog.setCanceledOnTouchOutside(false);
+
             if (!activity.isFinishing() && !activity.isDestroyed()) {
                 dialog.show();
             }
 
-            dialog.setOnCancelListener(dialogInterface -> cancel());
+            dialog.setOnDismissListener(dialogInterface -> {
+                if (!isRedirecting) {
+                    cancel();
+                }
+            });
 
             cancelBtn.setBackground(ContextCompat.getDrawable(activity, R.drawable.tv_plugin_add_btn_sk));
             cancelBtn.setBackgroundTintList(null);
 
-            // Setting explicit focus
             cancelBtn.setFocusable(true);
             cancelBtn.setFocusableInTouchMode(true);
             cancelBtn.requestFocus();
@@ -115,6 +119,7 @@ public class AutoAppRedirectDialog {
 
                 @Override
                 public void onFinish() {
+                    isRedirecting = true; // Mark as redirecting so onDismiss doesn't cancel our intent
                     dialog.dismiss();
                     launch(activity, pkg, cls, minimize);
                 }

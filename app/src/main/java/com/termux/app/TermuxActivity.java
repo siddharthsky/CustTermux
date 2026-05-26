@@ -229,6 +229,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private Handler handler = new Handler();
     private TxStartupChecker startup;
 
+    private Runnable redirectCheckTask;
+
 
     TxController termuxController = new TxController(this);
     TxStartupChecker txStartupChecker = new TxStartupChecker(this);
@@ -769,24 +771,27 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         super.onResume();
 
         startup.onResumeCheck();
-
         hanaPlayerViz();
-
         checkSetupDone();
-
         checkRestartRequired();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
 
-        Handler handler = new Handler(Looper.getMainLooper());
+        if (redirectCheckTask != null) {
+            handler.removeCallbacks(redirectCheckTask);
+        }
 
         final int[] attempt = {0};
 
-        Runnable checkTask = new Runnable() {
+        redirectCheckTask = new Runnable() {
             @Override
             public void run() {
                 attempt[0]++;
+
+                if (isFinishing() || isDestroyed() || !mIsVisible) {
+                    return;
+                }
 
                 if (launchFile.exists()) {
                     showRedirectDialog();
@@ -801,14 +806,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         };
 
         SharedPreferences settings = this.getSharedPreferences("settings", MODE_PRIVATE);
-
         boolean autoStart = settings.getBoolean("auto_start", false);
 
         if (autoStart) {
-            handler.postDelayed(checkTask, 300);
+            handler.postDelayed(redirectCheckTask, 300);
         }
-
-
 
 
 
@@ -894,6 +896,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (launchObserver != null) {
             launchObserver.stopWatching();
             launchObserver = null;
+        }
+        
+        if (redirectCheckTask != null) {
+            handler.removeCallbacks(redirectCheckTask);
         }
 
         dismissRedirectDialog();
