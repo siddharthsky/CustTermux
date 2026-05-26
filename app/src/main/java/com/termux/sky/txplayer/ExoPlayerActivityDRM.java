@@ -49,6 +49,7 @@ import com.termux.sky.tv_home_preview.RecentChannelsManager;
 import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -384,6 +385,20 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie) {
         Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
+
+        if (videoUrl != null) {
+            boolean containsLive = videoUrl.toLowerCase().contains("live");
+            List<String> numberList = Arrays.asList("676", "678", "682", "684", "729", "733", "744", "747", "895", "896", "897", "898", "899", "900", "901", "1662", "1669", "1754", "2424", "3088");
+            String joinedNumbers = String.join("|", numberList);
+            String regexPattern = ".*\\b(" + joinedNumbers + ")\\b.*";
+            boolean containsExactNumber = videoUrl.matches(regexPattern);
+            if (containsLive && containsExactNumber) {
+                Log.d("DRM_PLAYER", "URL contains 'live' and an exact target number. Switching to WebView.");
+                switchToWebView(videoUrl);
+                return;
+            }
+        }
+
 
         if (lastAttemptedUrl == null || !lastAttemptedUrl.equals(videoUrl)) {
             lastAttemptedUrl = videoUrl;
