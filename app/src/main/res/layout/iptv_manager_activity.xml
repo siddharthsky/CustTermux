@@ -57,6 +57,38 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <LinearLayout
+            android:id="@+id/layoutSelectedApp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="#11000000"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Target App: "
+                android:textColor="#94A3B8"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/txtSelectedApp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="None"
+                android:textColor="#38BDF8"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:layout_marginStart="4dp"/>
+        </LinearLayout>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">

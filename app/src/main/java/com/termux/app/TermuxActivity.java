@@ -897,7 +897,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             launchObserver.stopWatching();
             launchObserver = null;
         }
-        
+
         if (redirectCheckTask != null) {
             handler.removeCallbacks(redirectCheckTask);
         }

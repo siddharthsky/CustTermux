@@ -41,6 +41,10 @@ public class AppPickerActivity extends AppCompatActivity {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Handler handler = new Handler(Looper.getMainLooper());
 
+    // State trackers to prevent unnecessary or duplicate loading
+    private boolean isAppsLoaded = false;
+    private boolean isLoadingApps = false;
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +59,6 @@ public class AppPickerActivity extends AppCompatActivity {
 
         adapter = new AppAdapter(this::onAppSelected);
         recyclerView.setAdapter(adapter);
-
-        loadAppsAsync();
 
         LinearLayout layoutAutoStart = findViewById(R.id.layoutAutoStart);
         LinearLayout layoutMinimize = findViewById(R.id.layoutMinimize);
@@ -73,6 +75,9 @@ public class AppPickerActivity extends AppCompatActivity {
         SeekBar seekDelay = findViewById(R.id.seekDelay);
         TextView txtDelay = findViewById(R.id.txtDelay);
 
+        LinearLayout layoutSelectedApp = findViewById(R.id.layoutSelectedApp);
+        TextView txtSelectedApp = findViewById(R.id.txtSelectedApp);
+
         applySwitchColors(switchAutoStart);
         applySwitchColors(switchMinimize);
         applySwitchColors(switchBOOTbg);
@@ -82,6 +87,14 @@ public class AppPickerActivity extends AppCompatActivity {
         // Load saved values
         boolean autoStart = prefs.getBoolean("auto_start", false);
         int delay = prefs.getInt("delay", 2);
+
+        String savedAppName = prefs.getString("app_name", null);
+        if (savedAppName != null && !savedAppName.isEmpty()) {
+            layoutSelectedApp.setVisibility(View.VISIBLE);
+            txtSelectedApp.setText(savedAppName);
+        } else {
+            layoutSelectedApp.setVisibility(View.GONE);
+        }
 
         boolean isAutoStartActive = prefs.getBoolean("auto_start", false);
         switchAutoStart.setChecked(isAutoStartActive);
@@ -95,6 +108,11 @@ public class AppPickerActivity extends AppCompatActivity {
 
         // Update view states based on initial setup
         updateListVisibility(isAutoStartActive);
+
+        // ONLY load apps initially if Auto Start is enabled
+        if (isAutoStartActive) {
+            loadAppsAsync();
+        }
 
         // Set seekbar (map 2–10 sec → 0–8)
         seekDelay.setProgress(delay - 2);
@@ -116,6 +134,9 @@ public class AppPickerActivity extends AppCompatActivity {
             updateListVisibility(isChecked);
 
             if (isChecked) {
+                // Load apps when toggled ON (if not already loaded)
+                loadAppsAsync();
+
                 autoOptions.setVisibility(View.VISIBLE);
                 autoOptions.setAlpha(0f);
                 autoOptions.setScaleX(0.95f);
@@ -183,7 +204,7 @@ public class AppPickerActivity extends AppCompatActivity {
 
     private void updateListVisibility(boolean isAutoStartOn) {
         if (isAutoStartOn) {
-            // Auto Start is ON -> Show the app list, hide the banner
+            // Auto Start is ON -> Show the app list (or progress bar if loading), hide the banner
             recyclerView.setVisibility(View.VISIBLE);
             actionBanner.setVisibility(View.GONE);
         } else {
@@ -216,6 +237,10 @@ public class AppPickerActivity extends AppCompatActivity {
     }
 
     private void loadAppsAsync() {
+        // Prevent loading if already loaded or currently loading
+        if (isAppsLoaded || isLoadingApps) return;
+
+        isLoadingApps = true;
         progressBar.setVisibility(View.VISIBLE);
 
         executor.execute(() -> {
@@ -247,6 +272,9 @@ public class AppPickerActivity extends AppCompatActivity {
             handler.post(() -> {
                 progressBar.setVisibility(View.GONE);
                 adapter.submitList(tempList);
+
+                isAppsLoaded = true;
+                isLoadingApps = false;
             });
         });
     }
@@ -257,6 +285,7 @@ public class AppPickerActivity extends AppCompatActivity {
         prefs.edit()
             .putString("pkg", app.packageName)
             .putString("activity", app.activityName)
+            .putString("app_name", app.appName)
             .apply();
 
         Toast.makeText(this, "Saved: " + app.appName, Toast.LENGTH_SHORT).show();
