@@ -445,6 +445,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 break;
 
             case FORMAT_HLS:
+            default:
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
                 mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
                     .setAllowChunklessPreparation(true)
@@ -452,12 +453,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 Log.d("DRM_PLAYER", "Attempting playback as: HLS (M3U8)");
                 break;
 
-            case FORMAT_PROGRESSIVE:
-            default:
-                mediaSource = new com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(mediaItemBuilder.build());
-                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
-                break;
+//            case FORMAT_PROGRESSIVE:
+//            default:
+//                mediaSource = new com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+//                    .createMediaSource(mediaItemBuilder.build());
+//                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
+//                break;
         }
 
         if (player == null) {
