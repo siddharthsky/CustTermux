@@ -10,3 +10,15 @@
 -dontobfuscate
 #-renamesourcefileattribute SourceFile
 #-keepattributes SourceFile,LineNumberTable
+
+# Preserve generic signatures
+-keepattributes Signature
+
+# Preserve Gson TypeToken
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+
+# Preserve model fields for Gson
+-keepclassmembers class com.termux.sky.plugins.Plugin {
+    <fields>;
+}
