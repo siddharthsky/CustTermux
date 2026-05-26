@@ -25,6 +25,7 @@ public class MoreOptions {
                 String[] options = {
                     "IPTV Manager",
                     "Auto-start on boot",
+                    "Backup & Restore",
                     "Switch to Terminal"
                 };
 
@@ -53,6 +54,10 @@ public class MoreOptions {
                                 break;
 
                             case 2:
+                                TxUtils.showBackupRestoreDialog(context);
+                                break;
+
+                            case 3:
                                 TxUtils.terminal_switch_dialog(context);
                                 break;
 

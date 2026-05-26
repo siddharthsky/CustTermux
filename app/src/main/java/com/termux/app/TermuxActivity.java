@@ -72,6 +72,7 @@ import com.termux.shared.view.ViewUtils;
 import com.termux.sky.SkySharedPref;
 import com.termux.sky.TxController;
 import com.termux.sky.TxStartupChecker;
+import com.termux.sky.TxUtils;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import com.termux.sky.plugins.PluginManagerActivity;
 import com.termux.sky.iptv.AutoAppRedirectDialog;
@@ -1216,7 +1217,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
-    public void finishActivityIfNotFinishing() {
+        public void finishActivityIfNotFinishing() {
         // prevent duplicate calls to finish() if called from multiple places
         if (!TermuxActivity.this.isFinishing()) {
             finish();
@@ -1404,6 +1405,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (requestCode == PermissionUtils.REQUEST_GRANT_STORAGE_PERMISSION) {
             requestStoragePermission(true);
         }
+
+        TxUtils.handleRestoreResult(this, requestCode, resultCode, data);
     }
 
     @Override
