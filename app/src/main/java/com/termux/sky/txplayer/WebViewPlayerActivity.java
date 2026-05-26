@@ -12,15 +12,11 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.termux.sky.playlistmanager.PlaylistManager;
 
 public class WebViewPlayerActivity extends AppCompatActivity {
 

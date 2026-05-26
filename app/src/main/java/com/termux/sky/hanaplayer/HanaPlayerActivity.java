@@ -36,7 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.termux.R;
-import com.termux.sky.playlistmanager.PlaylistManager;
+import com.termux.sky.txplayer.PlaylistManager;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.tv_home_preview.FavoriteChannelsManager;

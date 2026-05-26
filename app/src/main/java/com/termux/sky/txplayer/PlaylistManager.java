@@ -1,6 +1,4 @@
-package com.termux.sky.playlistmanager;
-
-import com.termux.sky.txplayer.ChannelModel;
+package com.termux.sky.txplayer;
 
 import java.util.ArrayList;
 import java.util.List;
