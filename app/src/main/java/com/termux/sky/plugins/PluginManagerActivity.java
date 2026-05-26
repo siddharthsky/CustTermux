@@ -77,6 +77,8 @@ public class PluginManagerActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView progressText;
     private TextView restartBanner;
+    private LinearLayout emptyStateContainer;
+    private TextView repoLinkText;
 
     ActivityResultLauncher<String> filePicker =
         registerForActivityResult(
@@ -121,12 +123,17 @@ public class PluginManagerActivity extends AppCompatActivity {
         btnAdd = findViewById(R.id.btnAdd);
         restartBanner = findViewById(R.id.restartBanner);
 
+        emptyStateContainer = findViewById(R.id.emptyStateContainer);
+        repoLinkText = findViewById(R.id.repoLinkText);
+
         list = PluginStorage.load(this);
 
         adapter = new PluginAdapter(this, list, this::loginPlugin, this::updatePlugin, this::watchPlugin, this::supportPlugin, this::deletePlugin );
 
         listView.setLayoutManager(new LinearLayoutManager(this));
         listView.setAdapter(adapter);
+
+        updateEmptyStateVisibility();
 
         btnAdd.setOnClickListener(v -> showPortInputDialog());
 
@@ -138,7 +145,32 @@ public class PluginManagerActivity extends AppCompatActivity {
         btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(this::showPopupMenu);
 
+        repoLinkText.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(this, GenericWebActivity.class);
+                intent.putExtra("url", "https://siddharthsky.github.io/ctx-plugins/");
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Unable to open url", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void updateEmptyStateVisibility() {
+        if (list == null || list.isEmpty()) {
+            listView.setVisibility(View.GONE);
+            if (emptyStateContainer != null) {
+                emptyStateContainer.setVisibility(View.VISIBLE);
+            }
+        } else {
+            listView.setVisibility(View.VISIBLE);
+            if (emptyStateContainer != null) {
+                emptyStateContainer.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
@@ -462,6 +494,9 @@ public class PluginManagerActivity extends AppCompatActivity {
                         initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script, Arrays.toString(p.pkg));
 
                         list.add(p);
+
+                        updateEmptyStateVisibility();
+
                         PluginStorage.save(this, list);
                         adapter.notifyDataSetChanged();
 
@@ -927,6 +962,9 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                 restart_request(this);
                 Toast.makeText(this, "Plugin " + plugin.port + " deleted", Toast.LENGTH_SHORT).show();
+
+                updateEmptyStateVisibility();
+
             })
             .setNegativeButton("Cancel", null)
             .show();

@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:background="#1A1A1B">
 
-    <!-- Top Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -13,14 +12,16 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="20dp"
-        android:paddingEnd="4dp"> <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Plugin Manager"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:paddingEnd="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Plugin Manager"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnAdd"
@@ -45,7 +46,6 @@
 
     </LinearLayout>
 
-    <!-- Restart Banner -->
     <TextView
         android:id="@+id/restartBanner"
         android:layout_width="match_parent"
@@ -59,7 +59,6 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Plugin List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pluginList"
         android:layout_width="match_parent"
@@ -67,5 +66,46 @@
         android:layout_weight="1"
         android:padding="12dp"
         android:clipToPadding="false" />
+
+    <LinearLayout
+        android:id="@+id/emptyStateContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No plugins found."
+            android:textColor="#CCCCCC"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add plugins to get started. You can find plugin codes at:"
+            android:textColor="#999999"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/repoLinkText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="siddharthsky.github.io/ctx-plugins"
+            android:textColor="#3B82F6"
+            android:textSize="14sp"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
 
 </LinearLayout>

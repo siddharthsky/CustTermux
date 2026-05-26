@@ -1,12 +1,13 @@
 package com.termux.sky.iptv;
 
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,6 +35,7 @@ public class AppPickerActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
     ProgressBar progressBar;
+    TextView actionBanner;
     AppAdapter adapter;
 
     ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -47,6 +49,7 @@ public class AppPickerActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
+        actionBanner = findViewById(R.id.actionBanner);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -90,6 +93,8 @@ public class AppPickerActivity extends AppCompatActivity {
         layoutBOOTbg.setFocusable(isAutoStartActive);
         seekDelay.setFocusable(isAutoStartActive);
 
+        // Update view states based on initial setup
+        updateListVisibility(isAutoStartActive);
 
         // Set seekbar (map 2–10 sec → 0–8)
         seekDelay.setProgress(delay - 2);
@@ -97,7 +102,6 @@ public class AppPickerActivity extends AppCompatActivity {
 
         switchMinimize.setEnabled(autoStart);
         switchBOOTbg.setEnabled(autoStart);
-
 
         layoutAutoStart.setOnClickListener(v -> switchAutoStart.toggle());
         layoutMinimize.setOnClickListener(v -> {
@@ -107,10 +111,10 @@ public class AppPickerActivity extends AppCompatActivity {
             if (switchAutoStart.isChecked()) switchBOOTbg.toggle();
         });
 
-
-
-        // Toggle
+        // Toggle Listener
         switchAutoStart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            updateListVisibility(isChecked);
+
             if (isChecked) {
                 autoOptions.setVisibility(View.VISIBLE);
                 autoOptions.setAlpha(0f);
@@ -177,6 +181,18 @@ public class AppPickerActivity extends AppCompatActivity {
         });
     }
 
+    private void updateListVisibility(boolean isAutoStartOn) {
+        if (isAutoStartOn) {
+            // Auto Start is ON -> Show the app list, hide the banner
+            recyclerView.setVisibility(View.VISIBLE);
+            actionBanner.setVisibility(View.GONE);
+        } else {
+            // Auto Start is OFF -> Hide the app list, show the banner
+            recyclerView.setVisibility(View.GONE);
+            actionBanner.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void applySwitchColors(Switch toggle) {
         int[][] states = new int[][] {
             new int[] {android.R.attr.state_checked},
@@ -193,8 +209,10 @@ public class AppPickerActivity extends AppCompatActivity {
             Color.parseColor("#475569")
         };
 
-        toggle.setThumbTintList(new android.content.res.ColorStateList(states, thumbColors));
-        toggle.setTrackTintList(new android.content.res.ColorStateList(states, trackColors));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            toggle.setThumbTintList(new ColorStateList(states, thumbColors));
+            toggle.setTrackTintList(new ColorStateList(states, trackColors));
+        }
     }
 
     private void loadAppsAsync() {
@@ -244,5 +262,4 @@ public class AppPickerActivity extends AppCompatActivity {
         Toast.makeText(this, "Saved: " + app.appName, Toast.LENGTH_SHORT).show();
         finish();
     }
-
 }

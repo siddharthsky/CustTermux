@@ -6,7 +6,6 @@
     android:background="#1A1A1B"
     android:animateLayoutChanges="true">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -47,8 +46,6 @@
         </LinearLayout>
     </LinearLayout>
 
-
-    <!-- Options -->
     <LinearLayout
         android:id="@+id/autoStartOptions"
         android:layout_width="match_parent"
@@ -60,7 +57,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Delay Row -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -99,13 +95,11 @@
             android:progressTint="#38BDF8"
             android:thumbTint="@null" />
 
-        <!-- Toggles Row (SIDE BY SIDE) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- Minimize Layout -->
             <LinearLayout
                 android:id="@+id/layoutMinimize"
                 android:layout_width="0dp"
@@ -136,7 +130,6 @@
                     android:layout_marginStart="4dp" />
             </LinearLayout>
 
-            <!-- Background/Boot Layout -->
             <LinearLayout
                 android:id="@+id/layoutBOOTbg"
                 android:layout_width="0dp"
@@ -166,12 +159,20 @@
                     android:textSize="11sp"
                     android:layout_marginStart="4dp" />
             </LinearLayout>
-
         </LinearLayout>
-
     </LinearLayout>
 
-    <!-- App List -->
+    <TextView
+        android:id="@+id/actionBanner"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Turn on Auto Start to select an app."
+        android:textColor="#94A3B8"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -180,7 +181,6 @@
         android:padding="12dp"
         android:clipToPadding="false" />
 
-    <!-- Loader -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_gravity="center"
