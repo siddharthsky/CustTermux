@@ -77,6 +77,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private List<ChannelModel> currentPortChannels = new ArrayList<>();
     private boolean isUpdatingGroupChips = false;
 
+    private int currentSortMode = 0;
+
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
         isLaunch = prefs.getBoolean("auto_launch_channel", false);
+        currentSortMode = prefs.getInt("sort_mode", 0);
 
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -294,6 +297,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Auto-Play: " + (newState ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
                 return true;
 
+            } else if (id == R.id.menu_sort_default) {
+                setSortMode(0);
+                return true;
+            } else if (id == R.id.menu_sort_name) {
+                setSortMode(1);
+                return true;
+            } else if (id == R.id.menu_sort_number) {
+                setSortMode(2);
+                return true;
+
 //            } else if (id == R.id.menu_refresh) {
 //                Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
 //                loadActiveData();
@@ -308,6 +321,57 @@ public class HanaPlayerActivity extends AppCompatActivity {
         });
 
         popup.show();
+    }
+
+    private void setSortMode(int mode) {
+        currentSortMode = mode;
+        prefs.edit().putInt("sort_mode", mode).apply();
+
+        applyGroupFilter();
+
+        String[] modeNames = {"Default", "Name", "Number"};
+        Toast.makeText(this, "Sorted by: " + modeNames[mode], Toast.LENGTH_SHORT).show();
+    }
+
+    private void applySort(List<ChannelModel> list) {
+        if (currentSortMode == 1) {
+            // Sort by Name (A-Z)
+            Collections.sort(list, (c1, c2) -> {
+                String n1 = c1.name != null ? c1.name : "";
+                String n2 = c2.name != null ? c2.name : "";
+                return n1.compareToIgnoreCase(n2);
+            });
+        } else if (currentSortMode == 2) {
+            // Sort by Number
+            Collections.sort(list, (c1, c2) -> {
+                int num1 = extractChannelNumber(c1);
+                int num2 = extractChannelNumber(c2);
+                return Integer.compare(num1, num2);
+            });
+        }
+    }
+
+    private int extractChannelNumber(ChannelModel cm) {
+        if (cm.id != null) {
+            String idString = cm.id.trim();
+            StringBuilder numStr = new StringBuilder();
+
+            for (char c : idString.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    numStr.append(c);
+                } else if (numStr.length() > 0) {
+                    break;
+                }
+            }
+
+            if (numStr.length() > 0) {
+                try {
+                    return Integer.parseInt(numStr.toString());
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        return Integer.MAX_VALUE;
     }
 
     private void hideSystemUI() {
@@ -560,6 +624,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 filteredList.add(cm);
             }
         }
+
+        applySort(filteredList);
 
         displayList.clear();
         displayList.addAll(filteredList);

@@ -9,6 +9,15 @@
         android:checkable="true"
         app:showAsAction="never" />
 
+    <item
+        android:title="Sort By"
+        android:icon="@drawable/tx_more"> <menu>
+        <item android:id="@+id/menu_sort_default" android:title="Default (Original)" />
+        <item android:id="@+id/menu_sort_name" android:title="By Channel Name" />
+        <item android:id="@+id/menu_sort_number" android:title="By Channel Number" />
+    </menu>
+    </item>
+
 <!--    <item-->
 <!--        android:id="@+id/menu_refetch"-->
 <!--        android:title="Refetch Channels"-->
