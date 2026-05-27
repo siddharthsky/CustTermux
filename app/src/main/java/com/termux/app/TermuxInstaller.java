@@ -34,6 +34,37 @@ final class TermuxInstaller {
     private static final String LOG_TAG = "TermuxInstaller";
 
     static void setupBootstrapIfNeeded(final Activity activity, final Runnable whenDone) {
+        String bootstrapErrorMessage;
+        Error filesDirectoryAccessibleError;
+
+        filesDirectoryAccessibleError = TermuxFileUtils.isTermuxFilesDirectoryAccessible(activity, true, true);
+        boolean isFilesDirectoryAccessible = filesDirectoryAccessibleError == null;
+
+        if (!isFilesDirectoryAccessible) {
+            bootstrapErrorMessage = Error.getMinimalErrorString(filesDirectoryAccessibleError);
+            Logger.logError(LOG_TAG, bootstrapErrorMessage);
+            sendBootstrapCrashReportNotification(activity, bootstrapErrorMessage);
+            activity.runOnUiThread(() -> {
+                new AlertDialog.Builder(activity)
+                    .setTitle(R.string.bootstrap_error_title)
+                    .setMessage(bootstrapErrorMessage)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            });
+            return;
+        }
+
+        if (FileUtils.directoryFileExists(TERMUX_PREFIX_DIR_PATH, true)) {
+            if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
+                Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
+            } else {
+                whenDone.run();
+                return;
+            }
+        } else if (FileUtils.fileExists(TERMUX_PREFIX_DIR_PATH, false)) {
+            Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" does not exist but another file exists at its destination.");
+        }
+
         final ProgressDialog progress = ProgressDialog.show(activity, null, activity.getString(R.string.bootstrap_installer_body), true, false);
         new Thread() {
             @Override
@@ -44,7 +75,6 @@ final class TermuxInstaller {
 
                     Error error;
 
-                    
                     error = FileUtils.deleteFile("termux prefix staging directory", TERMUX_STAGING_PREFIX_DIR_PATH, true);
                     if (error != null) throw new RuntimeException(Error.getErrorMarkdownString(error));
 
@@ -58,20 +88,20 @@ final class TermuxInstaller {
                     if (error != null) throw new RuntimeException(Error.getErrorMarkdownString(error));
 
                     Logger.logInfo(LOG_TAG, "Extracting bootstrap archive using AndroidP7zip...");
-                    
+
                     final byte[] zipBytes = loadZipBytes();
                     tempArchive = new File(activity.getCacheDir(), "temp_bootstrap.7z");
                     try (FileOutputStream fos = new FileOutputStream(tempArchive)) {
                         fos.write(zipBytes);
                     }
-                    
+
                     String extractCmd = "7z x " + tempArchive.getAbsolutePath() + " -o" + TERMUX_STAGING_PREFIX_DIR_PATH;
                     int result = P7ZipApi.executeCommand(extractCmd);
 
                     if (result != 0) {
                         throw new RuntimeException("P7Zip native extraction failed with exit code: " + result);
                     }
-                    
+
                     File symlinksFile = new File(TERMUX_STAGING_PREFIX_DIR_PATH, "SYMLINKS.txt");
                     if (!symlinksFile.exists()) {
                         throw new RuntimeException("No SYMLINKS.txt encountered in extracted files");
@@ -92,10 +122,8 @@ final class TermuxInstaller {
                         }
                     }
 
-                    
                     symlinksFile.delete();
 
-                    
                     String[] execDirs = {"bin", "libexec", "lib/apt/apt-helper", "lib/apt/methods"};
                     for (String dirPath : execDirs) {
                         File dir = new File(TERMUX_STAGING_PREFIX_DIR_PATH, dirPath);
@@ -116,7 +144,6 @@ final class TermuxInstaller {
                     showBootstrapErrorDialog(activity, whenDone, Logger.getStackTracesMarkdownString(null, Logger.getStackTracesStringArray(e)));
 
                 } finally {
-                    
                     if (tempArchive != null && tempArchive.exists()) {
                         tempArchive.delete();
                     }
@@ -125,7 +152,6 @@ final class TermuxInstaller {
                         try {
                             progress.dismiss();
                         } catch (RuntimeException e) {
-                            
                         }
                     });
                 }
