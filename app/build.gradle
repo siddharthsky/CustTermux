@@ -50,6 +50,7 @@ android {
 
         implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
+        //noinspection Aligned16KB
         implementation 'com.github.hzy3774:AndroidP7zip:1.7.2'
     }
 
