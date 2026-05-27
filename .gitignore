@@ -45,3 +45,4 @@ app/src/main/cpp/S/bootstrap-x86_64.zip
 /app/release/baselineProfiles
 *.7z
 app/src/main/cpp/bootstrap-aarch64.7z
+*.dm
