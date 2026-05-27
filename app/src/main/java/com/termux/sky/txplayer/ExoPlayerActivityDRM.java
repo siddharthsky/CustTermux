@@ -406,7 +406,10 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         Map<String, String> headers = new HashMap<>();
-        if (userAgent != null && !userAgent.isEmpty()) headers.put("User-Agent", userAgent);
+
+        String finalUserAgent = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Dalvik/2.1.0 (Linux; Android 13)";
+        headers.put("User-Agent", finalUserAgent);
+        
         if (origin != null && !origin.isEmpty()) headers.put("Origin", origin);
         if (referer != null && !referer.isEmpty()) headers.put("Referer", referer);
 
@@ -416,6 +419,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         DefaultHttpDataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+            .setUserAgent(finalUserAgent)
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(headers);
 
