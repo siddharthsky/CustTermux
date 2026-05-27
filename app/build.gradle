@@ -51,6 +51,9 @@ android {
         annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
 
         implementation 'androidx.tvprovider:tvprovider:1.0.0'
+
+        implementation 'org.apache.commons:commons-compress:1.20'
+        implementation 'org.tukaani:xz:1.9'
     }
 
     configurations.all {
@@ -110,6 +113,7 @@ android {
             minifyEnabled true
             shrinkResources false // Reproducible builds
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
 
         debug {
@@ -172,7 +176,7 @@ android {
 dependencies {
     testImplementation "junit:junit:4.13.2"
     testImplementation "org.robolectric:robolectric:4.10"
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
 }
 
 task versionName {

@@ -23,15 +23,17 @@ import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.TermuxUtils;
 import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment;
 
+// --- 7ZIP IMPORTS ---
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
+
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static com.termux.shared.termux.TermuxConstants.TERMUX_PREFIX_DIR;
 import static com.termux.shared.termux.TermuxConstants.TERMUX_PREFIX_DIR_PATH;
@@ -151,17 +153,29 @@ final class TermuxInstaller {
                         return;
                     }
 
-                    Logger.logInfo(LOG_TAG, "Extracting bootstrap zip to prefix staging directory \"" + TERMUX_STAGING_PREFIX_DIR_PATH + "\".");
+                    Logger.logInfo(LOG_TAG, "Extracting bootstrap archive to prefix staging directory \"" + TERMUX_STAGING_PREFIX_DIR_PATH + "\".");
 
                     final byte[] buffer = new byte[8096];
                     final List<Pair<String, String>> symlinks = new ArrayList<>(50);
 
-                    final byte[] zipBytes = loadZipBytes();
-                    try (ZipInputStream zipInput = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-                        ZipEntry zipEntry;
-                        while ((zipEntry = zipInput.getNextEntry()) != null) {
+                    final byte[] zipBytes = loadZipBytes(); // Contains 7z archive bytes now
+
+                    // --- 7ZIP EXTRACTION LOGIC ---
+                    try (SeekableInMemoryByteChannel inMemoryByteChannel = new SeekableInMemoryByteChannel(zipBytes);
+                         SevenZFile sevenZFile = new SevenZFile(inMemoryByteChannel)) {
+
+                        SevenZArchiveEntry zipEntry;
+                        while ((zipEntry = sevenZFile.getNextEntry()) != null) {
                             if (zipEntry.getName().equals("SYMLINKS.txt")) {
-                                BufferedReader symlinksReader = new BufferedReader(new InputStreamReader(zipInput));
+                                java.io.ByteArrayOutputStream symlinksBaos = new java.io.ByteArrayOutputStream();
+                                int readBytes;
+                                while ((readBytes = sevenZFile.read(buffer)) != -1) {
+                                    symlinksBaos.write(buffer, 0, readBytes);
+                                }
+
+                                BufferedReader symlinksReader = new BufferedReader(new InputStreamReader(
+                                    new java.io.ByteArrayInputStream(symlinksBaos.toByteArray())));
+
                                 String line;
                                 while ((line = symlinksReader.readLine()) != null) {
                                     String[] parts = line.split("←");
@@ -191,7 +205,7 @@ final class TermuxInstaller {
                                 if (!isDirectory) {
                                     try (FileOutputStream outStream = new FileOutputStream(targetFile)) {
                                         int readBytes;
-                                        while ((readBytes = zipInput.read(buffer)) != -1)
+                                        while ((readBytes = sevenZFile.read(buffer)) != -1)
                                             outStream.write(buffer, 0, readBytes);
                                     }
                                     if (zipEntryName.startsWith("bin/") || zipEntryName.startsWith("libexec") ||
@@ -327,13 +341,6 @@ final class TermuxInstaller {
                         File audiobooksDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_AUDIOBOOKS);
                         Os.symlink(audiobooksDir.getAbsolutePath(), new File(storageDir, "audiobooks").getAbsolutePath());
                     }
-
-                    // Dir 0 should ideally be for primary storage
-                    // https://cs.android.com/android/platform/superproject/+/android-12.0.0_r32:frameworks/base/core/java/android/app/ContextImpl.java;l=818
-                    // https://cs.android.com/android/platform/superproject/+/android-12.0.0_r32:frameworks/base/core/java/android/os/Environment.java;l=219
-                    // https://cs.android.com/android/platform/superproject/+/android-12.0.0_r32:frameworks/base/core/java/android/os/Environment.java;l=181
-                    // https://cs.android.com/android/platform/superproject/+/android-12.0.0_r32:frameworks/base/services/core/java/com/android/server/StorageManagerService.java;l=3796
-                    // https://cs.android.com/android/platform/superproject/+/android-7.0.0_r36:frameworks/base/services/core/java/com/android/server/MountService.java;l=3053
 
                     // Create "Android/data/com.termux" symlinks
                     File[] dirs = context.getExternalFilesDirs(null);
