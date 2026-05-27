@@ -22,3 +22,5 @@
 -keepclassmembers class com.termux.sky.plugins.Plugin {
     <fields>;
 }
+
+-keep class com.hzy.lib7z.** { *; }

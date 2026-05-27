@@ -52,8 +52,16 @@ android {
 
         implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
-        implementation 'org.apache.commons:commons-compress:1.20'
-        implementation 'org.tukaani:xz:1.9'
+//        implementation 'org.apache.commons:commons-compress:1.20'
+//        implementation 'org.tukaani:xz:1.9'
+
+//        implementation 'com.github.hzy3774:AndroidP7zip:v1.7.3'
+
+        implementation 'com.github.hzy3774:AndroidP7zip:1.7.2'
+
+        implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.03'
+
+//        implementation 'com.hzy:un7zip:+'
     }
 
     configurations.all {
