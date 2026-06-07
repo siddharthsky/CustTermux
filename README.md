@@ -1,144 +1,88 @@
 <h1 align="center">
   <br>
   <a href="#">
-    <img src="_assets/logos/CustTermux-icon.png" alt="CustTermux Icon" width="200">
+    <img src="https://raw.githubusercontent.com/siddharthsky/ctx-plugins/main/assets/tx_ctx_engine_1.png" alt="CustTermux Engine Icon" width="200">
   </a>
   <br>
-  📺 CustTermux
-  <br>
+  CTx Engine
 </h1>
 
-<p align="center">A customized version of Termux for TV streaming.</p>
+<p align="center"><b>Fork of Termux optimized for TV streaming with extended plugin support.</b></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.8.5-blue" alt="Version">
-  <img src="https://img.shields.io/badge/build-stable-brightgreen" alt="Build Status">
-  <img src="https://img.shields.io/badge/license-GPLv3-orange" alt="License">
+  <img src="https://img.shields.io/badge/version-0.5-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/build-stable-brightgreen?style=flat-square" alt="Build Status">
+  <img src="https://img.shields.io/badge/license-GPLv3-orange?style=flat-square" alt="License">
 </p>
 
 ---
 
-- [Features](#-features)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Login](#-login)
-- [Acknowledgements](#-acknowledgements)
+## 🚀 Quick Start
+
+Get up and running in minutes:
+
+1. **Open** [CTx Engine](https://t.me/c/CustTermux/48) and grant the required permissions.
+2. **Navigate** to the **Plugin Manager**.
+3. **Install** [plugins](https://github.com/siddharthsky/ctx-plugins) using a simple 4-digit code *(note: some plugins require login)*.
+4. **Launch** **HanaPlayer**.
+5. **Start streaming!**
 
 ---
 
-### ✨ Features
-**Designed for TV Streaming:**
-- **CustTermux Environment**: Tailored for a seamless TV streaming experience.
-- **Built-in Media Dependencies**: Pre-configured packages for effortless setup.
-- **jiotv_go Integration**: Enhanced streaming capabilities with direct support for [jiotv_go](https://github.com/rabilrbl/jiotv_go).
-- **TV-Optimized UI**: Simple and accessible interface for navigation on TVs.
+## ✨ Core Features
 
-**Initial Setup and Configuration:**
-- **Initial Setup Page**: Added for streamlined configuration.
-- **Dependency Removal**: Eliminated reliance on other Termux apps.
+### 🌸 HanaPlayer (Built-in Media Player)
+Designed specifically for seamless IPTV and live streaming.
+* **Advanced Playback:** Full DRM support, multiple audio tracks, and subtitles.
+* **Content Management:** Custom playlists and robust favorites tracking.
+* **Reliability:** Built-in playback diagnostics and troubleshooting tools.
 
-**Enhanced Functionality:**
-- **Android 5 Support**: Now included.
-- **Onscreen Keys**: Ctrl, Alt, and Arrow keys are now accessible via the remote.
-- **Ctrl + C Functionality**: Available through the remote, removing the need for an additional device to stop the service.
-- **OnResume Functionality**: IPTV automatically opens when switching to CustTermux.
+### 🎦 Android TV Optimized
+Built with the big screen and D-pad navigation in mind.
+* Intuitive, TV-friendly interface.
+* Deep integration with Android TV Home screen channels.
+* Quick access to **Recent** and **Favorite** channels.
 
-**Main Activity Updates:**
-- **Button Layout**: Updated on the main page.
-- **TV Layout**: Introduced for a more intuitive interface.
-- **IPTV Button**: Long press to change IPTV settings; otherwise, it opens IPTV directly.
-- **Settings Page**: Added for easier access to configuration options.
-- **Playlist Download Option**: Download playlists based on local or public access.
-- **Playlist Link**: Displayed on the home screen with a copy option.
-
-![Screenshot](https://i.imgur.com/yGZ6JBZl.png)
-
-**Native Layouts and Boot Features:**
-- **Native Layouts**: Termux-API is no longer required.
-- **Autostart on Device Boot**: Implemented without the need for Termux-boot.
-
-**Additional Features:**
-- **Live Server Status and Login Status**: Displayed for real-time updates.
-- **IPTV Selector**: Choose any app for IPTV.
-- **Web Player**: Added for standalone operation.
-- **New Login Page**: Supports OTP and password authentication.
-- **Login Checker**: Added to verify login status.
-
-**Settings Page Enhancements:**
-- **Local and Public Access Settings**: Configurable through the new Settings page.
-- **Autostart Server**: Option to enable server autostart.
-- **Auto-Start IPTV**: Option for automatic IPTV start.
-- **Port Changing**: Option to change server port.
-- **EPG Generation Settings**: Configurable EPG settings.
-- **Generic TV Banner**: Option to enable/disable.
-- **SSH Access Settings**: Added for secure access.
-
-<table>
-  <tr>
-    <td><img src="https://i.imgur.com/0BUJ4nY.png" alt="Screenshot 1" width="400"/></td>
-    <td><img src="https://i.imgur.com/lGeQXz9.png" alt="Screenshot 2" width="400"/></td>
-    <td><img src="https://i.imgur.com/VUEl2yw.png" alt="Screenshot 3" width="400"/></td>
-  </tr>
-</table>
-
+### ⚡ Features
+* Automatic dependency installation.
+* Automatic boot startup options 
+  - In Background
+  - In Foreground (opens app)
+* Built-in backup and restore utilities
 
 ---
 
-### 📥 Installation
+## 🔌 Plugin Ecosystem
 
-1. **Download the APK**: Grab the latest release from the [releases page](https://github.com/siddharthsky/CustTermux/releases).
-   - **Important for Android 5 & 6 Users**: If you are using Android 5 or 6, download the APK labeled specifically for older devices to ensure compatibility and optimal performance.
+Install servers, tools, and extensions using our simple **4-digit plugin code** system. 
 
-2. **Install the APK**:
-   - Enable installation from unknown sources in your TV's settings.
-   - Use a file manager to locate and install the downloaded APK.
+* **Official Plugin Repository:** [ctx-plugins](https://github.com/siddharthsky/ctx-plugins)
 
-3. **Grant Permissions**: Ensure CustTermux has the necessary permissions for storage and network access to function properly. For best performance, confirm all permissions during the initial setup.
+> [!Warning]  
+> Always ensure you are installing plugins from trusted sources.
 
+### 🛠 Beyond Media: Utility Plugins
+Run lightweight server tools directly inside the CTx Engine environment.
 
----
-
-### 🚀 Usage
-
-1. **Launching CustTermux**: Open the app from your TV’s apps menu.
-2. **Setting Up for the First Time**:
-   - Upon the first launch, CustTermux will initialize the required environment and download dependencies.
-   - Follow any on-screen instructions to configure network settings or script options.
-   - Login by following the steps outlined in the **Login** section.
-3. **Accessing TV Channels**:
-   - Navigate to the WEB TV menu to explore available channels.
-   - Select a channel to start streaming instantly!
-4. **Using an IPTV Player**:
-   - To play channels via an IPTV player, add the IPTV playlist URL in your preferred IPTV player app. `[http://localhost:<port>/playlist.m3u]` if set locally.
-   - Open the IPTV player and navigate to the section for adding playlists.
-   - Input the URL of the IPTV playlist and save it.
-   - Select the playlist to browse and play available channels.
+* **Example:** Install the **gottyd Web Terminal** using Plugin Code: `9006`
+* **Future Possibilities:** Developer tools, network utilities, self-hosted services, and automation plugins.
 
 ---
 
-### 🔐 Login
+## 📥 Downloads & Support
 
-To access , login in required:
+Stay updated with the latest releases, discover new plugins, and join the discussion!
 
-1. **Open the Login Menu**: In the app settings, select *Login*.
-2. **Choose Login Method**:
-   - **Login via Password**:
-     - Enter your phone number and password in the designated fields.
-     - Click **Login** to authenticate.
-   - **Login via OTP**:
-     - Enter your phone number in the *Phone Number* field.
-     - Click **Send OTP** to receive a one-time password on your phone.
-     - Enter the received OTP in the *OTP* field, then click **Verify** to complete login.
-3. **Handling Login Errors**:
-   - If you attempt to log in multiple times in quick succession, the server may freeze, and a cooldown period for OTP is applied. Avoid spamming requests. If you encounter this issue, wait a few minutes before trying again.
-   - Ensure you have a stable internet connection for OTP delivery and verification.
+<div align="center">
+  <br>
+  <a href="https://t.me/CustTermux" target="_blank">
+    <img src="https://img.shields.io/badge/Downlaod-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Community">
+  </a>
+  <br>
+</div>
 
 ---
 
-### 🙌 Acknowledgements
-
-- **[Termux](https://github.com/termux)**  
-  This project is based on Termux, providing a robust way to manage dependencies, scripts, and environment setup for seamless media streaming.
-
-- **[rabilrbl](https://github.com/rabilrbl)**  
-  CustTermux leverages [jiotv_go](https://github.com/rabilrbl/jiotv_go) as part of its core implementation to enhance TV streaming capabilities.
+> [!IMPORTANT]  
+> **🚨 Legacy Notice**  
+> The original **CustTermux** project is officially deprecated. All future features, updates, and plugin development are now focused exclusively on **CTx Engine**. Please migrate to ensure the best experience and continued support.
