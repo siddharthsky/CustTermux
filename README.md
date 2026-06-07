@@ -4,7 +4,7 @@
     <img src="https://raw.githubusercontent.com/siddharthsky/ctx-plugins/main/assets/tx_ctx_engine_1.png" alt="CustTermux Engine Icon" width="200">
   </a>
   <br>
-  CTxEngine
+  CTx Engine
 </h1>
 
 <p align="center"><b>Fork of Termux optimized for TV streaming with extended plugin support.</b></p>
