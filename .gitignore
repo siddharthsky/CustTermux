@@ -47,3 +47,4 @@ app/src/main/cpp/S/bootstrap-x86_64.zip
 app/src/main/cpp/bootstrap-aarch64.7z
 *.dm
 /app/release
+*.DS_Store

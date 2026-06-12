@@ -1,26 +1,64 @@
 package com.termux.sky;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.termux.R;
+import com.termux.app.activities.SettingsActivity;
 import com.termux.sky.iptv.AppPickerActivity;
 
 public class MoreOptions {
 
     public static void setButtonClickListener(Context context, Button button) {
         button.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View v) {
 
                 AlertDialog.Builder builder =
                     new AlertDialog.Builder(context, R.style.GoldenFocusDialogTheme);
 
-                builder.setTitle("Choose an option");
+                LinearLayout titleLayout = new LinearLayout(context);
+                titleLayout.setOrientation(LinearLayout.HORIZONTAL);
+                int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24, context.getResources().getDisplayMetrics());
+                titleLayout.setPadding(padding, padding, padding, padding / 2);
+                titleLayout.setGravity(Gravity.CENTER_VERTICAL);
+
+
+                TextView titleText = new TextView(context);
+                titleText.setText("Choose an option");
+                titleText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+                titleText.setTypeface(null, Typeface.BOLD);
+                titleText.setTextColor(Color.WHITE);
+
+                LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+                titleLayout.addView(titleText, textParams);
+
+                ImageView settingsIcon = new ImageView(context);
+                settingsIcon.setImageResource(R.drawable.tx_settings);
+                settingsIcon.setColorFilter(Color.WHITE);
+
+                settingsIcon.setFocusable(true);
+                settingsIcon.setBackgroundResource(R.drawable.golden_focus_selector);
+
+                int iconPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, context.getResources().getDisplayMetrics());
+                settingsIcon.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
+
+                titleLayout.addView(settingsIcon);
+
+                builder.setCustomTitle(titleLayout);
 
                 String[] options = {
                     "IPTV Manager",
@@ -70,6 +108,16 @@ public class MoreOptions {
                 builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
                 AlertDialog dialog = builder.create();
+
+                settingsIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(context, TxSettingsActivity.class);
+                        context.startActivity(intent);
+                        dialog.dismiss();
+                    }
+                });
+
                 dialog.show();
 
                 Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
@@ -78,14 +126,14 @@ public class MoreOptions {
                 if (posButton != null) {
                     posButton.setBackgroundTintList(null);
                     posButton.setBackgroundResource(R.drawable.golden_focus_selector);
-                    posButton.setTextColor(android.graphics.Color.WHITE);
+                    posButton.setTextColor(Color.WHITE);
                     posButton.setFocusable(true);
                 }
 
                 if (negButton != null) {
                     negButton.setBackgroundTintList(null);
                     negButton.setBackgroundResource(R.drawable.golden_focus_selector);
-                    negButton.setTextColor(android.graphics.Color.WHITE);
+                    negButton.setTextColor(Color.WHITE);
                     negButton.setFocusable(true);
                 }
             }

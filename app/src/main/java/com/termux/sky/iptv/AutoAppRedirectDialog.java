@@ -17,14 +17,19 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
+import com.startapp.sdk.ads.banner.Banner;
+import com.startapp.sdk.ads.banner.BannerListener;
 import com.termux.R;
+import com.termux.sky.TxVerify;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 
 import java.io.File;
@@ -38,6 +43,8 @@ public class AutoAppRedirectDialog {
     private AlertDialog dialog;
     private CountDownTimer timer;
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private Banner preloadedBanner;
 
     @SuppressLint("UseCompatLoadingForDrawables")
     public void show(Activity activity) {
@@ -80,6 +87,39 @@ public class AutoAppRedirectDialog {
 
             iconView.setImageDrawable(icon);
             titleView.setText(String.format("Opening %s", appName));
+
+            FrameLayout bannerContainer =
+                view.findViewById(R.id.banner_container);
+
+            boolean premium =
+                TxVerify.isPremium(activity);
+
+            if (premium) {
+
+                bannerContainer.setVisibility(View.GONE);
+
+            } else {
+
+                bannerContainer.setVisibility(View.VISIBLE);
+
+                if (preloadedBanner != null) {
+
+                    if (preloadedBanner.getParent() != null) {
+                        ((ViewGroup) preloadedBanner.getParent())
+                            .removeView(preloadedBanner);
+                    }
+
+                    bannerContainer.addView(preloadedBanner);
+
+                } else {
+
+                    Banner fallbackBanner =
+                        new Banner(activity);
+
+                    bannerContainer.addView(fallbackBanner);
+                    fallbackBanner.loadAd();
+                }
+            }
 
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setView(view);
@@ -134,6 +174,34 @@ public class AutoAppRedirectDialog {
         File homeDir = new File(context.getFilesDir(), "home");
         File file = new File(homeDir, fileName);
         return file.exists() && file.isFile();
+    }
+
+    public void preloadBanner(Activity activity) {
+        if (activity == null || activity.isFinishing()) return;
+
+        preloadedBanner = new Banner(activity, new BannerListener() {
+            @Override
+            public void onReceiveAd(View view) {
+                Log.d(TAG, "StartApp Banner preloaded successfully");
+
+                if (preloadedBanner != null) {
+                    preloadedBanner.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailedToReceiveAd(View view) {
+                Log.e(TAG, "StartApp Banner failed to preload");
+            }
+
+            @Override
+            public void onImpression(View view) {}
+
+            @Override
+            public void onClick(View view) {}
+        });
+
+        preloadedBanner.setVisibility(View.INVISIBLE);
     }
 
     public void launch(Context context, String pkg, String cls, Boolean minimize) {

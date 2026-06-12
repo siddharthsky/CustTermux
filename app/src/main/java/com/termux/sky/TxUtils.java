@@ -43,7 +43,7 @@ import java.util.zip.ZipOutputStream;
 
 public class TxUtils {
 
-    // Termux constants
+
     private static final String TERMUX_PACKAGE = "com.termux";
     private static final String TERMUX_SERVICE = "com.termux.app.RunCommandService";
     private static final String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
@@ -52,6 +52,7 @@ public class TxUtils {
     private static final String SCRIPT_PATH = HOME_PATH + "/.skyutils.sh";
 
     public static final int REQUEST_CODE_RESTORE = 8008;
+    private static final int XOR_KEY = 42;
 
     public static void showCustomToast(Context context, String message) {
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -340,18 +341,28 @@ public class TxUtils {
                     if (!downloadsDir.exists()) downloadsDir.mkdirs();
 
                     String timeStamp = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault()).format(new Date());
-                    String fileName = "CTxEngine-backup-" + timeStamp + ".zip";
-                    File backupFile = new File(downloadsDir, fileName);
+                    String fileName = "CTxEngine-backup-" + timeStamp + ".bak";
+                    File finalBackupFile = new File(downloadsDir, fileName);
+
+
+                    File tempZip = new File(context.getCacheDir(), "temp_backup.zip");
 
                     List<File> dirsToZip = new ArrayList<>();
                     if (homeDir.exists()) dirsToZip.add(homeDir);
                     if (prefsDir.exists()) dirsToZip.add(prefsDir);
 
-                    zipDirectories(dataDir, dirsToZip.toArray(new File[0]), backupFile);
+
+                    zipDirectories(dataDir, dirsToZip.toArray(new File[0]), tempZip);
+
+
+                    applyXorToFile(tempZip, finalBackupFile);
+
+
+                    tempZip.delete();
 
                     ((Activity) context).runOnUiThread(() -> {
                         progressDialog.dismiss();
-                        Toast.makeText(context, "Backup saved to Downloads:\n" + backupFile.getName(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "Backup saved to Downloads:\n" + finalBackupFile.getName(), Toast.LENGTH_LONG).show();
                     });
 
                 } catch (Exception e) {
@@ -372,11 +383,12 @@ public class TxUtils {
         }
 
         Intent intent = new Intent(context, FilePickerActivity.class);
-        intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".zip"});
+
+        intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".bak"});
         ((Activity) context).startActivityForResult(intent, REQUEST_CODE_RESTORE);
     }
 
-    private static void doClearData(Context context) {
+    public static void doClearData(Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.GoldenFocusDialogTheme);
         builder.setTitle("Warning: Clear All Data");
         builder.setMessage("This will permanently delete ALL app data, settings, and files. The app will close immediately.\n\nAre you sure you want to continue?");
@@ -478,16 +490,34 @@ public class TxUtils {
             if (fileUri != null) {
                 if (!(context instanceof Activity)) return;
 
+                File selectedFile = new File(fileUri.getPath());
+                String fileName = selectedFile.getName().toLowerCase();
+
+
+                if (!fileName.startsWith("ctx") || !fileName.endsWith(".bak")) {
+                    Toast.makeText(context, "Invalid backup file. Only .bak files are supported.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 AlertDialog progressDialog = createProgressDialog(context, "Restoring data...\nPlease do not close the app.");
                 progressDialog.show();
 
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     new Thread(() -> {
                         try {
-                            File zipFile = new File(fileUri.getPath());
                             File targetDir = context.getFilesDir().getParentFile();
 
-                            unzip(zipFile, targetDir);
+
+                            File tempZip = new File(context.getCacheDir(), "temp_restore.zip");
+
+
+                            applyXorToFile(selectedFile, tempZip);
+
+
+                            unzip(tempZip, targetDir);
+
+
+                            tempZip.delete();
 
                             ((Activity) context).runOnUiThread(() -> {
                                 progressDialog.dismiss();
@@ -495,7 +525,7 @@ public class TxUtils {
                             });
 
                             Thread.sleep(1500);
-                            System.exit(0);
+                            restartApp(context);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -507,6 +537,25 @@ public class TxUtils {
                     }).start();
                 }, 100);
             }
+        }
+    }
+
+    public static void restartApp(Context context) {
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            context.startActivity(intent);
+
+            if (context instanceof Activity) {
+                ((Activity) context).finish();
+            }
+
+            Log.d("SkyLog", "Out Of The App - Restarting");
+            System.exit(0);
         }
     }
 
@@ -533,6 +582,135 @@ public class TxUtils {
                     }
                 }
                 zis.closeEntry();
+            }
+        }
+    }
+
+    public static void doPluginClearData(Context context) {
+
+        AlertDialog.Builder builder =
+            new AlertDialog.Builder(context, R.style.GoldenFocusDialogTheme);
+
+        builder.setTitle("Clear Plugins");
+        builder.setMessage(
+            "This will remove plugin configuration, port settings, and all plugin files.\n\n" +
+                "Continue?"
+        );
+
+        builder.setPositiveButton("Clear", (dialog, id) -> {
+            try {
+                int deletedPrefs = 0;
+
+
+                File prefsDir = new File(
+                    context.getApplicationInfo().dataDir,
+                    "shared_prefs"
+                );
+
+                if (prefsDir.exists() && prefsDir.isDirectory()) {
+                    File[] files = prefsDir.listFiles();
+                    if (files != null) {
+                        for (File file : files) {
+                            String name = file.getName();
+
+
+                            if ("plugins_pref.xml".equals(name)) {
+                                if (file.delete()) deletedPrefs++;
+                            }
+
+
+                            if (name.startsWith("port_") && name.endsWith(".xml")) {
+                                if (file.delete()) deletedPrefs++;
+                            }
+                        }
+                    }
+                }
+
+                File pluginsDir = new File(context.getFilesDir(), "home/plugins");
+                boolean filesCleared = false;
+
+                if (pluginsDir.exists() && pluginsDir.isDirectory()) {
+                    File[] pluginFiles = pluginsDir.listFiles();
+                    if (pluginFiles != null) {
+                        for (File child : pluginFiles) {
+                            deleteRecursive(child);
+                        }
+                        filesCleared = true;
+                    }
+                }
+
+                Toast.makeText(
+                    context,
+                    "Removed " + deletedPrefs + " config files & cleared plugin directory.",
+                    Toast.LENGTH_LONG
+                ).show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(
+                    context,
+                    "Failed to clear plugins.",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
+
+        builder.setNegativeButton(
+            "Cancel",
+            (dialog, id) -> dialog.dismiss()
+        );
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(Color.parseColor("#FFB300"));
+            posButton.setFocusable(true);
+        }
+
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(Color.WHITE);
+            negButton.setFocusable(true);
+        }
+    }
+
+    private static void deleteRecursive(File fileOrDirectory) {
+        try {
+            if (fileOrDirectory.isDirectory()) {
+                File[] children = fileOrDirectory.listFiles();
+                if (children != null) {
+                    for (File child : children) {
+                        deleteRecursive(child);
+                    }
+                }
+            }
+            fileOrDirectory.delete();
+        } catch(Exception e) {
+            Log.d("TxUtils", String.valueOf(e));
+
+        }
+    }
+
+
+    private static void applyXorToFile(File inputFile, File outputFile) throws IOException {
+        try (FileInputStream fis = new FileInputStream(inputFile);
+             FileOutputStream fos = new FileOutputStream(outputFile)) {
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                for (int i = 0; i < bytesRead; i++) {
+                    buffer[i] = (byte) (buffer[i] ^ XOR_KEY);
+                }
+                fos.write(buffer, 0, bytesRead);
             }
         }
     }

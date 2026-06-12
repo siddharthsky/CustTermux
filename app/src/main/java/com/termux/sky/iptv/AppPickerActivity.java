@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.termux.R;
+import com.termux.sky.TxVerify;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,6 @@ public class AppPickerActivity extends AppCompatActivity {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Handler handler = new Handler(Looper.getMainLooper());
 
-    // State trackers to prevent unnecessary or duplicate loading
     private boolean isAppsLoaded = false;
     private boolean isLoadingApps = false;
 
@@ -82,11 +82,19 @@ public class AppPickerActivity extends AppCompatActivity {
         applySwitchColors(switchMinimize);
         applySwitchColors(switchBOOTbg);
 
+        boolean isPremium = TxVerify.isPremium(this);
+        final int minDelay = isPremium ? 2 : 4;
+        final int maxDelay = 10;
+
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
 
-        // Load saved values
         boolean autoStart = prefs.getBoolean("auto_start", false);
-        int delay = prefs.getInt("delay", 2);
+        int delay = prefs.getInt("delay", minDelay);
+
+       if (delay < minDelay) {
+            delay = minDelay;
+            prefs.edit().putInt("delay", delay).apply();
+        }
 
         String savedAppName = prefs.getString("app_name", null);
         if (savedAppName != null && !savedAppName.isEmpty()) {
@@ -106,16 +114,14 @@ public class AppPickerActivity extends AppCompatActivity {
         layoutBOOTbg.setFocusable(isAutoStartActive);
         seekDelay.setFocusable(isAutoStartActive);
 
-        // Update view states based on initial setup
         updateListVisibility(isAutoStartActive);
 
-        // ONLY load apps initially if Auto Start is enabled
         if (isAutoStartActive) {
             loadAppsAsync();
         }
 
-        // Set seekbar (map 2–10 sec → 0–8)
-        seekDelay.setProgress(delay - 2);
+        seekDelay.setMax(maxDelay - minDelay);
+        seekDelay.setProgress(delay - minDelay);
         txtDelay.setText(delay + " sec");
 
         switchMinimize.setEnabled(autoStart);
@@ -193,7 +199,8 @@ public class AppPickerActivity extends AppCompatActivity {
         seekDelay.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int seconds = progress + 2;
+                // Add the dynamic minDelay to the current progress
+                int seconds = progress + minDelay;
                 txtDelay.setText(seconds + " sec");
                 prefs.edit().putInt("delay", seconds).apply();
             }
@@ -204,11 +211,9 @@ public class AppPickerActivity extends AppCompatActivity {
 
     private void updateListVisibility(boolean isAutoStartOn) {
         if (isAutoStartOn) {
-            // Auto Start is ON -> Show the app list (or progress bar if loading), hide the banner
             recyclerView.setVisibility(View.VISIBLE);
             actionBanner.setVisibility(View.GONE);
         } else {
-            // Auto Start is OFF -> Hide the app list, show the banner
             recyclerView.setVisibility(View.GONE);
             actionBanner.setVisibility(View.VISIBLE);
         }
@@ -237,7 +242,6 @@ public class AppPickerActivity extends AppCompatActivity {
     }
 
     private void loadAppsAsync() {
-        // Prevent loading if already loaded or currently loading
         if (isAppsLoaded || isLoadingApps) return;
 
         isLoadingApps = true;

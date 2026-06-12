@@ -1,3 +1,6 @@
+import java.security.DigestInputStream
+import java.security.MessageDigest
+
 plugins {
     id "com.android.application"
 }
@@ -23,13 +26,13 @@ android {
     def splitAPKsForReleaseBuilds = System.getenv("TERMUX_SPLIT_APKS_FOR_RELEASE_BUILDS") ?: "1" // F-Droid does not support split APKs #1904
 
     dependencies {
-        implementation "androidx.annotation:annotation:1.9.0"
-        implementation "androidx.core:core:1.13.1"
+        implementation "androidx.annotation:annotation:1.10.0"
+        implementation "androidx.core:core:1.18.0"
         implementation "androidx.drawerlayout:drawerlayout:1.2.0"
         implementation "androidx.preference:preference:1.2.1"
-        implementation "androidx.viewpager:viewpager:1.0.0"
-        implementation "com.google.android.material:material:1.12.0"
-        implementation "com.google.guava:guava:24.1-jre"
+        implementation "androidx.viewpager:viewpager:1.1.0"
+        implementation "com.google.android.material:material:1.14.0"
+        implementation "com.google.guava:guava:33.6.0-jre"
         implementation "io.noties.markwon:core:$markwonVersion"
         implementation "io.noties.markwon:ext-strikethrough:$markwonVersion"
         implementation "io.noties.markwon:linkify:$markwonVersion"
@@ -39,22 +42,25 @@ android {
         implementation project(":terminal-view")
         implementation project(":termux-shared")
 
-        implementation("com.google.code.gson:gson:2.10.1")
+        implementation("com.google.code.gson:gson:2.14.0")
 
         implementation("com.google.android.exoplayer:exoplayer:2.16.0")
         implementation "com.google.android.exoplayer:exoplayer-dash:2.16.0"
         implementation "com.google.android.exoplayer:exoplayer-ui:2.16.0"
 
-        implementation 'com.github.bumptech.glide:glide:4.15.1'
-        annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+        implementation 'com.github.bumptech.glide:glide:5.0.7'
+        annotationProcessor 'com.github.bumptech.glide:compiler:5.0.7'
 
-        implementation 'androidx.tvprovider:tvprovider:1.0.0'
+        implementation 'androidx.tvprovider:tvprovider:1.1.0'
 
-        //noinspection Aligned16KB
-        implementation 'com.github.hzy3774:AndroidP7zip:1.7.2'
+        implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
+
+        //noinspection GradleDynamicVersion
+        implementation 'com.startapp:inapp-sdk:5.+'
+
     }
 
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy {
             force 'com.google.guava:guava:24.1-jre'
         }
@@ -109,8 +115,8 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources false // Reproducible builds
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            shrinkResources false // Reproducible builds
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }
 
@@ -156,12 +162,11 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
+            def abi = output.getFilter("ABI")
             if (variant.buildType.name == "debug") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("TxEngine-v" + versionName + "-debug_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = "CTxEngine-v" + versionName + "-debug_" + (abi ? abi : "universal") + ".apk"
             } else if (variant.buildType.name == "release") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("TxEngine-v" + versionName + "-release_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = "CTxEngine-v" + versionName + "-release_" + (abi ? abi : "universal") + ".apk"
             }
         }
     }
@@ -173,17 +178,17 @@ android {
 
 dependencies {
     testImplementation "junit:junit:4.13.2"
-    testImplementation "org.robolectric:robolectric:4.10"
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4"
+    testImplementation "org.robolectric:robolectric:4.16.1"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
 }
 
-task versionName {
+tasks.register('versionName') {
     doLast {
         print android.defaultConfig.versionName
     }
 }
 
-def validateVersionName(String versionName) {
+static def validateVersionName(String versionName) {
     def simpleRegex = /^[0-9]+\.[0-9]+$/
 
     if (!(versionName ==~ simpleRegex)) {
@@ -195,7 +200,7 @@ def validateVersionName(String versionName) {
 }
 
 def downloadBootstrap(String arch, String expectedChecksum, String version) {
-    def digest = java.security.MessageDigest.getInstance("SHA-256")
+    def digest = MessageDigest.getInstance("SHA-256")
 
     def localUrl = "src/main/cpp/bootstrap-" + arch + ".zip"
     def file = new File(projectDir, localUrl)
@@ -225,7 +230,7 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
 
     def connection = new URL(remoteUrl).openConnection()
     connection.setInstanceFollowRedirects(true)
-    def digestStream = new java.security.DigestInputStream(connection.inputStream, digest)
+    def digestStream = new DigestInputStream(connection.inputStream, digest)
     out << digestStream
     out.close()
 
@@ -245,7 +250,7 @@ clean {
     }
 }
 
-task downloadBootstraps() {
+tasks.register('downloadBootstraps') {
     doLast {
         def packageVariant = project.ext.packageVariant
         if (packageVariant == "apt-android-7") {

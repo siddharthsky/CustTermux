@@ -18,6 +18,11 @@
     </menu>
     </item>
 
+    <item
+        android:id="@+id/menu_export_fav"
+        android:title="Download Favorites Playlist"
+        android:icon="@android:drawable/ic_menu_save" />
+
 <!--    <item-->
 <!--        android:id="@+id/menu_refetch"-->
 <!--        android:title="Refetch Channels"-->

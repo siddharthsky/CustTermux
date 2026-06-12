@@ -559,15 +559,22 @@ public class PermissionUtils {
         Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
         intent.setData(Uri.parse("package:" + context.getPackageName()));
 
-        // Flag must not be passed for activity contexts, otherwise onActivityResult() will not be called with permission grant result.
-        // Flag must be passed for non-activity contexts like services, otherwise "Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag" exception will be raised.
         if (!(context instanceof Activity))
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        if (requestCode >=0)
-            return ActivityUtils.startActivityForResult(context, requestCode, intent);
-        else
-            return ActivityUtils.startActivity(context, intent);
+        try {
+            if (requestCode >= 0)
+                return ActivityUtils.startActivityForResult(context, requestCode, intent);
+            else
+                return ActivityUtils.startActivity(context, intent);
+
+        } catch (android.content.ActivityNotFoundException e) {
+            Logger.logError(LOG_TAG, "Battery optimization settings are not available on this device.");
+
+            android.widget.Toast.makeText(context, "Battery optimization settings are not supported on this device.", android.widget.Toast.LENGTH_LONG).show();
+
+            return null;
+        }
     }
 
 }

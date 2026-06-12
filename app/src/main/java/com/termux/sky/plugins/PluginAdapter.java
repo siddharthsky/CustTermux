@@ -246,8 +246,8 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
     static class VH extends RecyclerView.ViewHolder {
 
         TextView name, status, playlist, watchBtnText;
-        ImageButton login, settingsBtn;
-        LinearLayout watch;
+        ImageButton settingsBtn;
+        LinearLayout watch, login;
 
         VH(View v) {
             super(v);

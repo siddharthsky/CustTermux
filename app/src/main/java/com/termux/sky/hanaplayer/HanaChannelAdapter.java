@@ -26,6 +26,7 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
     private List<ChannelModel> list;
     private final OnChannelClickListener clickListener;
     private final OnChannelLongClickListener longClickListener;
+    private int movingPosition = -1;
 
     public interface OnChannelClickListener { void onClick(ChannelModel channel); }
     public interface OnChannelLongClickListener { void onLongClick(ChannelModel channel); }
@@ -40,6 +41,13 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
     public void updateList(List<ChannelModel> newList) {
         this.list = newList;
         notifyDataSetChanged();
+    }
+
+    public void setMovingPosition(int position) {
+        int old = this.movingPosition;
+        this.movingPosition = position;
+        if (old != -1) notifyItemChanged(old);
+        if (position != -1) notifyItemChanged(position);
     }
 
     @NonNull
@@ -146,6 +154,16 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         holder.name.setText(channel.name);
 
         holder.favIcon.setVisibility(channel.isFavorite ? View.VISIBLE : View.GONE);
+
+        if (position == movingPosition) {
+            holder.itemView.setAlpha(0.5f);
+            holder.itemView.setScaleX(1.05f);
+            holder.itemView.setScaleY(1.05f);
+        } else {
+            holder.itemView.setAlpha(1.0f);
+            holder.itemView.setScaleX(1.0f);
+            holder.itemView.setScaleY(1.0f);
+        }
 
         Glide.with(holder.itemView.getContext())
             .load(channel.logo)

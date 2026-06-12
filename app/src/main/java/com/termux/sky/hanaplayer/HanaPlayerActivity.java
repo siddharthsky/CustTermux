@@ -19,6 +19,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -35,7 +38,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.startapp.sdk.ads.banner.Banner;
 import com.termux.R;
+import com.termux.sky.TxVerify;
 import com.termux.sky.txplayer.PlaylistManager;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
@@ -76,8 +81,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private Set<String> selectedGroups = new HashSet<>(Collections.singletonList("All"));
     private List<ChannelModel> currentPortChannels = new ArrayList<>();
     private boolean isUpdatingGroupChips = false;
-
     private int currentSortMode = 0;
+    private boolean isRearrangeMode = false;
+    private int selectedMovePosition = -1;
+    private TextView rearrangeBanner;
+    private RecyclerView recyclerView;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -138,10 +146,37 @@ public class HanaPlayerActivity extends AppCompatActivity {
         titleBar.setTextSize(22);
         titleBar.setTypeface(null, Typeface.BOLD);
         titleBar.setTextColor(Color.WHITE);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         titleBar.setLayoutParams(titleParams);
 
         header.addView(titleBar);
+
+        if (TxVerify.isPremium(this)) {
+            TextView proBadge = new TextView(this);
+            proBadge.setText("PRO");
+            proBadge.setTextSize(10);
+            proBadge.setTypeface(null, Typeface.BOLD);
+            proBadge.setTextColor(Color.BLACK);
+            proBadge.setPadding(12, 2, 12, 2);
+            proBadge.setGravity(Gravity.CENTER);
+
+            GradientDrawable badgeBg = new GradientDrawable();
+            badgeBg.setColor(Color.parseColor("#FFD700"));
+            badgeBg.setCornerRadius(10f);
+            proBadge.setBackground(badgeBg);
+
+            LinearLayout.LayoutParams proParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            proParams.setMargins(15, 0, 0, 0);
+            proBadge.setLayoutParams(proParams);
+
+            header.addView(proBadge);
+        }
+
+        View spacer = new View(this);
+        header.addView(spacer, new LinearLayout.LayoutParams(0, 0, 1.0f));
 
         // Search Button ---
         btnSearch = new ImageButton(this);
@@ -162,6 +197,18 @@ public class HanaPlayerActivity extends AppCompatActivity {
         header.addView(btnMenu);
 
         root.addView(header);
+
+        //Banner
+        rearrangeBanner = new TextView(this);
+        rearrangeBanner.setText("Rearrange Mode ON: Long-press to drag (Phone) or select to move (TV)");
+        rearrangeBanner.setBackgroundColor(Color.parseColor("#FFD700"));
+        rearrangeBanner.setTextColor(Color.BLACK);
+        rearrangeBanner.setTextSize(15);
+        rearrangeBanner.setPadding(20, 15, 20, 15);
+        rearrangeBanner.setGravity(Gravity.CENTER);
+        rearrangeBanner.setTypeface(null, Typeface.BOLD);
+        rearrangeBanner.setVisibility(View.GONE);
+        root.addView(rearrangeBanner);
 
         //Search Box
         float density = getResources().getDisplayMetrics().density;
@@ -258,7 +305,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         root.addView(progressBar);
 
 
-        RecyclerView recyclerView = new RecyclerView(this);
+        recyclerView = new RecyclerView(this);
         int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
         int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
         int spanCount = Math.max(2, screenWidthPx / itemWidthPx);
@@ -272,11 +319,110 @@ public class HanaPlayerActivity extends AppCompatActivity {
         recyclerView.setLayoutParams(rvParams);
         root.addView(recyclerView);
 
+        androidx.recyclerview.widget.ItemTouchHelper touchHelper = new androidx.recyclerview.widget.ItemTouchHelper(
+            new androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+                androidx.recyclerview.widget.ItemTouchHelper.UP | androidx.recyclerview.widget.ItemTouchHelper.DOWN |
+                    androidx.recyclerview.widget.ItemTouchHelper.LEFT | androidx.recyclerview.widget.ItemTouchHelper.RIGHT, 0) {
+
+                @Override
+                public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                    int from = viewHolder.getAdapterPosition();
+                    int to = target.getAdapterPosition();
+
+                    Collections.swap(displayList, from, to);
+                    adapter.notifyItemMoved(from, to);
+                    return true;
+                }
+
+                @Override
+                public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                    // Not using swipe actions
+                }
+
+                @Override
+                public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                    super.clearView(recyclerView, viewHolder);
+                    if (selectedPorts.contains("Favorites") && currentSortMode == 0) {
+                        saveCustomFavoritesOrder();
+                    }
+                }
+
+                @Override
+                public boolean isLongPressDragEnabled() {
+                    return isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0 && currentSearchQuery.isEmpty();
+                }
+            });
+        touchHelper.attachToRecyclerView(recyclerView);
+
+        FrameLayout adContainer = new FrameLayout(this);
+        adContainer.setId(R.id.ad_container);
+        adContainer.setLayoutParams(new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+        root.addView(adContainer);
+
         setContentView(root);
 
         hideSystemUI();
         initChips();
         loadActiveData();
+        setupAds();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (isRearrangeMode && selectedMovePosition != -1 && event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+            int newPos = selectedMovePosition;
+
+            int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+            int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
+            int spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                newPos--;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                newPos++;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                newPos -= spanCount;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                newPos += spanCount;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) {
+                selectedMovePosition = -1; // Drop item
+                adapter.setMovingPosition(-1);
+                saveCustomFavoritesOrder();
+                Toast.makeText(this, "New arrangement saved", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+                selectedMovePosition = -1; // Cancel move
+                adapter.setMovingPosition(-1);
+                Toast.makeText(this, "Move cancelled", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            if (newPos >= 0 && newPos < displayList.size() && newPos != selectedMovePosition) {
+                Collections.swap(displayList, selectedMovePosition, newPos);
+                adapter.notifyItemMoved(selectedMovePosition, newPos);
+                selectedMovePosition = newPos;
+                adapter.setMovingPosition(selectedMovePosition);
+                if (recyclerView != null) {
+                    recyclerView.scrollToPosition(selectedMovePosition);
+                }
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private void saveCustomFavoritesOrder() {
+        List<String> orderedUrls = new ArrayList<>();
+        for (ChannelModel cm : displayList) {
+            if (cm.url != null) {
+                orderedUrls.add(cm.url);
+            }
+        }
+        prefs.edit().putString("fav_order", android.text.TextUtils.join(",", orderedUrls)).apply();
     }
 
     private void showPopupMenu(View view) {
@@ -285,16 +431,46 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         MenuItem autoPlayItem = popup.getMenu().findItem(R.id.menu_auto_play);
         boolean isAutoPlayEnabled = prefs.getBoolean("auto_launch_channel", false);
-        autoPlayItem.setChecked(isAutoPlayEnabled);
+        if (autoPlayItem != null) autoPlayItem.setChecked(isAutoPlayEnabled);
+
+        MenuItem exportFavItem = popup.getMenu().findItem(R.id.menu_export_fav);
+        if (exportFavItem != null) {
+            exportFavItem.setVisible(selectedPorts.contains("Favorites"));
+        }
+
+        final int REARRANGE_ID = 1001;
+        MenuItem rearrangeItem = popup.getMenu().add(0, REARRANGE_ID, 0, "Edit: Rearrange Favorites");
+        rearrangeItem.setCheckable(true);
+        rearrangeItem.setChecked(isRearrangeMode);
+        rearrangeItem.setVisible(selectedPorts.contains("Favorites") && currentSortMode == 0);
 
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+
+            if (id == REARRANGE_ID) {
+                isRearrangeMode = !isRearrangeMode;
+
+                rearrangeBanner.setVisibility(isRearrangeMode ? View.VISIBLE : View.GONE);
+
+                if (!isRearrangeMode) {
+                    selectedMovePosition = -1;
+                    adapter.setMovingPosition(-1);
+                }
+
+                String msg = isRearrangeMode ? "Rearrange Mode ON" : "Rearrange Mode OFF";
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                return true;
+            }
 
             if (id == R.id.menu_auto_play) {
                 boolean newState = !item.isChecked();
                 item.setChecked(newState);
                 prefs.edit().putBoolean("auto_launch_channel", newState).apply();
                 Toast.makeText(this, "Auto-Play: " + (newState ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+                return true;
+
+            } else if (id == R.id.menu_export_fav) {
+                exportFavoritesToM3U();
                 return true;
 
             } else if (id == R.id.menu_sort_default) {
@@ -306,12 +482,6 @@ public class HanaPlayerActivity extends AppCompatActivity {
             } else if (id == R.id.menu_sort_number) {
                 setSortMode(2);
                 return true;
-
-//            } else if (id == R.id.menu_refresh) {
-//                Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
-//                loadActiveData();
-//                return true;
-
             } else if (id == R.id.menu_demo) {
                 Toast.makeText(this, "Demo Menu...", Toast.LENGTH_SHORT).show();
                 return true;
@@ -321,6 +491,96 @@ public class HanaPlayerActivity extends AppCompatActivity {
         });
 
         popup.show();
+    }
+
+    private void exportFavoritesToM3U() {
+        List<Plugin> plugins = PluginStorage.load(this);
+        List<ChannelModel> allFavs = new ArrayList<>();
+
+        for (Plugin p : plugins) {
+            if (p.tool != null && p.tool) continue;
+            String portStr = String.valueOf(p.port);
+
+            if (M3UParser.existsInPrefs(this, portStr)) {
+                List<ChannelModel> channels = M3UParser.getFromPrefs(this, portStr);
+                for (ChannelModel cm : channels) {
+                    if (cm.isFavorite) {
+                        allFavs.add(cm);
+                    }
+                }
+            }
+        }
+
+        if (allFavs.isEmpty()) {
+            Toast.makeText(this, "No favorites to export!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        applySort(allFavs);
+
+        StringBuilder m3u = getStringBuilder(allFavs);
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault());
+        String currentDateAndTime = sdf.format(new java.util.Date());
+        String fileName = "CTx_Favourites_" + currentDateAndTime + ".m3u";
+
+        try {
+            java.io.OutputStream fos;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                android.content.ContentResolver resolver = getContentResolver();
+                android.content.ContentValues contentValues = new android.content.ContentValues();
+                contentValues.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                contentValues.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "audio/x-mpegurl");
+                contentValues.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
+
+                android.net.Uri fileUri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+                if (fileUri == null) throw new java.io.IOException("Failed to create new MediaStore record.");
+                fos = resolver.openOutputStream(fileUri);
+            } else {
+                java.io.File downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                java.io.File file = new java.io.File(downloadsDir, fileName);
+                fos = new java.io.FileOutputStream(file);
+            }
+
+            if (fos != null) {
+                fos.write(m3u.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                fos.close();
+                Toast.makeText(this, "Saved: Downloads/" + fileName, Toast.LENGTH_LONG).show();
+            }
+
+        } catch (Exception e) {
+            Log.e("HANA_PLAYER", "Failed to save direct M3U", e);
+            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @NonNull
+    private static StringBuilder getStringBuilder(List<ChannelModel> allFavs) {
+        StringBuilder m3u = new StringBuilder();
+        m3u.append("#EXTM3U\n");
+
+        for (ChannelModel cm : allFavs) {
+            m3u.append("#EXTINF:-1");
+            if (cm.id != null && !cm.id.trim().isEmpty()) m3u.append(" tvg-id=\"").append(cm.id).append("\"");
+            if (cm.logo != null && !cm.logo.trim().isEmpty()) m3u.append(" tvg-logo=\"").append(cm.logo).append("\"");
+            if (cm.group != null && !cm.group.trim().isEmpty()) m3u.append(" group-title=\"").append(cm.group).append("\"");
+            m3u.append(",").append(cm.name != null ? cm.name : "Unknown Channel").append("\n");
+
+            if (cm.licenseType != null && !cm.licenseType.trim().isEmpty()) {
+                m3u.append("#KODIPROP:inputstream.adaptive.license_type=").append(cm.licenseType).append("\n");
+            }
+            if (cm.licenseKey != null && !cm.licenseKey.trim().isEmpty()) {
+                m3u.append("#KODIPROP:inputstream.adaptive.license_key=").append(cm.licenseKey).append("\n");
+            }
+            if (cm.userAgent != null && !cm.userAgent.trim().isEmpty()) {
+                m3u.append("#EXTVLCOPT:http-user-agent=").append(cm.userAgent).append("\n");
+            }
+
+            m3u.append(cm.url).append("\n");
+            m3u.append("\n");
+        }
+        return m3u;
     }
 
     private void setSortMode(int mode) {
@@ -334,7 +594,20 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void applySort(List<ChannelModel> list) {
-        if (currentSortMode == 1) {
+        if (currentSortMode == 0 && selectedPorts.contains("Favorites")) {
+            // Apply Custom Drag-and-Drop Sort
+            String orderStr = prefs.getString("fav_order", "");
+            if (!orderStr.isEmpty()) {
+                List<String> order = Arrays.asList(orderStr.split(","));
+                Collections.sort(list, (c1, c2) -> {
+                    int idx1 = order.indexOf(c1.url);
+                    int idx2 = order.indexOf(c2.url);
+                    if (idx1 == -1) idx1 = Integer.MAX_VALUE;
+                    if (idx2 == -1) idx2 = Integer.MAX_VALUE;
+                    return Integer.compare(idx1, idx2);
+                });
+            }
+        } else if (currentSortMode == 1) {
             // Sort by Name (A-Z)
             Collections.sort(list, (c1, c2) -> {
                 String n1 = c1.name != null ? c1.name : "";
@@ -461,6 +734,13 @@ public class HanaPlayerActivity extends AppCompatActivity {
         chip.setOnClickListener(v -> {
             if (isUpdatingChips) return;
             isUpdatingChips = true;
+
+            if (!portValue.equals("Favorites") && isRearrangeMode) {
+                isRearrangeMode = false;
+                if (rearrangeBanner != null) rearrangeBanner.setVisibility(View.GONE);
+                selectedMovePosition = -1;
+                if (adapter != null) adapter.setMovingPosition(-1);
+            }
 
             for (int i = 0; i < chipGroup.getChildCount(); i++) {
                 Chip child = (Chip) chipGroup.getChildAt(i);
@@ -833,6 +1113,20 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void onChannelClick(ChannelModel channel) {
 
+        if (isRearrangeMode && isTv(this) && selectedPorts.contains("Favorites") && currentSortMode == 0) {
+            if (selectedMovePosition == -1) {
+                selectedMovePosition = displayList.indexOf(channel);
+                adapter.setMovingPosition(selectedMovePosition);
+                Toast.makeText(this, "Moving " + channel.name + "... Use D-pad. Press OK to drop.", Toast.LENGTH_SHORT).show();
+            } else {
+                selectedMovePosition = -1;
+                adapter.setMovingPosition(-1);
+                saveCustomFavoritesOrder();
+                Toast.makeText(this, "Position saved", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
         PlaylistManager.currentList = displayList;
         PlaylistManager.currentIndex = displayList.indexOf(channel);
 
@@ -857,7 +1151,6 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         startActivity(intent);
 
-//        Toast.makeText(this, "Playing: " + channel.name, Toast.LENGTH_SHORT).show();
     }
 
     public static boolean isTv(Context context) {
@@ -867,8 +1160,18 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void onChannelLongClick(ChannelModel channel) {
 
-        channel.isFavorite = !channel.isFavorite;
+        if (isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0) {
+            if (isTv(this)) {
+                if (selectedMovePosition == -1) {
+                    selectedMovePosition = displayList.indexOf(channel);
+                    adapter.setMovingPosition(selectedMovePosition);
+                    Toast.makeText(this, "Use D-pad to move " + channel.name + ". Press Enter to drop.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            return;
+        }
 
+        channel.isFavorite = !channel.isFavorite;
 
         if (channel.originPort != null) {
             List<ChannelModel> portList = M3UParser.getFromPrefs(this, channel.originPort);
@@ -906,5 +1209,25 @@ public class HanaPlayerActivity extends AppCompatActivity {
         String msg = channel.isFavorite ? "Added to Favorites" : "Removed from Favorites";
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
+    }
+
+    private void setupAds() {
+        FrameLayout adContainer = findViewById(R.id.ad_container);
+
+        if (adContainer != null) {
+            if (!TxVerify.isPremium(this)) {
+                Banner banner = new Banner(this);
+                FrameLayout.LayoutParams bannerParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                );
+                bannerParams.gravity = Gravity.CENTER;
+                banner.setLayoutParams(bannerParams);
+                adContainer.addView(banner);
+                adContainer.setVisibility(View.VISIBLE);
+            } else {
+                adContainer.setVisibility(View.GONE);
+            }
+        }
     }
 }

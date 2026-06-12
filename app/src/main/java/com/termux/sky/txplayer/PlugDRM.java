@@ -11,6 +11,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -19,7 +20,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.startapp.sdk.ads.banner.Banner;
 import com.termux.R;
+import com.termux.sky.TxVerify;
 import com.termux.sky.filehandlers.FileManagerActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import java.io.BufferedReader;
@@ -52,7 +56,7 @@ public class PlugDRM extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.channels_activity);
-
+        setupAds();
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         searchBar = findViewById(R.id.searchChannel);
@@ -143,7 +147,7 @@ public class PlugDRM extends AppCompatActivity {
                 Intent intent = new Intent(this, FileManagerActivity.class);
                 startActivity(intent);
                 return true;
-        }
+            }
             return false;
         });
         popup.show();
@@ -334,5 +338,13 @@ public class PlugDRM extends AppCompatActivity {
             }
             return 0;
         });
+    }
+
+    private void setupAds() {
+        if (!TxVerify.isPremium(this)) {
+            Banner banner = new Banner(this);
+            FrameLayout adContainer = findViewById(R.id.ad_container);
+            adContainer.addView(banner);
+        }
     }
 }

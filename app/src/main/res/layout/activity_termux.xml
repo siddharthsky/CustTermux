@@ -292,6 +292,34 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="4dp"
+            android:background="@drawable/status_card"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PREMIUM"
+                android:textColor="#BBBBBB"
+                android:textSize="10sp"
+                android:letterSpacing="0.05" />
+
+            <TextView
+                android:id="@+id/premium_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inactive"
+                android:textColor="#FF5252"
+                android:textStyle="bold"
+                android:textSize="13sp" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <RelativeLayout
@@ -316,6 +344,7 @@
                 android:layout_height="match_parent"
                 android:defaultFocusHighlightEnabled="false"
                 android:focusableInTouchMode="false"
+                android:windowSoftInputMode="adjustResize"
                 android:scrollbarThumbVertical="@drawable/terminal_scroll_shape"
                 android:scrollbars="vertical"
                 android:background="@drawable/terminal_bg_final"
@@ -391,6 +420,12 @@
             android:layout_alignParentBottom="true" />
 
     </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/ad_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true" />
 
     <View
         android:id="@+id/activity_termux_bottom_space_view"

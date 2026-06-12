@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -111,7 +112,7 @@ public class TxStartupChecker {
     }
 
     private void requestOverlay() {
-        // Fallback sequence from SetupWizard
+        
         try {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + activity.getPackageName()));
@@ -165,27 +166,59 @@ public class TxStartupChecker {
 
     @SuppressLint("ObsoleteSdkInt")
     private void requestStorage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                intent.setData(Uri.parse("package:" + activity.getPackageName()));
-                activity.startActivity(intent);
-            } catch (Exception e) {
-                try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                    activity.startActivity(intent);
-                } catch (Exception ex) {
-                    openAppSettings();
-                }
+
+        
+        if (isAndroidTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (hasStoragePermission()) {
+                return;
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                activity.requestPermissions(new String[]{
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                }, 101);
-            } catch (Exception e) {
-                openAppSettings();
+            activity.requestPermissions(
+                new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE },
+                101
+            );
+            return;
+        }
+        
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+            if (Environment.isExternalStorageManager()) {
+                return;
+            }
+
+            Intent intent = new Intent(
+                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:" + activity.getPackageName()));
+
+            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                activity.startActivity(intent);
+                return;
+            }
+
+            intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+
+            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                activity.startActivity(intent);
+                return;
+            }
+
+            openAppSettings();
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            if (ContextCompat.checkSelfPermission(
+                activity,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                activity.requestPermissions(
+                    new String[]{
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    },
+                    101);
             }
         }
     }
@@ -194,7 +227,16 @@ public class TxStartupChecker {
 
     private boolean hasStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return android.os.Environment.isExternalStorageManager();
+            
+            if (Environment.isExternalStorageManager()) {
+                return true;
+            }
+            
+            if (isAndroidTV()) {
+                return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED;
+            }
+            return false;
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;
@@ -213,6 +255,10 @@ public class TxStartupChecker {
         Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + activity.getPackageName()));
         activity.startActivity(intent);
+    }
+
+    private boolean isAndroidTV() {
+        return activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
     }
 
     public void onResumeCheck() {

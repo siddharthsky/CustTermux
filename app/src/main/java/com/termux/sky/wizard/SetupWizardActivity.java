@@ -9,8 +9,10 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -86,28 +88,55 @@ public class SetupWizardActivity extends AppCompatActivity {
     @SuppressLint("ObsoleteSdkInt")
     private void requestStorage() {
 
-        // Android 11+
+        Log.e("CTX", "SDK=" + Build.VERSION.SDK_INT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.e("CTX", "MANAGE_EXTERNAL_STORAGE=" + Environment.isExternalStorageManager());
+        }
 
+        if (isAndroidTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (hasStoragePermission()) {
                 TxUtils.showCustomToast(this, "Storage already granted");
                 updatePermissionStatus();
                 return;
             }
+            requestPermissions(
+                new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE },
+                101
+            );
+            return;
+        }
+
+        // Android 11+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+            if (Environment.isExternalStorageManager()) {
+                updatePermissionStatus();
+                return;
+            }
 
             try {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                intent.setData(Uri.parse("package:" + getPackageName()));
+                Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:" + getPackageName())
+                );
                 startActivity(intent);
+                return;
+
             } catch (Exception e) {
+
                 try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    Intent intent = new Intent(
+                        Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                    );
                     startActivity(intent);
+                    return;
+
                 } catch (Exception ex) {
-                    openAppSettings(); // TV fallback
+
+                    openAppSettings();
+                    return;
                 }
             }
-            return;
         }
 
         // Android 6–10
@@ -196,13 +225,21 @@ public class SetupWizardActivity extends AppCompatActivity {
 
     // BATTERY
     private boolean isBatteryOptimized() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            if (pm != null) {
-                return !pm.isIgnoringBatteryOptimizations(getPackageName());
+        try {
+            if (isAndroidTV()) {
+                return false;
             }
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                return false;
+            }
+
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            return pm == null || !pm.isIgnoringBatteryOptimizations(getPackageName());
+
+        } catch (Exception ignored) {
+            return false;
         }
-        return false;
     }
 
     private void requestBatteryOptimization() {
@@ -354,7 +391,15 @@ public class SetupWizardActivity extends AppCompatActivity {
 
     private boolean hasStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return android.os.Environment.isExternalStorageManager();
+            if (Environment.isExternalStorageManager()) {
+                return true;
+            }
+            if (isAndroidTV()) {
+                return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED;
+            }
+            return false;
+
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED;

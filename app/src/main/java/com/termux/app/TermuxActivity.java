@@ -1,5 +1,8 @@
 package com.termux.app;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -32,6 +35,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -40,6 +44,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.startapp.sdk.ads.banner.Banner;
+import com.startapp.sdk.adsbase.StartAppAd;
+import com.startapp.sdk.adsbase.StartAppSDK;
+import com.termux.BuildConfig;
 import com.termux.sky.MoreOptions;
 import com.termux.R;
 import com.termux.app.api.file.FileReceiverActivity;
@@ -73,6 +81,7 @@ import com.termux.sky.SkySharedPref;
 import com.termux.sky.TxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.TxUtils;
+import com.termux.sky.TxVerify;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import com.termux.sky.plugins.PluginManagerActivity;
 import com.termux.sky.iptv.AutoAppRedirectDialog;
@@ -90,6 +99,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -239,6 +251,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TextView ipAddressText;
     private TextView storageStatus;
     private TextView overlayStatus;
+    private TextView premiumStatus;
 
     private TextView restartBanner;
 
@@ -247,7 +260,37 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private LaunchFileObserver launchObserver;
 
+    private StartAppAd exitAd;
 
+    private String downloadUrl = null;
+    private String latestVersionTag = null;
+
+    private void startio() {
+        StartAppSDK.initParams(this, "205859761")
+            .setCallback(new Runnable() {
+                public void run () {
+                }
+            })
+            .init();
+
+//        Log.d("CZ", String.valueOf(BuildConfig.DEBUG));
+
+        StartAppSDK.setTestAdsEnabled(BuildConfig.DEBUG);
+
+        exitAd = new StartAppAd(this);
+        exitAd.loadAd();
+    }
+
+    private void setupAds() {
+        Banner banner = new Banner(this);
+        FrameLayout adContainer = findViewById(R.id.ad_container);
+        if (!TxVerify.isPremium(this)) {
+            adContainer.addView(banner);
+            adContainer.setVisibility(VISIBLE);
+        } else {
+            adContainer.setVisibility(GONE);
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -268,7 +311,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         super.onCreate(savedInstanceState);
 
+        startio();
+
         setContentView(R.layout.activity_termux);
+
+        setupAds();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
@@ -321,6 +368,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         ipAddressText = findViewById(R.id.ip_address);
         storageStatus = findViewById(R.id.storage_permission_status);
         overlayStatus = findViewById(R.id.overlay_permission_status);
+        premiumStatus = findViewById(R.id.premium_status);
 
         restartBanner = findViewById(R.id.restartBanner);
 
@@ -409,7 +457,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        });
 
         clearUpdateCache();
-        checkForUpdate();
+
+        if (!BuildConfig.DEBUG) {
+            checkForUpdate();
+        }
+
         hanaPlayerViz();
 
 
@@ -502,56 +554,101 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             Button buttonHana = findViewById(R.id.buttonHana);
 
             if (doesPluginPrefExist()) {
-                buttonHana.setVisibility(View.VISIBLE);
+                buttonHana.setVisibility(VISIBLE);
             } else {
-                buttonHana.setVisibility(View.GONE);
+                buttonHana.setVisibility(GONE);
             }
         });
     }
 
     private void checkForUpdate() {
-
-        int v_CODE = 1;
-        SkySharedPref.setVersionCode(this, v_CODE);
+        int localVersion = SkySharedPref.getVersionCode(this);
 
         new Thread(() -> {
             try {
-                URL url = new URL("https://github.com/siddharthsky/Extrix/raw/refs/heads/main/golang/ctx/ctx_engine.version");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                String versionStr = reader.readLine();
+                URL url = new URL("https://api.github.com/repos/siddharthsky/CustTermux/releases/latest");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
                 reader.close();
 
-                int remoteVersion = Integer.parseInt(versionStr.trim());
+                JSONObject jsonObject = new JSONObject(response.toString());
+                latestVersionTag = jsonObject.getString("tag_name");
 
-                int localVersion = SkySharedPref.getVersionCode(this);
+                int remoteVersion = Integer.parseInt(latestVersionTag.replaceAll("[^0-9]", ""));
 
                 runOnUiThread(() -> {
                     Button updateBtn = findViewById(R.id.button_update);
 
                     if (remoteVersion > localVersion) {
-                        updateBtn.setVisibility(View.VISIBLE);
-                        updateBtn.setOnClickListener(v -> downloadAndInstallApk());
+                        try {
+                            JSONArray assets = jsonObject.getJSONArray("assets");
+                            downloadUrl = getApkUrlFromAssets(assets);
+
+                            if (downloadUrl != null && !downloadUrl.isEmpty()) {
+                                updateBtn.setVisibility(View.VISIBLE);
+                                updateBtn.setOnClickListener(v -> downloadAndInstallApk());
+                            }
+                        } catch (Exception e) {
+                            Log.e("TxActivity", "Error parsing GitHub release assets: ", e);
+                        }
                     }
                 });
 
             } catch (Exception e) {
-                Log.d("TxActivity", String.valueOf(e));
+                Log.e("TxActivity", "Update check failed: ", e);
             }
         }).start();
     }
 
+    private String getApkUrlFromAssets(JSONArray assets) throws Exception {
+        String targetAbiSuffix = getTargetAbiSuffix();
+        String fallbackSuffix = "universal.apk";
+        String universalUrl = null;
+
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            String fileName = asset.getString("name");
+            String browserUrl = asset.getString("browser_download_url");
+
+            if (fileName.contains(targetAbiSuffix)) {
+                return browserUrl;
+            } else if (fileName.contains(fallbackSuffix)) {
+                universalUrl = browserUrl;
+            }
+        }
+
+        return universalUrl;
+    }
+
+    private String getTargetAbiSuffix() {
+        String[] abis = android.os.Build.SUPPORTED_ABIS;
+
+        for (String abi : abis) {
+            if (abi.equals("arm64-v8a")) return "arm64-v8a.apk";
+            if (abi.equals("armeabi-v7a") || abi.equals("armeabi")) return "armeabi-v7a.apk";
+            if (abi.equals("x86_64")) return "x86_64.apk";
+            if (abi.equals("x86")) return "x86.apk";
+        }
+        return "universal.apk";
+    }
 
     private void downloadAndInstallApk() {
+        clearOldApkCaches();
 
-        File file = new File(getExternalFilesDir(null), "update.apk");
+        File file = new File(getExternalFilesDir(null), "update_" + latestVersionTag + ".apk");
 
-        // ✅ CACHE HIT → install directly
         if (file.exists()) {
             installApk(file);
             return;
         }
 
-        // else → download
         LinearLayout progressContainer = findViewById(R.id.update_progress_container);
         ProgressBar progressBar = findViewById(R.id.update_progress_bar);
         TextView statusText = findViewById(R.id.update_status_text);
@@ -562,13 +659,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         new Thread(() -> {
             try {
-                URL url = new URL(getApkUrl());
-                Log.d("TxActivity", getApkUrl());
+                URL url = new URL(downloadUrl);
+                Log.d("TxActivity", "Downloading from: " + downloadUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
                 int fileLength = connection.getContentLength();
-
                 InputStream input = connection.getInputStream();
                 FileOutputStream output = new FileOutputStream(file);
 
@@ -599,7 +695,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 });
 
             } catch (Exception e) {
-                Log.d("TxActivity", String.valueOf(e));
+                Log.e("TxActivity", "Download failed: ", e);
 
                 runOnUiThread(() -> {
                     statusText.setText("Download failed");
@@ -608,21 +704,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }).start();
     }
 
-    private String getApkUrl() {
-        String[] abis = android.os.Build.SUPPORTED_ABIS;
-
-        Log.d("TxActivity", Arrays.toString(Build.SUPPORTED_ABIS));
-
-        for (String abi : abis) {
-            if (abi.contains("arm64")) {
-                return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx-arm64.apk";
-            } else if (abi.contains("armeabi") || abi.contains("arm")) {
-                return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx-arm.apk";
+    private void clearOldApkCaches() {
+        File dir = getExternalFilesDir(null);
+        if (dir != null && dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.getName().startsWith("update_") && file.getName().endsWith(".apk")) {
+                        if (!file.getName().equals("update_" + latestVersionTag + ".apk")) {
+                            boolean deleted = file.delete();
+                            Log.d("TxActivity", "Deleted old cached APK: " + file.getName() + " - " + deleted);
+                        }
+                    }
+                }
             }
         }
-
-        // fallback
-        return "https://github.com/siddharthsky/SparkleTV2-auto-service/releases/download/1.0/ctx.apk";
     }
 
     private void installApk(File file) {
@@ -732,6 +828,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             overlayStatus.setText("Not Granted");
             overlayStatus.setTextColor(0xFFFF5252);
         }
+
+        boolean isPremium = TxVerify.isPremium(this);
+
+        if (isPremium) {
+            premiumStatus.setVisibility(VISIBLE);
+            premiumStatus.setText("Active");
+            premiumStatus.setTextColor(0xFF00C853);
+        } else {
+            premiumStatus.setVisibility(GONE);
+            premiumStatus.setText("Inactive");
+            premiumStatus.setTextColor(0xFFFF5252);
+        }
     }
 
 
@@ -775,6 +883,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         hanaPlayerViz();
         checkSetupDone();
         checkRestartRequired();
+
+        setupAds();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
@@ -837,7 +947,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         File ctxFile = new File(homeDir, ".CTxEngine");
 
         if (ctxFile.exists()) {
-            restartBanner.setVisibility(View.GONE);
+            restartBanner.setVisibility(GONE);
             Log.d("TxActivity", "Setup confirmed: Marker file found.");
 
             getSharedPreferences("settings", MODE_PRIVATE)
@@ -849,7 +959,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         } else {
             restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_notice_bg));
             restartBanner.setText("Initial setup in progress: Downloading dependencies and configuring environment...");
-            restartBanner.setVisibility(View.VISIBLE);
+            restartBanner.setVisibility(VISIBLE);
             return false;
         }
     }
@@ -862,9 +972,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (needsRestart) {
             restartBanner.setBackground(ContextCompat.getDrawable(this, R.drawable.tv_warning_bg));
             restartBanner.setText("Action Required: Please restart app after plugin installation.");
-            restartBanner.setVisibility(View.VISIBLE);
+            restartBanner.setVisibility(VISIBLE);
         } else {
-            restartBanner.setVisibility(View.GONE);
+            restartBanner.setVisibility(GONE);
         }
     }
 
@@ -875,7 +985,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             }
 
             if (!redirect.isShowing()) {
-                redirect.show(TermuxActivity.this);
+                if (!TxVerify.isPremium(this)) {
+                    redirect.preloadBanner(TermuxActivity.this);}
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        redirect.show(TermuxActivity.this);
+                    }
+                }, 200);
             }
         });
     }
@@ -915,7 +1031,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             if (redirect == null) {
                 redirect = new AutoAppRedirectDialog();
             }
-            redirect.show(TermuxActivity.this);
+
+            if (!TxVerify.isPremium(this)) {
+                redirect.preloadBanner(TermuxActivity.this);}
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    redirect.show(TermuxActivity.this);
+                }
+            }, 200);
         });
     }
 
@@ -1121,7 +1245,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             mTermuxTerminalViewClient, mTermuxTerminalSessionActivityClient);
 
         final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
-        if (mPreferences.shouldShowTerminalToolbar()) terminalToolbarViewPager.setVisibility(View.VISIBLE);
+        if (mPreferences.shouldShowTerminalToolbar()) terminalToolbarViewPager.setVisibility(VISIBLE);
 
         ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
         mTerminalToolbarDefaultHeight = layoutParams.height;
@@ -1153,7 +1277,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         final boolean showNow = mPreferences.toogleShowTerminalToolbar();
         Logger.showToast(this, (showNow ? getString(R.string.msg_enabling_terminal_toolbar) : getString(R.string.msg_disabling_terminal_toolbar)), true);
-        terminalToolbarViewPager.setVisibility(showNow ? View.VISIBLE : View.GONE);
+        terminalToolbarViewPager.setVisibility(showNow ? VISIBLE : GONE);
         if (showNow && isTerminalToolbarTextInputViewSelected()) {
             // Focus the text input view if just revealed.
             findViewById(R.id.terminal_toolbar_text_input).requestFocus();
@@ -1207,9 +1331,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
-    @SuppressLint("RtlHardcoded")
+    @SuppressLint({"RtlHardcoded", "MissingSuperCall"})
     @Override
     public void onBackPressed() {
+        if (!TxVerify.isPremium(this)) {
+            StartAppAd.onBackPressed(this);
+        }
+
         if (getDrawer().isDrawerOpen(Gravity.LEFT)) {
             getDrawer().closeDrawers();
         } else {

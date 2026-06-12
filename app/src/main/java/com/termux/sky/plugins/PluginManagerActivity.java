@@ -2,9 +2,11 @@ package com.termux.sky.plugins;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -114,10 +116,39 @@ public class PluginManagerActivity extends AppCompatActivity {
         );
 
 
+    private PluginSetupManager setupManager;
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.plugin_manager_activity);
+
+        setupManager = new PluginSetupManager(this, new PluginSetupManager.InstallCallback() {
+            @Override
+            public void onShowProgress(String title) {
+                showProgress(title);
+            }
+
+            @Override
+            public void onUpdateProgress(int progress) {
+                updateProgress(progress);
+            }
+
+            @Override
+            public void onHideProgress() {
+                hideProgress();
+            }
+
+            @Override
+            public void onError(String message, Exception e) {
+                handleError(message, e);
+            }
+
+            @Override
+            public void onRestartRequired() {
+                runOnUiThread(() -> checkRestartRequired());
+            }
+        });
 
         listView = findViewById(R.id.pluginList);
         btnAdd = findViewById(R.id.btnAdd);
@@ -209,7 +240,8 @@ public class PluginManagerActivity extends AppCompatActivity {
             } else if (id == R.id.menu_add_json) {
 
                 new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
-                    .setTitle("⚠ Security Warning")
+                    .setTitle("Security Warning")
+                    .setIcon(R.drawable.tx_warning_amber)
                     .setMessage(
                         "JSON plugins can execute scripts and run commands on your device.\n\n" +
                             "Installing unknown plugins may be dangerous and can damage your data, " +
@@ -276,14 +308,13 @@ public class PluginManagerActivity extends AppCompatActivity {
                     }
                 }
 
-                initPlugin(
+                setupManager.initPlugin(
                     p.port,
                     p.repo,
                     p.repo_branch,
                     p.start,
                     p.bin_download,
-                    p.post_install_script,
-                    p.pkg != null ? Arrays.toString(p.pkg) : ""
+                    p.post_install_script
                 );
 
                 list.add(p);
@@ -303,36 +334,54 @@ public class PluginManagerActivity extends AppCompatActivity {
 
 
     private void showPortInputDialogLegacy() {
+
+        int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
+        int dp20 = (int) (20 * getResources().getDisplayMetrics().density);
+
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        container.setPadding(dp20, dp16, dp20, dp16);
+
+        TextView warning = new TextView(this);
+        warning.setText("This feature is for advanced users. If you don't know what this is, please cancel.");
+        warning.setTextColor(Color.LTGRAY);
+        warning.setTextSize(14f);
+        warning.setPadding(0, 0, 0, dp16);
+        container.addView(warning);
+
+        final TextView tapPrompt = new TextView(this);
+        tapPrompt.setText("Double tap to enter code...");
+        tapPrompt.setTextColor(Color.parseColor("#FFD700"));
+        tapPrompt.setTextSize(16f);
+        tapPrompt.setGravity(android.view.Gravity.CENTER);
+        tapPrompt.setPadding(0, dp16, 0, dp16);
+        container.addView(tapPrompt);
+
+        final EditText input = new EditText(this);
+        input.setHint("Experimental Plugin code");
+        input.setTextSize(16f);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setSingleLine(true);
+        input.setVisibility(View.GONE);
+        input.setImeOptions(EditorInfo.IME_ACTION_GO);
+
+        input.setFocusable(true);
+        input.setFocusableInTouchMode(true);
+        input.setBackgroundResource(R.drawable.edittext_bg);
+
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        params.setMargins(60, 20, 60, 0);
+        inputParams.bottomMargin = dp16;
+        input.setLayoutParams(inputParams);
 
-        // Placeholder text that reacts to double taps
-        TextView tapPrompt = new TextView(this);
-        tapPrompt.setLayoutParams(params);
-        tapPrompt.setText("Double tap to enter code...");
-        tapPrompt.setPadding(0, 20, 0, 20);
-
-        // The actual input box (hidden initially)
-        EditText input = new EditText(this);
-        input.setLayoutParams(params);
-        input.setHint("Experimental Plugin code");
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        input.setVisibility(View.GONE);
-        input.setSingleLine(true);
-        input.setImeOptions(EditorInfo.IME_ACTION_GO);
-
-        container.addView(tapPrompt);
         container.addView(input);
 
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
-            .setTitle("⚠ Experimental Plugins")
-            .setMessage("This feature is for advanced users. If you don't know what this is, please cancel.")
+            .setTitle("Experimental Plugins")
             .setView(container)
+            .setIcon(R.drawable.tx_warning_amber)
             .setPositiveButton("Load", null)
             .setNegativeButton("Cancel", null)
             .create();
@@ -346,8 +395,11 @@ public class PluginManagerActivity extends AppCompatActivity {
                     tapPrompt.setVisibility(View.GONE);
                     input.setVisibility(View.VISIBLE);
                     input.requestFocus();
+
                     InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    if (imm != null) {
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
                 }
                 lastClickTime = clickTime;
             }
@@ -355,30 +407,49 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         input.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_DONE) {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                if (posButton != null) posButton.performClick();
                 return true;
             }
             return false;
         });
 
         dialog.setOnShowListener(d -> {
-            Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            posButton.setOnClickListener(v -> {
+            Button loadButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            Button cancelButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
-                if (input.getVisibility() != View.VISIBLE) {
-                    Toast.makeText(this, "Please unlock the input first", Toast.LENGTH_SHORT).show();
-                    return;
+            Button[] buttons = {loadButton, cancelButton};
+            for (Button b : buttons) {
+                if (b != null) {
+                    b.setBackgroundTintList(null);
+                    b.setBackgroundResource(R.drawable.golden_focus_selector);
+                    b.setTextColor(Color.WHITE);
+                    b.setFocusable(true);
                 }
+            }
 
-                String port = input.getText().toString().trim();
-                if (port.isEmpty()) {
-                    Toast.makeText(this, "Please enter a valid plugin code", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            if (loadButton != null) {
+                loadButton.setTextColor(Color.parseColor("#FFD700"));
 
-                fetchPluginFromServer(port, true);
-                dialog.dismiss();
-            });
+                loadButton.setOnClickListener(v -> {
+
+                    if (input.getVisibility() != View.VISIBLE) {
+                        Toast.makeText(this, "Please unlock the input first", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String port = input.getText().toString().trim();
+
+                    if (port.isEmpty()) {
+                        input.setError("Enter plugin code");
+                        Toast.makeText(this, "Please enter a valid plugin code", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    fetchPluginFromServer(port, true);
+                    dialog.dismiss();
+                });
+            }
         });
 
         dialog.show();
@@ -386,23 +457,38 @@ public class PluginManagerActivity extends AppCompatActivity {
 
     private void showPortInputDialog() {
 
-        FrameLayout container = new FrameLayout(this);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
+        int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
+        int dp20 = (int) (20 * getResources().getDisplayMetrics().density);
 
-        params.setMargins(60, 20, 60, 0);
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(dp20, dp16, dp20, dp16);
 
-        EditText input = new EditText(this);
-        input.setLayoutParams(params);
-        input.setHint("Enter plugin code (4-digits)");
+        TextView info = new TextView(this);
+        info.setText("Enter the 4-digit code to load a new plugin.");
+        info.setTextColor(Color.LTGRAY);
+        info.setTextSize(14f);
+        info.setPadding(0, 0, 0, dp16);
+        container.addView(info);
+
+        final EditText input = new EditText(this);
+        input.setHint("Enter plugin code");
+        input.setTextSize(16f);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         input.setMaxLines(1);
         input.setSingleLine(true);
-
-
         input.setImeOptions(EditorInfo.IME_ACTION_GO);
+
+        input.setFocusable(true);
+        input.setFocusableInTouchMode(true);
+        input.setBackgroundResource(R.drawable.edittext_bg);
+
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        inputParams.bottomMargin = dp16;
+        input.setLayoutParams(inputParams);
 
         container.addView(input);
 
@@ -415,25 +501,43 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         input.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_DONE) {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                if (posButton != null) posButton.performClick();
                 return true;
             }
             return false;
         });
 
         dialog.setOnShowListener(d -> {
-            Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            posButton.setOnClickListener(v -> {
-                String port = input.getText().toString().trim();
+            Button loadButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            Button cancelButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
-                if (port.isEmpty()) {
-                    Toast.makeText(this, "Enter plugin code", Toast.LENGTH_SHORT).show();
-                    return;
+            Button[] buttons = {loadButton, cancelButton};
+            for (Button b : buttons) {
+                if (b != null) {
+                    b.setBackgroundTintList(null);
+                    b.setBackgroundResource(R.drawable.golden_focus_selector);
+                    b.setTextColor(Color.WHITE);
+                    b.setFocusable(true);
                 }
+            }
 
-                fetchPluginFromServer(port,false);
-                dialog.dismiss();
-            });
+            if (loadButton != null) {
+                loadButton.setTextColor(Color.parseColor("#FFD700"));
+
+                loadButton.setOnClickListener(v -> {
+                    String port = input.getText().toString().trim();
+
+                    if (port.isEmpty()) {
+                        input.setError("Enter plugin code");
+                        Toast.makeText(this, "Enter plugin code", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    fetchPluginFromServer(port, false);
+                    dialog.dismiss();
+                });
+            }
 
             input.requestFocus();
         });
@@ -469,7 +573,6 @@ public class PluginManagerActivity extends AppCompatActivity {
                 BufferedReader br = new BufferedReader(
                     new InputStreamReader(conn.getInputStream())
                 );
-
                 StringBuilder sb = new StringBuilder();
                 String line;
 
@@ -491,7 +594,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                             }
                         }
 
-                        initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script, Arrays.toString(p.pkg));
+                        setupManager.initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script);
 
                         list.add(p);
 
@@ -515,409 +618,6 @@ public class PluginManagerActivity extends AppCompatActivity {
         }).start();
     }
 
-    public void initPlugin(int port, String repoUrl, String repoBranch, String startComm,
-                           String binDownloadURL, String postInstallScript, String pkgList ) {
-
-        String folderName = String.valueOf(port);
-
-        File baseDirInit = new File(getFilesDir(), "home");
-        File baseDir = new File(baseDirInit, "plugins");
-        File pluginDir = new File(baseDir, folderName);
-
-        if (!baseDir.exists()) baseDir.mkdirs();
-        if (!pluginDir.exists()) pluginDir.mkdirs();
-
-        File zipFile = new File(getCacheDir(), folderName + ".zip");
-        new Thread(() -> {
-            try {
-                // 1. Check if both URLs are empty
-                boolean hasBin = binDownloadURL != null && !binDownloadURL.trim().isEmpty();
-                boolean hasRepo = repoUrl != null && !repoUrl.trim().isEmpty();
-
-                if (!hasBin && !hasRepo) {
-                    Log.d("PluginInit", "No download URLs provided. Skipping download/extraction.");
-
-//                    createRunScript(pluginDir, port, startComm);
-
-                    if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
-                        postInstall(postInstallScript, pluginDir, port);
-                    }
-                    return;
-                }
-
-                if (hasBin) {
-                    File binFile = new File(pluginDir, "run.bin");
-                    showProgress("Downloading binary...");
-                    try {
-                        downloadFile(binDownloadURL, binFile);
-                    } catch (Exception e) {
-                        handleError("Binary download failed", e);
-                        return;
-                    }
-                    binFile.setExecutable(true);
-                    createRunScript(pluginDir, port, startComm);
-                    hideProgress();
-
-                    if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
-                        postInstall(postInstallScript, pluginDir, port);
-                    }
-                    return;
-                }
-
-                String zipUrl;
-                if (repoUrl.endsWith(".zip")) {
-                    zipUrl = repoUrl;
-                } else {
-                    zipUrl = getRepoZipUrl(Objects.requireNonNull(repoUrl), repoBranch);
-                }
-
-                showProgress("Downloading repository...");
-                try {
-                    downloadZip(zipUrl, zipFile);
-                } catch (Exception e) {
-                    handleError("Repository download failed", e);
-                    return;
-                }
-                hideProgress();
-
-                showProgress("Extracting...");
-                try {
-                    boolean isDirectZip = repoUrl.toLowerCase().endsWith(".zip");
-                    fullUnzip(zipFile, pluginDir, !isDirectZip);
-                } catch (Exception e) {
-                    handleError("Extraction failed", e);
-                    return;
-                }
-
-                createRunScript(pluginDir, port, startComm);
-                hideProgress();
-
-                if (postInstallScript != null && !postInstallScript.trim().isEmpty()) {
-                    postInstall(postInstallScript, pluginDir, port);
-                }
-
-                restart_request(this);
-
-            } catch (Exception e) {
-                handleError("Plugin install failed", e);
-            }
-        }).start();
-    }
-
-    public String getRepoZipUrl(String repoUrl, String repoBranch) throws Exception {
-
-        String repo = repoUrl.replace(".git", "").trim();
-
-        if (repoBranch != null && !repoBranch.trim().isEmpty()) {
-            return repo + "/archive/refs/heads/" + repoBranch.trim() + ".zip";
-        }
-
-        String apiUrl = repo.replace("https://github.com/", "https://api.github.com/repos/");
-
-        HttpURLConnection conn = null;
-        BufferedReader br = null;
-
-        try {
-            URL url = new URL(apiUrl);
-            conn = (HttpURLConnection) url.openConnection();
-
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-            conn.setRequestProperty("Accept", "application/vnd.github+json");
-
-            int code = conn.getResponseCode();
-
-            if (code == 200) {
-
-                br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-                StringBuilder sb = new StringBuilder();
-                String line;
-
-                while ((line = br.readLine()) != null) {
-                    sb.append(line);
-                }
-
-                String json = sb.toString();
-
-                String branch = "main";
-
-                int index = json.indexOf("\"default_branch\":\"");
-                if (index != -1) {
-                    int start = index + 18;
-                    int end = json.indexOf("\"", start);
-                    branch = json.substring(start, end);
-                }
-
-                return repo + "/archive/refs/heads/" + branch + ".zip";
-            }
-
-        } catch (Exception e) {
-            // ignore → fallback below
-        } finally {
-            try { if (br != null) br.close(); } catch (Exception ignored) {}
-            if (conn != null) conn.disconnect();
-        }
-
-        return repo + "/archive/refs/heads/main.zip";
-    }
-
-    private void postInstall(String postInstallScript, File pluginDir, int port) {
-        new Thread(() -> {
-            try {
-                File postFile = new File(pluginDir, ".post_install_script.sh");
-                String scriptContent = postInstallScript.trim();
-
-                if (scriptContent.toLowerCase().startsWith("http://") ||
-                    scriptContent.toLowerCase().startsWith("https://")) {
-
-                    showProgress("Downloading script...");
-                    downloadFile(scriptContent, postFile);
-                    hideProgress();
-                } else {
-                    showProgress("Configuring custom script...");
-
-                    if (!scriptContent.startsWith("#!")) {
-                        scriptContent = "#!/bin/bash\n" + scriptContent;
-                    }
-
-                    FileOutputStream fos = new FileOutputStream(postFile);
-                    fos.write(scriptContent.getBytes());
-                    fos.close();
-
-                    hideProgress();
-                }
-
-                postFile.setExecutable(true);
-                run_post_script(this, pluginDir, port);
-                restart_request(this);
-
-            } catch (Exception e) {
-                handleError("Post-install setup failed", e);
-            }
-        }).start();
-    }
-
-    private void executeUninstallScriptFromCache(String scriptContent, int port) {
-        new Thread(() -> {
-            try {
-                File cacheDir = getCacheDir();
-                if (!cacheDir.exists()) cacheDir.mkdirs();
-
-                File tempUninstallFile = new File(cacheDir, "uninstall_" + port + ".sh");
-
-                if (scriptContent.toLowerCase().startsWith("http://") ||
-                    scriptContent.toLowerCase().startsWith("https://")) {
-
-                    showProgress("Downloading uninstall script...");
-                    downloadFile(scriptContent, tempUninstallFile);
-                    hideProgress();
-                } else {
-                    showProgress("Configuring uninstall script...");
-
-                    String completeScript = scriptContent;
-                    if (!completeScript.startsWith("#!")) {
-                        completeScript = "#!/bin/bash\n" + completeScript;
-                    }
-
-                    FileOutputStream fos = new FileOutputStream(tempUninstallFile);
-                    fos.write(completeScript.getBytes());
-                    fos.close();
-
-                    hideProgress();
-                }
-
-                tempUninstallFile.setExecutable(true);
-
-                run_cached_uninstall_runner(this, tempUninstallFile, port);
-
-            } catch (Exception e) {
-                handleError("Uninstall script tracking failed", e);
-            }
-        }).start();
-    }
-
-    private void run_cached_uninstall_runner(PluginManagerActivity activity, File scriptFile, int port) {
-
-        // Required for stopping auto-redirect
-        File homeDir = new File(getFilesDir(), "home");
-        File launchFile = new File(homeDir, ".launch");
-
-        if (launchFile.exists()) {
-            if (launchFile.delete()) {
-                Log.d("FILE", ".launch deleted successfully");
-            } else {
-                Log.d("FILE", "Failed to delete .launch");
-            }
-        }
-
-        String TERMUX_PACKAGE = "com.termux";
-        String TERMUX_SERVICE = "com.termux.app.RunCommandService";
-        String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
-
-        File fallbackWorkDir = new File(getFilesDir(), "home");
-        String SCRIPT_PATH = scriptFile.getAbsolutePath();
-        String port_no = String.valueOf(port);
-
-        Intent intent = new Intent();
-        intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
-        intent.setAction(ACTION_RUN_COMMAND);
-
-        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
-        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", fallbackWorkDir.getAbsolutePath());
-        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
-        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-
-        activity.startService(intent);
-        Log.d("SkyLog", "Termux isolated script triggered out of cache: " + SCRIPT_PATH);
-    }
-
-    private void restart_request(PluginManagerActivity activity) {
-        SharedPreferences settings = activity.getSharedPreferences("settings", MODE_PRIVATE);
-        settings.edit().putBoolean("plugin_restart", true).apply();
-
-        runOnUiThread(this::checkRestartRequired);
-    }
-
-    private void run_post_script(PluginManagerActivity pluginManagerActivity, File pluginDir, int port) {
-        String TERMUX_PACKAGE = "com.termux";
-        String TERMUX_SERVICE = "com.termux.app.RunCommandService";
-        String ACTION_RUN_COMMAND = "com.termux.RUN_COMMAND";
-
-        // Required for stopping auto-redirect
-        File homeDir = new File(getFilesDir(), "home");
-        File launchFile = new File(homeDir, ".launch");
-
-        if (launchFile.exists()) {
-            if (launchFile.delete()) {
-                Log.d("FILE", ".launch deleted successfully");
-            } else {
-                Log.d("FILE", "Failed to delete .launch");
-            }
-        }
-
-
-        String HOME_PATH = pluginDir.getAbsolutePath();
-
-        File scriptFile = new File(pluginDir, ".post_install_script.sh");
-        String SCRIPT_PATH = scriptFile.getAbsolutePath();
-        String port_no = String.valueOf(port);
-
-        Intent intent = new Intent();
-        intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
-        intent.setAction(ACTION_RUN_COMMAND);
-
-        intent.putExtra("com.termux.RUN_COMMAND_PATH", SCRIPT_PATH);
-        intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--port", port_no});
-        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", HOME_PATH);
-        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
-
-        pluginManagerActivity.startService(intent);
-
-        Log.d("SkyLog","skyUpdate Demo");
-
-    }
-
-
-    private void downloadZip(String urlStr, File output) throws Exception {
-
-        if (urlStr == null || urlStr.trim().isEmpty() || urlStr.equalsIgnoreCase("empty_url")) {
-            Log.d("Download", "Skipping download (empty_url)");
-            return;
-        }
-
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.connect();
-
-        int fileLength = conn.getContentLength();
-
-        InputStream in = conn.getInputStream();
-        FileOutputStream out = new FileOutputStream(output);
-
-        byte[] buffer = new byte[8192];
-        int len;
-        int total = 0;
-
-        while ((len = in.read(buffer)) != -1) {
-            total += len;
-
-            if (fileLength > 0) {
-                int progress = (int) ((total * 100L) / fileLength);
-                updateProgress(progress);
-            }
-
-            out.write(buffer, 0, len);
-        }
-
-        out.close();
-        in.close();
-    }
-
-    public void fullUnzip(File zipFile, File targetDir, boolean stripTopLevel) throws Exception {
-
-        if (!targetDir.exists()) targetDir.mkdirs();
-
-        ZipInputStream zis = new ZipInputStream(
-            new BufferedInputStream(new FileInputStream(zipFile))
-        );
-
-        ZipEntry entry;
-
-        while ((entry = zis.getNextEntry()) != null) {
-
-            String entryName = entry.getName();
-
-            if (stripTopLevel) {
-                int firstSlash = entryName.indexOf("/");
-                if (firstSlash != -1) {
-                    entryName = entryName.substring(firstSlash + 1);
-                }
-            }
-
-            if (entryName.isEmpty()) {
-                zis.closeEntry();
-                continue;
-            }
-
-            File newFile = new File(targetDir, entryName);
-
-            String targetPath = targetDir.getCanonicalPath();
-            String newFilePath = newFile.getCanonicalPath();
-
-            if (!newFilePath.startsWith(targetPath + File.separator)) {
-                throw new SecurityException("Zip Slip detected: " + entryName);
-            }
-
-            if (entry.isDirectory()) {
-                newFile.mkdirs();
-            } else {
-                File parent = newFile.getParentFile();
-                if (parent != null && !parent.exists()) {
-                    parent.mkdirs();
-                }
-
-                FileOutputStream fos = new FileOutputStream(newFile);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-
-                byte[] buffer = new byte[8192];
-                int len;
-
-                while ((len = zis.read(buffer)) != -1) {
-                    bos.write(buffer, 0, len);
-                }
-
-                bos.close();
-                fos.close();
-            }
-
-            zis.closeEntry();
-        }
-
-        zis.close();
-    }
-
     private void deletePlugin(Plugin plugin, int position) {
         new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Delete Plugin")
@@ -925,7 +625,7 @@ public class PluginManagerActivity extends AppCompatActivity {
             .setPositiveButton("Delete", (d, w) -> {
 
                 if (plugin.uninstall_script != null && !plugin.uninstall_script.trim().isEmpty()) {
-                    executeUninstallScriptFromCache(plugin.uninstall_script.trim(), plugin.port);
+                    setupManager.executeUninstallScriptFromCache(plugin.uninstall_script.trim(), plugin.port);
                 }
 
                 list.remove(position);
@@ -960,7 +660,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                     zip.delete();
                 }
 
-                restart_request(this);
+                setupManager.restart_request();
                 Toast.makeText(this, "Plugin " + plugin.port + " deleted", Toast.LENGTH_SHORT).show();
 
                 updateEmptyStateVisibility();
@@ -1020,7 +720,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                     }
                 }
 
-                restart_request(this);
+                setupManager.restart_request();
 
                 Intent intent = new Intent();
                 intent.setClassName(TERMUX_PACKAGE, TERMUX_SERVICE);
@@ -1118,92 +818,6 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         if (!file.delete()) {
             Log.w("PluginDelete", "Failed to delete: " + file.getAbsolutePath());
-        }
-    }
-
-    private void createRunScript(File pluginDir, int port, String startComm) {
-        File scriptFile = new File(pluginDir, port + ".sh");
-
-        String scriptContent =
-            "#!/bin/bash\n\n" +
-
-                startComm + "\n\n"+
-
-        "# END\n";
-
-        try {
-            FileOutputStream fos = new FileOutputStream(scriptFile);
-            fos.write(scriptContent.getBytes());
-            fos.close();
-
-            scriptFile.setExecutable(true);
-
-            Log.d("PluginScript", "Script created: " + scriptFile.getAbsolutePath());
-
-        } catch (Exception e) {
-            Log.e("PluginScript", "Error creating script", e);
-        }
-    }
-
-    private void downloadFile(String urlStr, File output) throws Exception {
-
-        if (urlStr == null || urlStr.trim().isEmpty() || urlStr.equalsIgnoreCase("empty_url")) {
-            Log.d("Download", "Skipping download (empty_url)");
-            return;
-        }
-
-
-        HttpURLConnection conn = null;
-        InputStream in = null;
-        FileOutputStream out = null;
-
-        try {
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(10000);
-            conn.connect();
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new Exception("Server returned: " + responseCode);
-            }
-
-            int fileLength = conn.getContentLength();
-
-            in = conn.getInputStream();
-            out = new FileOutputStream(output);
-
-            byte[] buffer = new byte[8192];
-            int len;
-            int total = 0;
-
-            while ((len = in.read(buffer)) != -1) {
-                total += len;
-
-                if (fileLength > 0) {
-                    int progress = (int) ((total * 100L) / fileLength);
-                    updateProgress(progress);
-                }
-
-                out.write(buffer, 0, len);
-            }
-
-        } catch (Exception e) {
-
-            if (output.exists()) {
-                output.delete();
-            }
-
-            throw e;
-
-        } finally {
-
-            try { if (out != null) out.close(); } catch (Exception ignored) {}
-            try { if (in != null) in.close(); } catch (Exception ignored) {}
-
-            if (conn != null) conn.disconnect();
         }
     }
 

@@ -160,7 +160,7 @@ public class GenericWebActivity extends AppCompatActivity {
                     }
                 }
             }
-            
+
 
             return uri.buildUpon()
                 .path(path)
@@ -173,6 +173,7 @@ public class GenericWebActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {

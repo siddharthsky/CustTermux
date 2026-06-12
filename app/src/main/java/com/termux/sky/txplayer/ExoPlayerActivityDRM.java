@@ -41,7 +41,9 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.startapp.sdk.adsbase.StartAppAd;
 import com.termux.R;
+import com.termux.sky.TxVerify;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.tv_home_preview.RecentChannelsManager;
@@ -592,6 +594,17 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         if (playerView != null && playerView.isControllerVisible()) {
             playerView.hideController();
             return;
+        }
+
+        if (!TxVerify.isPremium(this)) {
+            SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+            int backCount = settings.getInt("ad_back_count_player", 0) + 1;
+            if (backCount >= 2) {
+                StartAppAd.onBackPressed(this);
+                settings.edit().putInt("ad_back_count_player", 0).apply();
+            } else {
+                settings.edit().putInt("ad_back_count_player", backCount).apply();
+            }
         }
         super.onBackPressed();
     }
