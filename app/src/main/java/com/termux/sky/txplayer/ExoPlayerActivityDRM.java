@@ -17,30 +17,37 @@ import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.ParserException;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.TrackGroup;
+import androidx.media3.common.TrackSelectionOverride;
+import androidx.media3.common.TrackSelectionParameters;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.dash.DashMediaSource;
+import androidx.media3.exoplayer.hls.HlsMediaSource;
+import androidx.media3.exoplayer.source.BehindLiveWindowException;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.DefaultTrackNameProvider;
+import androidx.media3.ui.PlayerView;
+import androidx.media3.ui.TrackSelectionDialogBuilder;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.Format;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.TrackGroup;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.DefaultTrackNameProvider;
-import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-import com.google.android.exoplayer2.util.MimeTypes;
 import com.startapp.sdk.adsbase.StartAppAd;
 import com.termux.R;
 import com.termux.sky.TxVerify;
@@ -48,7 +55,6 @@ import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.tv_home_preview.RecentChannelsManager;
 
-import java.net.URLDecoder;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +69,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+@UnstableApi
 public class ExoPlayerActivityDRM extends ComponentActivity {
     private ExoPlayer player;
     private PlayerView playerView;
@@ -84,13 +91,23 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private String lastAttemptedUrl = null;
     private int currentFormatTrackIndex = 0;
+    private int currentFormatAttempts = 0;
     private static final int FORMAT_DASH = 0;
     private static final int FORMAT_HLS = 1;
     private static final int FORMAT_PROGRESSIVE = 2;
 
+    private boolean controllerVisible = false;
+
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        java.net.CookieManager cookieManager = new java.net.CookieManager();
+        cookieManager.setCookiePolicy(java.net.CookiePolicy.ACCEPT_ORIGINAL_SERVER);
+        if (java.net.CookieHandler.getDefault() != cookieManager) {
+            java.net.CookieHandler.setDefault(cookieManager);
+        }
 
         disableSSLCertificateChecking();
 
@@ -104,7 +121,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String intentCookie = null;
         String playlistType = null;
 
-        // Check if launched from Home Screen Deep Link
+
         boolean isFromHome = data != null && "hanaplayer".equals(data.getScheme());
 
         if (isFromHome) {
@@ -120,7 +137,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 port_no = videoUrl.contains("5007") ? "5007" : "0";
             }
         } else {
-            // Standard internal intent
+
             videoUrl = intent.getStringExtra("url");
             videoName = intent.getStringExtra("name");
             licenseUrl = intent.getStringExtra("license_key");
@@ -169,8 +186,13 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         playerView.setShowFastForwardButton(false);
         playerView.setShowRewindButton(false);
 
-        ImageButton playBtn = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_play);
-        ImageButton pauseBtn = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_pause);
+        playerView.setControllerVisibilityListener(
+            (PlayerView.ControllerVisibilityListener) visibility -> controllerVisible = visibility == View.VISIBLE
+        );
+
+
+        ImageButton playBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_play);
+        ImageButton pauseBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_pause);
 
         if (playBtn != null) {
             playBtn.setImageResource(R.drawable.tx_play_exo);
@@ -184,7 +206,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             pauseBtn.setColorFilter(android.graphics.Color.WHITE);
         }
 
-        View nextButton = playerView.findViewById(com.google.android.exoplayer2.ui.R.id.exo_next);
+        View nextButton = playerView.findViewById(androidx.media3.ui.R.id.exo_duration);
         if (nextButton != null && nextButton.getParent() instanceof android.view.ViewGroup) {
             android.view.ViewGroup controlGroup = (android.view.ViewGroup) nextButton.getParent();
             int nextButtonIndex = controlGroup.indexOfChild(nextButton);
@@ -254,7 +276,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
     }
 
-
     @NonNull
     private ImageButton createCustomControl(View template, int iconResId, View.OnClickListener listener) {
         ImageButton button = new ImageButton(this);
@@ -280,7 +301,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
-    // Helper method to Ping the URL
     private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
         try {
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
@@ -288,15 +308,27 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             connection.setConnectTimeout(3000);
             connection.setReadTimeout(3000);
 
-            String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0";
+            String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
             connection.setRequestProperty("User-Agent", ua);
 
             if (origin != null && !origin.isEmpty()) connection.setRequestProperty("Origin", origin);
             if (referer != null && !referer.isEmpty()) connection.setRequestProperty("Referer", referer);
 
-            return connection.getResponseCode();
+            int code = connection.getResponseCode();
+            if (code == 403 || code == 405) {
+
+                java.net.HttpURLConnection getConn = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
+                getConn.setRequestMethod("GET");
+                getConn.setConnectTimeout(3000);
+                getConn.setReadTimeout(3000);
+                getConn.setRequestProperty("User-Agent", ua);
+                if (origin != null && !origin.isEmpty()) getConn.setRequestProperty("Origin", origin);
+                if (referer != null && !referer.isEmpty()) getConn.setRequestProperty("Referer", referer);
+                return getConn.getResponseCode();
+            }
+            return code;
         } catch (Exception e) {
-            return -1; // Network error / timeout
+            return -1;
         }
     }
 
@@ -317,7 +349,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 return;
             }
 
-            int initialCode = pingUrl(videoUrl, userAgent, origin, referer); // Standard validation ping
+            int initialCode = pingUrl(videoUrl, userAgent, origin, referer);
             boolean isAlive = (initialCode >= 200 && initialCode < 400);
 
             if (Thread.currentThread().isInterrupted()) return;
@@ -401,17 +433,34 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             }
         }
 
-
         if (lastAttemptedUrl == null || !lastAttemptedUrl.equals(videoUrl)) {
             lastAttemptedUrl = videoUrl;
-            currentFormatTrackIndex = 0;
+            currentFormatAttempts = 0;
+
+
+            int savedFormat = prefs.getInt("last_successful_format", -1);
+            if (savedFormat != -1) {
+                currentFormatTrackIndex = savedFormat;
+            } else {
+
+                assert videoUrl != null;
+                boolean initialCheckIsHls = videoUrl.toLowerCase().contains(".m3u8")
+                    || videoUrl.toLowerCase().contains("index.php")
+                    || videoUrl.toLowerCase().contains("stream.php");
+                currentFormatTrackIndex = initialCheckIsHls ? FORMAT_HLS : FORMAT_DASH;
+            }
         }
 
         Map<String, String> headers = new HashMap<>();
 
+//        String finalUserAgent = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
+
         String finalUserAgent = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Dalvik/2.1.0 (Linux; Android 13)";
+
         headers.put("User-Agent", finalUserAgent);
-        
+        headers.put("Accept", "*/*");
+        headers.put("Connection", "keep-alive");
+
         if (origin != null && !origin.isEmpty()) headers.put("Origin", origin);
         if (referer != null && !referer.isEmpty()) headers.put("Referer", referer);
 
@@ -440,9 +489,13 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             case FORMAT_DASH:
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
                 if (licenseUrl != null && !licenseUrl.isEmpty()) {
+
+                    Log.d("ELX", licenseUrl);
+
                     mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
                         .setLicenseUri(licenseUrl)
-                        .setLicenseRequestHeaders(headers)
+//                        .setLicenseRequestHeaders(headers)
+                        .setMultiSession(true)
                         .build());
                 }
                 mediaSource = new DashMediaSource.Factory(dataSourceFactory)
@@ -451,7 +504,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 break;
 
             case FORMAT_HLS:
-            default:
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
                 mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
                     .setAllowChunklessPreparation(true)
@@ -459,12 +511,13 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 Log.d("DRM_PLAYER", "Attempting playback as: HLS (M3U8)");
                 break;
 
-//            case FORMAT_PROGRESSIVE:
-//            default:
-//                mediaSource = new com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(dataSourceFactory)
-//                    .createMediaSource(mediaItemBuilder.build());
-//                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
-//                break;
+            case FORMAT_PROGRESSIVE:
+            default:
+                mediaItemBuilder.setMimeType(null);
+                mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(mediaItemBuilder.build());
+                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
+                break;
         }
 
         if (player == null) {
@@ -473,39 +526,45 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 .setEnableDecoderFallback(true);
 
             trackSelector = new DefaultTrackSelector(this);
-            trackSelector.setParameters(trackSelector.buildUponParameters()
+            trackSelector.setParameters(trackSelector.getParameters().buildUpon()
                 .setForceHighestSupportedBitrate(false)
                 .build());
-            applySavedTrackPreferences();
 
             player = new ExoPlayer.Builder(this, renderersFactory)
                 .setTrackSelector(trackSelector)
                 .build();
+
+            applySavedTrackPreferences();
 
             player.addListener(new Player.Listener() {
                 @Override
                 public void onPlayerError(@NonNull PlaybackException error) {
                     Throwable cause = error.getCause();
 
+                    if (cause instanceof BehindLiveWindowException) {
+                        Log.w("DRM_PLAYER", "BehindLiveWindowException detected. Seeking to live edge.");
+                        player.seekToDefaultPosition();
+                        player.prepare();
+                        return;
+                    }
+
                     boolean isContainerError = (error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED
                         || error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
                         || error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
-                        || cause instanceof com.google.android.exoplayer2.ParserException
+                        || cause instanceof ParserException
                         || (cause != null && cause.getMessage() != null && cause.getMessage().contains("org.xmlpull")));
 
                     if (isContainerError) {
-                        if (currentFormatTrackIndex == FORMAT_DASH) {
-                            Log.w("DRM_PLAYER", "DASH parsing failed. Cycling to HLS layout.");
-                            currentFormatTrackIndex = FORMAT_HLS;
+                        currentFormatAttempts++;
+
+                        if (currentFormatAttempts < 3) {
+
+                            currentFormatTrackIndex = (currentFormatTrackIndex + 1) % 3;
+                            Log.w("DRM_PLAYER", "Parsing failed. Cycling to format index: " + currentFormatTrackIndex);
                             retryPlaybackLoop();
                             return;
-                        } else if (currentFormatTrackIndex == FORMAT_HLS) {
-                            Log.w("DRM_PLAYER", "HLS parsing failed. Cycling to Progressive Media (MP4/MKV).");
-                            currentFormatTrackIndex = FORMAT_PROGRESSIVE;
-                            retryPlaybackLoop();
-                            return;
-                        } else if (currentFormatTrackIndex == FORMAT_PROGRESSIVE) {
-                            Log.e("DRM_PLAYER", "All container formats failed parsing targets.");
+                        } else {
+                            Log.e("DRM_PLAYER", "All 3 container formats failed parsing targets.");
                         }
                     }
 
@@ -536,16 +595,21 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
                 @Override
                 public void onPlaybackStateChanged(int state) {
-                    if (errorOverlay != null && state == Player.STATE_READY) {
-                        errorOverlay.setVisibility(View.GONE);
+                    if (state == Player.STATE_READY) {
+
+                        prefs.edit().putInt("last_successful_format", currentFormatTrackIndex).apply();
+
+                        if (errorOverlay != null) {
+                            errorOverlay.setVisibility(View.GONE);
+                        }
                     }
                 }
             });
 
             player.setAudioAttributes(
-                new com.google.android.exoplayer2.audio.AudioAttributes.Builder()
+                new AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.CONTENT_TYPE_MOVIE)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
                     .build(),
                 true
             );
@@ -591,7 +655,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     @Override
     public void onBackPressed() {
-        if (playerView != null && playerView.isControllerVisible()) {
+        if (playerView != null && controllerVisible) {
             playerView.hideController();
             return;
         }
@@ -627,13 +691,13 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (playerView != null && playerView.isControllerVisible()) {
+            if (playerView != null && controllerVisible) {
                 playerView.hideController();
                 return true;
             }
         }
 
-        if (playerView != null && !playerView.isControllerVisible()) {
+        if (playerView != null && !controllerVisible) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
                 keyCode == KeyEvent.KEYCODE_ENTER ||
                 keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
@@ -698,7 +762,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String cookie = nextChannel.cookie;
 
         try {
-            vUrl = java.net.URLDecoder.decode(vUrl, "UTF-8");
             if (vUrl.contains("|")) {
                 String[] parts = vUrl.split("\\|");
                 vUrl = parts[0].trim();
@@ -716,7 +779,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             Log.e("DRM_PLAYER", "URL Decoding failed", e);
         }
 
-        checkStatusAndPlay(vUrl, nextChannel.licenseKey, userAgent, origin, referer, cookie, false);
+
+
+        initializePlayer(vUrl, nextChannel.licenseKey, userAgent, origin, referer, cookie);
     }
 
     @Override
@@ -760,7 +825,6 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         String cookie = intentCookie;
 
         try {
-            v_url = URLDecoder.decode(v_url, "UTF-8");
             if (v_url.contains("|")) {
                 String[] parts = v_url.split("\\|");
                 v_url = parts[0].trim();
@@ -778,7 +842,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             Log.e("DRM_PLAYER", "URL Decoding failed", e);
         }
 
-        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, cookie, isFromHome);
+
+
+        initializePlayer(v_url, licenseUrl, userAgent, origin, referer, cookie);
     }
 
     private void showSettingsMenu() {
@@ -805,25 +871,11 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     }
 
     private void showTrackSelector(int trackType, String title) {
-        if (player == null || trackSelector == null) return;
+        if (player == null) return;
 
-        MappingTrackSelector.MappedTrackInfo mappedTrackInfo =
-            trackSelector.getCurrentMappedTrackInfo();
-
-        if (mappedTrackInfo == null) return;
-
-        int rendererIndex = -1;
-        for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
-            if (mappedTrackInfo.getRendererType(i) == trackType) {
-                rendererIndex = i;
-                break;
-            }
-        }
-
-        if (rendererIndex == -1) return;
 
         TrackSelectionDialogBuilder builder = new TrackSelectionDialogBuilder(
-            this, title, trackSelector, rendererIndex
+            this, title, player, trackType
         );
 
         builder.setAllowAdaptiveSelections(false);
@@ -837,10 +889,19 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 if (playerView != null) {
                     playerView.postDelayed(() -> {
                         if (player != null) {
-                            @SuppressWarnings("deprecation")
-                            Format format = player.getAudioFormat();
-                            if (format != null && format.language != null) {
-                                prefs.edit().putString("pref_audio_lang", format.language).apply();
+
+                            for (Tracks.Group group : player.getCurrentTracks().getGroups()) {
+                                if (group.getType() == C.TRACK_TYPE_AUDIO && group.isSelected()) {
+                                    for (int i = 0; i < group.length; i++) {
+                                        if (group.isTrackSelected(i)) {
+                                            Format format = group.getTrackFormat(i);
+                                            if (format.language != null) {
+                                                prefs.edit().putString("pref_audio_lang", format.language).apply();
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }, 300);
@@ -852,79 +913,53 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     }
 
     private void showCustomVideoTrackSelector() {
-        if (player == null || trackSelector == null) return;
+        if (player == null) return;
 
-        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-        if (mappedTrackInfo == null) return;
-
-        int rendererIndex = -1;
-        for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
-            if (mappedTrackInfo.getRendererType(i) == C.TRACK_TYPE_VIDEO) {
-                rendererIndex = i;
-                break;
-            }
-        }
-
-        if (rendererIndex == -1) return;
-
-        TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex);
-        DefaultTrackSelector.Parameters currentParams = trackSelector.getParameters();
-
+        Tracks currentTracks = player.getCurrentTracks();
         List<String> trackNames = new ArrayList<>();
-        List<DefaultTrackSelector.SelectionOverride> overrides = new ArrayList<>();
-        List<Integer> groupIndices = new ArrayList<>();
+        List<TrackSelectionOverride> overrides = new ArrayList<>();
 
         trackNames.add("Auto");
         overrides.add(null);
-        groupIndices.add(-1);
 
         DefaultTrackNameProvider nameProvider = new DefaultTrackNameProvider(getResources());
         int checkedItem = 0;
 
-        for (int groupIndex = 0; groupIndex < trackGroups.length; groupIndex++) {
-            TrackGroup group = trackGroups.get(groupIndex);
-            for (int trackIndex = 0; trackIndex < group.length; trackIndex++) {
-                Format format = group.getFormat(trackIndex);
+        for (Tracks.Group group : currentTracks.getGroups()) {
+            if (group.getType() == C.TRACK_TYPE_VIDEO) {
+                TrackGroup trackGroup = group.getMediaTrackGroup();
 
-                if (format.bitrate == Format.NO_VALUE || format.bitrate > 400000) {
-                    trackNames.add(nameProvider.getTrackName(format));
-                    DefaultTrackSelector.SelectionOverride override =
-                        new DefaultTrackSelector.SelectionOverride(groupIndex, trackIndex);
-                    overrides.add(override);
-                    groupIndices.add(groupIndex);
+                for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
+                    Format format = trackGroup.getFormat(trackIndex);
 
-                    DefaultTrackSelector.SelectionOverride currentOverride =
-                        currentParams.getSelectionOverride(rendererIndex, trackGroups);
+                    if (format.bitrate == Format.NO_VALUE || format.bitrate > 400000) {
+                        trackNames.add(nameProvider.getTrackName(format));
+                        overrides.add(new TrackSelectionOverride(trackGroup, trackIndex));
 
-                    if (currentOverride != null &&
-                        currentOverride.groupIndex == groupIndex &&
-                        currentOverride.containsTrack(trackIndex)) {
-                        checkedItem = trackNames.size() - 1;
+
+                        if (group.isTrackSelected(trackIndex) && !player.getTrackSelectionParameters().overrides.isEmpty()) {
+                            checkedItem = trackNames.size() - 1;
+                        }
                     }
                 }
             }
         }
 
-        final int finalRendererIndex = rendererIndex;
         String[] options = trackNames.toArray(new String[0]);
 
         new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Select Video Quality")
             .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
-                DefaultTrackSelector.ParametersBuilder builder = trackSelector.buildUponParameters();
+                TrackSelectionParameters.Builder paramsBuilder = player.getTrackSelectionParameters().buildUpon();
 
-                if (which == 0) {
-                    builder.clearSelectionOverrides(finalRendererIndex);
-                } else {
-                    builder.clearSelectionOverrides(finalRendererIndex);
-                    builder.setSelectionOverride(
-                        finalRendererIndex,
-                        trackGroups,
-                        overrides.get(which)
-                    );
+
+                paramsBuilder.clearOverridesOfType(C.TRACK_TYPE_VIDEO);
+
+                if (which > 0) {
+                    paramsBuilder.addOverride(overrides.get(which));
                 }
 
-                trackSelector.setParameters(builder.build());
+                player.setTrackSelectionParameters(paramsBuilder.build());
                 dialog.dismiss();
             })
             .setNegativeButton("CANCEL", null)
@@ -932,15 +967,26 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     }
 
     private void applySavedTrackPreferences() {
-        if (trackSelector == null) return;
-        String savedAudioLang = prefs.getString("pref_audio_lang", null);
-        if (savedAudioLang != null) {
-            DefaultTrackSelector.Parameters currentParameters = trackSelector.getParameters();
-            DefaultTrackSelector.Parameters newParameters = currentParameters
-                .buildUpon()
-                .setPreferredAudioLanguage(savedAudioLang)
-                .build();
-            trackSelector.setParameters(newParameters);
+        if (player != null) {
+            String savedAudioLang = prefs.getString("pref_audio_lang", null);
+            if (savedAudioLang != null) {
+                player.setTrackSelectionParameters(
+                    player.getTrackSelectionParameters()
+                        .buildUpon()
+                        .setPreferredAudioLanguage(savedAudioLang)
+                        .build()
+                );
+            }
+        } else if (trackSelector != null) {
+            String savedAudioLang = prefs.getString("pref_audio_lang", null);
+            if (savedAudioLang != null) {
+                trackSelector.setParameters(
+                    trackSelector.getParameters()
+                        .buildUpon()
+                        .setPreferredAudioLanguage(savedAudioLang)
+                        .build()
+                );
+            }
         }
     }
 
