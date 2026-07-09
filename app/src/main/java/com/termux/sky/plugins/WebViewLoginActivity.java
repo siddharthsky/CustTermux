@@ -21,26 +21,28 @@ public class WebViewLoginActivity extends AppCompatActivity {
 
     private WebView webView;
     private ProgressBar progressBar;
+    private int backCount = 0;
+    private static final int MAX_BACK = 5;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        
+
         FrameLayout layout = new FrameLayout(this);
         FrameLayout.LayoutParams matchParent = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         );
 
-        
+
         webView = new WebView(this);
         layout.addView(webView, matchParent);
 
-        
+
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        int progressHeight = (int) (4 * getResources().getDisplayMetrics().density); 
+        int progressHeight = (int) (4 * getResources().getDisplayMetrics().density);
         FrameLayout.LayoutParams progressParams = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             progressHeight
@@ -49,7 +51,7 @@ public class WebViewLoginActivity extends AppCompatActivity {
         progressBar.setMax(100);
         layout.addView(progressBar, progressParams);
 
-        
+
         setContentView(layout);
 
         String url = getIntent().getStringExtra("url");
@@ -76,8 +78,28 @@ public class WebViewLoginActivity extends AppCompatActivity {
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final android.webkit.PermissionRequest request) {
 
-            
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    runOnUiThread(() -> {
+                        for (String resource : request.getResources()) {
+
+                            if (android.webkit.PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID.equals(resource)) {
+                                request.grant(new String[]{resource});
+                                return;
+                            }
+                        }
+
+                        request.deny();
+                    });
+                }
+            }
+        });
+
+        webView.setWebChromeClient(new WebChromeClient() {
+
+
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
@@ -107,7 +129,7 @@ public class WebViewLoginActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient() {
 
-            
+
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
@@ -115,7 +137,7 @@ public class WebViewLoginActivity extends AppCompatActivity {
                 progressBar.setProgress(0);
             }
 
-            
+
             @SuppressWarnings("deprecation")
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -123,7 +145,7 @@ public class WebViewLoginActivity extends AppCompatActivity {
                 return true;
             }
 
-            
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -136,9 +158,10 @@ public class WebViewLoginActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                
+
                 progressBar.setVisibility(View.GONE);
                 CookieManager.getInstance().flush();
+                backCount = 0;
             }
         });
 
@@ -147,12 +170,19 @@ public class WebViewLoginActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
+            backCount++;
+
+            if (backCount >= MAX_BACK) {
+                finish();
+            }
+
         } else {
-            super.onBackPressed();
+            finish();
         }
     }
 
@@ -162,7 +192,7 @@ public class WebViewLoginActivity extends AppCompatActivity {
             webView.clearHistory();
             webView.clearCache(true);
 
-            
+
             android.view.ViewGroup parent = (android.view.ViewGroup) webView.getParent();
             if (parent != null) {
                 parent.removeView(webView);
