@@ -44,10 +44,6 @@ android {
 
         implementation("com.google.code.gson:gson:2.14.0")
 
-        implementation("com.google.android.exoplayer:exoplayer:2.16.0")
-        implementation "com.google.android.exoplayer:exoplayer-dash:2.16.0"
-        implementation "com.google.android.exoplayer:exoplayer-ui:2.16.0"
-
         implementation 'com.github.bumptech.glide:glide:5.0.7'
         annotationProcessor 'com.github.bumptech.glide:compiler:5.0.7'
 
@@ -56,21 +52,34 @@ android {
         implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
 
         //noinspection GradleDynamicVersion
-        implementation 'com.startapp:inapp-sdk:5.+'
+        implementation 'com.startapp:inapp-sdk:5.3.1'
+
+
+        implementation("androidx.media3:media3-exoplayer:1.10.1")
+        implementation("androidx.media3:media3-exoplayer-dash:1.10.1")
+        implementation("androidx.media3:media3-exoplayer-hls:1.10.1")
+        implementation("androidx.media3:media3-ui:1.10.1")
+        implementation("androidx.media3:media3-ui-compose-material3:1.10.1")
+        implementation 'com.google.guava:guava:33.6.0-android'
+
+
+//        implementation("com.google.android.exoplayer:exoplayer:2.16.0")
+//        implementation "com.google.android.exoplayer:exoplayer-dash:2.16.0"
+//        implementation "com.google.android.exoplayer:exoplayer-ui:2.16.0"
 
     }
 
-    configurations.configureEach {
-        resolutionStrategy {
-            force 'com.google.guava:guava:24.1-jre'
-        }
-    }
+//    configurations.configureEach {
+//        resolutionStrategy {
+//            force 'com.google.guava:guava:24.1-jre'
+//        }
+//    }
 
     defaultConfig {
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 5
-        versionName "0.5"
+        versionCode 6
+        versionName "0.6"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
