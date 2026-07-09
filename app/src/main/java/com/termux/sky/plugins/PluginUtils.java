@@ -22,6 +22,7 @@ public class PluginUtils {
             p.bin_download = o.has("bin_download") ? o.getString("bin_download") : null;
             p.port = o.getInt("port");
             p.playlist = o.has("playlist") ? o.getString("playlist") : null;
+            p.playlist_h = o.has("playlist_h") && o.getBoolean("playlist_h");
             p.server_check_url = o.has("server_check_url") ? o.getString("server_check_url") : null;
             p.watch_url = o.has("watch_url") ? o.getString("watch_url") : null;
             p.login_url = o.has("login_url") ? o.getString("login_url") : null;

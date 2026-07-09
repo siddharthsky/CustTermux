@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 
@@ -74,7 +75,11 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
         Plugin current = list.get(pos);
 
         h.name.setText(current.title);
-        h.playlist.setText(getDisplayName(current.playlist));
+        if (current.playlist_h == Boolean.TRUE) {
+            h.playlist.setText("playlist.m3u8");
+        } else {
+            h.playlist.setText(getDisplayName(current.playlist));
+        }
 
         final boolean isTool = (current.tool != null) ? current.tool : false;
 
@@ -130,7 +135,13 @@ public class PluginAdapter extends RecyclerView.Adapter<PluginAdapter.VH> {
             }
 
             ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("url", current.playlist));
+            if (current.playlist_h == Boolean.TRUE) {
+                cm.setPrimaryClip(ClipData.newPlainText("url", "playlist.m3u"));
+            }
+            else {
+                cm.setPrimaryClip(ClipData.newPlainText("url", current.playlist));
+            }
+
             Toast.makeText(ctx, "Playlist URL Copied", Toast.LENGTH_SHORT).show();
         });
 

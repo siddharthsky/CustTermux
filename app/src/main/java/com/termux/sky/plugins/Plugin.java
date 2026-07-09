@@ -7,6 +7,7 @@ public class Plugin {
     public String bin_download;
     public int port;
     public String playlist;
+    public Boolean playlist_h;
     public String server_check_url;
     public String login_url;
     public String watch_url;
