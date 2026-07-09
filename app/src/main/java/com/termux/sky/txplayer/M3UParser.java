@@ -24,56 +24,52 @@ public class M3UParser {
     public static List<ChannelModel> parse(String content) {
         List<ChannelModel> channels = new ArrayList<>();
 
-        String[] blocks = content.split("(?=#EXTINF)");
+        String[] lines = content.split("\\r?\\n");
 
-        for (String block : blocks) {
-            String trimmedBlock = block.trim();
-            if (trimmedBlock.isEmpty() || !trimmedBlock.contains("#EXTINF")) continue;
+        ChannelModel current = new ChannelModel();
 
-            ChannelModel current = new ChannelModel();
-            String[] lines = trimmedBlock.split("\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
 
-            for (String line : lines) {
-                line = line.trim();
+            if (line.startsWith("#EXTINF")) {
+                if (line.contains(",")) {
+                    current.name = line.substring(line.lastIndexOf(",") + 1).trim();
+                }
+                current.id = getAttribute(line, "tvg-id");
+                current.logo = getAttribute(line, "tvg-logo");
+                current.group = getAttribute(line, "group-title");
+                current.language = getAttribute(line, "tvg-language");
+                current.type = getAttribute(line, "tvg-type");
+            } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_type")) {
+                current.licenseType = getValue(line);
+            } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) {
+                current.licenseKey = getValue(line);
+            } else if (line.startsWith("#KODIPROP:inputstream.adaptive.manifest_type")) {
+                current.manifestType = getValue(line);
+            } else if (line.startsWith("#EXTVLCOPT:http-user-agent")) {
+                current.userAgent = getValue(line);
+            } else if (line.startsWith("#EXTVLCOPT:http-cookie")) {
+                current.cookie = getValue(line);
+            } else if (!line.startsWith("#") && (line.startsWith("http") || line.startsWith("https"))) {
+                current.url = line;
 
-                if (line.startsWith("#EXTINF")) {
-                    if (line.contains(",")) {
-                        current.name = line.substring(line.lastIndexOf(",") + 1).trim();
-                    }
-                    current.id = getAttribute(line, "tvg-id");
-                    current.logo = getAttribute(line, "tvg-logo");
-                    current.group = getAttribute(line, "group-title");
-                    current.language = getAttribute(line, "tvg-language");
-                    current.type = getAttribute(line, "tvg-type");
-                } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_type")) {
-                    current.licenseType = getValue(line);
-                } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) {
-                    current.licenseKey = getValue(line);
-                } else if (line.startsWith("#KODIPROP:inputstream.adaptive.manifest_type")) {
-                    current.manifestType = getValue(line);
-                } else if (line.startsWith("#EXTVLCOPT:http-user-agent")) {
-                    current.userAgent = getValue(line);
-                } else if (line.startsWith("#EXTVLCOPT:http-cookie")) {
-                    current.cookie = getValue(line);
-                } else if (line.startsWith("http")) {
-                    current.url = line;
+                if (line.contains("|")) {
+                    String[] parts = line.split("\\|");
 
-                    if (line.contains("|")) {
-                        String[] parts = line.split("\\|");
-                        for (int i = 1; i < parts.length; i++) {
-                            String part = parts[i].trim();
-                            if (part.toLowerCase().startsWith("cookie=")) {
-                                current.cookie = part.substring(7);
-                            } else if (part.toLowerCase().startsWith("user-agent=")) {
-                                current.userAgent = part.substring(11);
-                            }
+                    for (int i = 1; i < parts.length; i++) {
+                        String part = parts[i].trim();
+                        if (part.toLowerCase().startsWith("cookie=")) {
+                            current.cookie = part.substring(7);
+                        } else if (part.toLowerCase().startsWith("user-agent=")) {
+                            current.userAgent = part.substring(11);
                         }
                     }
                 }
-            }
 
-            if (current.url != null && !current.url.isEmpty()) {
                 channels.add(current);
+
+                current = new ChannelModel();
             }
         }
         return channels;
