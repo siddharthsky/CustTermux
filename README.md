@@ -21,7 +21,7 @@
 
 Get up and running in minutes:
 
-1. **Open** [CTx Engine](https://t.me/c/CustTermux/48) and grant the required permissions.
+1. **Open** [CTx Engine](https://t.me/CustTermux/5) and grant the required permissions.
 2. **Navigate** to the **Plugin Manager**.
 3. **Install** [plugins](https://github.com/siddharthsky/ctx-plugins) using a simple 4-digit code *(note: some plugins require login)*.
 4. **Launch** **HanaPlayer**.
