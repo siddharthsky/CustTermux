@@ -494,7 +494,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
                     mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
                         .setLicenseUri(licenseUrl)
-//                        .setLicenseRequestHeaders(headers)
+                        .setLicenseRequestHeaders(headers)
                         .setMultiSession(true)
                         .build());
                 }
@@ -660,16 +660,16 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             return;
         }
 
-        if (!TxVerify.isPremium(this)) {
-            SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
-            int backCount = settings.getInt("ad_back_count_player", 0) + 1;
-            if (backCount >= 2) {
-                StartAppAd.onBackPressed(this);
-                settings.edit().putInt("ad_back_count_player", 0).apply();
-            } else {
-                settings.edit().putInt("ad_back_count_player", backCount).apply();
-            }
-        }
+//        if (!TxVerify.isPremium(this)) {
+//            SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+//            int backCount = settings.getInt("ad_back_count_player", 0) + 1;
+//            if (backCount >= 2) {
+//                StartAppAd.onBackPressed(this);
+//                settings.edit().putInt("ad_back_count_player", 0).apply();
+//            } else {
+//                settings.edit().putInt("ad_back_count_player", backCount).apply();
+//            }
+//        }
         super.onBackPressed();
     }
 

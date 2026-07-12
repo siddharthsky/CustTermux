@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -105,11 +106,13 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * A terminal emulator activity.
@@ -457,7 +460,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         clearUpdateCache();
 
-        if (!BuildConfig.DEBUG) {
+//        if (!BuildConfig.DEBUG) {
+//            checkForUpdate();
+//        }
+
+        if (true) {
             checkForUpdate();
         }
 
@@ -559,49 +566,142 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void checkForUpdate() {
-        int localVersion = SkySharedPref.getVersionCode(this);
+        String localVersion = "0.0";
+
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+
+            if (pInfo != null && pInfo.versionName != null && !pInfo.versionName.trim().isEmpty()) {
+                localVersion = pInfo.versionName.trim();
+            } else {
+                Log.w("TxActivity", "versionName is null or empty in PackageInfo. Defaulting to 0.0");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("TxActivity", "Package name not found", e);
+        } catch (Exception e) {
+            Log.e("TxActivity", "Unexpected error getting local version", e);
+        }
+
+        Log.d("GFX",localVersion);
+
+        String finalLocalVersion = localVersion;
 
         new Thread(() -> {
+            boolean showUpdate = false;
+            JSONArray assets = null;
+            JSONObject jsonObject = null;
+
             try {
                 URL url = new URL("https://api.github.com/repos/siddharthsky/CustTermux/releases/latest");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                reader.close();
-
-                JSONObject jsonObject = new JSONObject(response.toString());
-                latestVersionTag = jsonObject.getString("tag_name");
-
-                int remoteVersion = Integer.parseInt(latestVersionTag.replaceAll("[^0-9]", ""));
-
-                runOnUiThread(() -> {
-                    Button updateBtn = findViewById(R.id.button_update);
-
-                    if (remoteVersion > localVersion) {
-                        try {
-                            JSONArray assets = jsonObject.getJSONArray("assets");
-                            downloadUrl = getApkUrlFromAssets(assets);
-
-                            if (downloadUrl != null && !downloadUrl.isEmpty()) {
-                                updateBtn.setVisibility(View.VISIBLE);
-                                updateBtn.setOnClickListener(v -> downloadAndInstallApk());
-                            }
-                        } catch (Exception e) {
-                            Log.e("TxActivity", "Error parsing GitHub release assets: ", e);
-                        }
+                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
                     }
-                });
+                    reader.close();
 
+                    jsonObject = new JSONObject(response.toString());
+                    latestVersionTag = jsonObject.optString("tag_name", "").trim();
+                    String remoteVersion = latestVersionTag.replaceFirst("^[vV]", "");
+
+                    Log.d("GFX",
+                        "Local=" + finalLocalVersion +
+                            " Remote=" + remoteVersion +
+                            " Tag=" + latestVersionTag);
+
+                    boolean newer = isNewerVersion(remoteVersion, finalLocalVersion);
+
+                    Log.d("GFX", "Release ID=" + jsonObject.optLong("id"));
+                    Log.d("GFX", "Tag=" + jsonObject.optString("tag_name"));
+                    Log.d("GFX", "Name=" + jsonObject.optString("name"));
+                    Log.d("GFX", "Assets=" + jsonObject.optJSONArray("assets"));
+
+                    if (!newer) {
+                        showUpdate = false;
+                    } else {
+                        assets = jsonObject.optJSONArray("assets");
+                        assert assets != null;
+                        downloadUrl = getApkUrlFromAssets(assets);
+                        showUpdate = downloadUrl != null;
+                    }
+
+//                    if (isNewerVersion(remoteVersion, finalLocalVersion)) {
+//                        assets = jsonObject.optJSONArray("assets");
+//                        downloadUrl = getApkUrlFromAssets(assets);
+//                        if (downloadUrl != null && !downloadUrl.isEmpty()) {
+//                            showUpdate = true;
+//                        }
+//                    }
+                }
             } catch (Exception e) {
-                Log.e("TxActivity", "Update check failed: ", e);
+                Log.e("TxActivity", "Update check failed or rate-limited", e);
             }
+
+            final boolean finalShowUpdate = showUpdate;
+            runOnUiThread(() -> {
+                Button updateBtn = findViewById(R.id.button_update);
+                if (finalShowUpdate) {
+                    updateBtn.setVisibility(View.VISIBLE);
+                    updateBtn.setOnClickListener(v -> downloadAndInstallApk());
+                } else {
+                    updateBtn.setVisibility(View.GONE);
+                }
+            });
         }).start();
+    }
+
+    private boolean isNewerVersion(String remote, String local) {
+        if (remote == null || local == null) {
+            return false;
+        }
+
+        String cleanRemote = remote.trim().replaceAll("[^0-9.]", "");
+        String cleanLocal = local.trim().replaceAll("[^0-9.]", "");
+
+        String[] remoteParts = cleanRemote.split("\\.");
+        String[] localParts = cleanLocal.split("\\.");
+
+        int length = Math.max(remoteParts.length, localParts.length);
+
+        for (int i = 0; i < length; i++) {
+            int remoteValue = 0;
+            int localValue = 0;
+
+            // Safely parse remote part
+            if (i < remoteParts.length && !remoteParts[i].isEmpty()) {
+                try {
+                    remoteValue = Integer.parseInt(remoteParts[i]);
+                } catch (NumberFormatException e) {
+                    Log.w("TxActivity", "Failed to parse remote version part: " + remoteParts[i]);
+                }
+            }
+
+            // Safely parse local part
+            if (i < localParts.length && !localParts[i].isEmpty()) {
+                try {
+                    localValue = Integer.parseInt(localParts[i]);
+                } catch (NumberFormatException e) {
+                    Log.w("TxActivity", "Failed to parse local version part: " + localParts[i]);
+                }
+            }
+
+            // Compare
+            if (remoteValue > localValue) {
+                return true;
+            }
+            if (remoteValue < localValue) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     private String getApkUrlFromAssets(JSONArray assets) throws Exception {
@@ -611,12 +711,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         for (int i = 0; i < assets.length(); i++) {
             JSONObject asset = assets.getJSONObject(i);
-            String fileName = asset.getString("name");
+            String fileName = asset.getString("name").toLowerCase(Locale.US);
             String browserUrl = asset.getString("browser_download_url");
 
-            if (fileName.contains(targetAbiSuffix)) {
+            if (fileName.endsWith(targetAbiSuffix.toLowerCase(Locale.US))) {
                 return browserUrl;
-            } else if (fileName.contains(fallbackSuffix)) {
+            } else if (fileName.endsWith(fallbackSuffix)) {
                 universalUrl = browserUrl;
             }
         }
@@ -636,12 +736,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         return "universal.apk";
     }
 
+    @SuppressLint("SetTextI18n")
     private void downloadAndInstallApk() {
         clearOldApkCaches();
 
-        File file = new File(getExternalFilesDir(null), "update_" + latestVersionTag + ".apk");
+        File file = new File(getExternalFilesDir(null),
+            "update_" + latestVersionTag + ".apk");
 
-        if (file.exists()) {
+        // Already downloaded
+        if (file.exists() && file.length() > 0) {
             installApk(file);
             return;
         }
@@ -655,36 +758,56 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         statusText.setText("Starting download...");
 
         new Thread(() -> {
+
+            HttpURLConnection connection = null;
+
             try {
+
                 URL url = new URL(downloadUrl);
-                Log.d("TxActivity", "Downloading from: " + downloadUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(30000);
+                connection.setInstanceFollowRedirects(true);
                 connection.connect();
 
-                int fileLength = connection.getContentLength();
-                InputStream input = connection.getInputStream();
-                FileOutputStream output = new FileOutputStream(file);
-
-                byte[] buffer = new byte[4096];
-                int len;
-                int total = 0;
-
-                while ((len = input.read(buffer)) > 0) {
-                    total += len;
-                    output.write(buffer, 0, len);
-
-                    if (fileLength > 0) {
-                        int progress = (int) (total * 100L / fileLength);
-
-                        runOnUiThread(() -> {
-                            progressBar.setProgress(progress);
-                            statusText.setText("Downloading... " + progress + "%");
-                        });
-                    }
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    throw new IOException("HTTP Error: " + connection.getResponseCode());
                 }
 
-                output.close();
-                input.close();
+                int fileLength = connection.getContentLength();
+
+                try (InputStream input = connection.getInputStream();
+                     FileOutputStream output = new FileOutputStream(file)) {
+
+                    byte[] buffer = new byte[8192];
+                    int count;
+                    long total = 0;
+
+                    while ((count = input.read(buffer)) != -1) {
+
+                        output.write(buffer, 0, count);
+                        total += count;
+
+                        if (fileLength > 0) {
+                            int progress = (int) ((total * 100L) / fileLength);
+
+                            long downloadedMB = total / (1024 * 1024);
+                            long totalMB = fileLength / (1024 * 1024);
+
+                            runOnUiThread(() -> {
+                                progressBar.setProgress(progress);
+                                statusText.setText(
+                                    "Downloading... " +
+                                        downloadedMB + " MB / " +
+                                        totalMB + " MB (" +
+                                        progress + "%)");
+                            });
+                        }
+                    }
+
+                    output.flush();
+                }
 
                 runOnUiThread(() -> {
                     statusText.setText("Download complete");
@@ -692,44 +815,130 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 });
 
             } catch (Exception e) {
-                Log.e("TxActivity", "Download failed: ", e);
+
+                Log.e("TxActivity", "Download failed", e);
+
+                if (file.exists()) {
+                    file.delete();
+                }
 
                 runOnUiThread(() -> {
+                    progressContainer.setVisibility(View.GONE);
                     statusText.setText("Download failed");
+                    Toast.makeText(
+                        TermuxActivity.this,
+                        "Failed to download update.",
+                        Toast.LENGTH_SHORT
+                    ).show();
                 });
+
+            } finally {
+
+                if (connection != null) {
+                    connection.disconnect();
+                }
+
             }
+
         }).start();
     }
-
     private void clearOldApkCaches() {
+
         File dir = getExternalFilesDir(null);
-        if (dir != null && dir.isDirectory()) {
-            File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.getName().startsWith("update_") && file.getName().endsWith(".apk")) {
-                        if (!file.getName().equals("update_" + latestVersionTag + ".apk")) {
-                            boolean deleted = file.delete();
-                            Log.d("TxActivity", "Deleted old cached APK: " + file.getName() + " - " + deleted);
-                        }
-                    }
-                }
+
+        if (dir == null || !dir.exists()) {
+            return;
+        }
+
+        File[] files = dir.listFiles();
+
+        if (files == null) {
+            return;
+        }
+
+        String currentFile = "update_" + latestVersionTag + ".apk";
+
+        for (File file : files) {
+
+            if (!file.isFile()) {
+                continue;
+            }
+
+            String name = file.getName();
+
+            if (name.startsWith("update_")
+                && name.endsWith(".apk")
+                && !name.equals(currentFile)) {
+
+                boolean deleted = file.delete();
+
+                Log.d("TxActivity",
+                    "Deleted cached APK: " + name + " -> " + deleted);
             }
         }
     }
 
     private void installApk(File file) {
-        Uri uri = FileProvider.getUriForFile(
+
+        if (!file.exists()) {
+
+            Toast.makeText(
+                this,
+                "Downloaded APK not found.",
+                Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            if (!getPackageManager().canRequestPackageInstalls()) {
+
+                Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:" + getPackageName())
+                );
+
+                startActivity(intent);
+
+                Toast.makeText(
+                    this,
+                    "Please allow installation from this app.",
+                    Toast.LENGTH_LONG
+                ).show();
+
+                return;
+            }
+        }
+
+        Uri apkUri = FileProvider.getUriForFile(
             this,
             getPackageName() + ".provider",
             file
         );
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "application/vnd.android.package-archive");
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(
+            apkUri,
+            "application/vnd.android.package-archive"
+        );
 
-        startActivity(intent);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+
+            Log.e("TxActivity", "Unable to launch installer", e);
+
+            Toast.makeText(
+                this,
+                "Unable to start package installer.",
+                Toast.LENGTH_SHORT
+            ).show();
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
