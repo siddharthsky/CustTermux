@@ -1,5 +1,6 @@
 package com.termux.sky.txplayer;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -50,6 +51,7 @@ import androidx.media3.ui.TrackSelectionDialogBuilder;
 
 import com.startapp.sdk.adsbase.StartAppAd;
 import com.termux.R;
+import com.termux.sky.TxUtils;
 import com.termux.sky.TxVerify;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
@@ -244,6 +246,29 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         root.addView(errorOverlay, errorParams);
         setContentView(root);
 
+//        // --- MANUAL PING TEST BLOCK ---
+//        new Thread(() -> {
+//            // 1. Test a local IP (This will trigger the Socket connection to port 5789)
+//            String testLocalUrl = "http://127.0.0.1:8080/stream.m3u8";
+//            int localPingResult = pingUrl(testLocalUrl, null, null, null);
+//
+//            // 2. Test an external URL (This should bypass the socket check and return 200)
+//            String testExternalUrl = "https://example.com/stream.m3u8";
+//            int externalPingResult = pingUrl(testExternalUrl, null, null, null);
+//
+//            // 3. Log it to Logcat
+//            Log.d("PING_TEST", "Local Ping (Port 5789): " + localPingResult);
+//            Log.d("PING_TEST", "External Ping: " + externalPingResult);
+//
+//            // 4. Show a Toast on the screen
+//            runOnUiThread(() -> {
+//                Toast.makeText(ExoPlayerActivityDRM.this,
+//                    "Ping Test -> Local: " + localPingResult + " | External: " + externalPingResult,
+//                    Toast.LENGTH_LONG).show();
+//            });
+//        }).start();
+//// ------------------------------
+
         bannerManager = new ChannelBannerManager(root);
 
         boolean shouldShow = getIntent().getBooleanExtra("show_banner", true);
@@ -301,7 +326,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
-    private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
+    private int pingUrl2(String videoUrl, String userAgent, String origin, String referer) {
         try {
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
             connection.setRequestMethod("HEAD");
@@ -327,6 +352,29 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                 return getConn.getResponseCode();
             }
             return code;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
+        try {
+            java.net.URL url = new java.net.URL(videoUrl);
+            String host = url.getHost();
+
+            boolean isIpAddress = host != null && host.matches("^([0-9]{1,3}\\.){3}[0-9]{1,3}$");
+            boolean isLocalhost = host != null && host.equalsIgnoreCase("localhost");
+
+            if (isIpAddress || isLocalhost) {
+                try (java.net.Socket socket = new java.net.Socket()) {
+                    socket.connect(new java.net.InetSocketAddress("127.0.0.1", 5789), 2000);
+                    return 200;
+                } catch (Exception e) {
+                    return -1;
+                }
+            } else {
+                return 200;
+            }
         } catch (Exception e) {
             return -1;
         }
@@ -420,18 +468,18 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie) {
         Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
 
-        if (videoUrl != null) {
-            boolean containsLive = videoUrl.toLowerCase().contains("live");
-            List<String> numberList = Arrays.asList("676", "678", "682", "684", "729", "733", "744", "747", "895", "896", "897", "898", "899", "900", "901", "1662", "1669", "1754", "2424", "3088");
-            String joinedNumbers = String.join("|", numberList);
-            String regexPattern = ".*\\b(" + joinedNumbers + ")\\b.*";
-            boolean containsExactNumber = videoUrl.matches(regexPattern);
-            if (containsLive && containsExactNumber) {
-                Log.d("DRM_PLAYER", "URL contains 'live' and an exact target number. Switching to WebView.");
-                switchToWebView(videoUrl);
-                return;
-            }
-        }
+//        if (videoUrl != null) {
+//            boolean containsLive = videoUrl.toLowerCase().contains("live");
+//            List<String> numberList = Arrays.asList("676", "678", "682", "684", "729", "733", "744", "747", "895", "896", "897", "898", "899", "900", "901", "1662", "1669", "1754", "2424", "3088");
+//            String joinedNumbers = String.join("|", numberList);
+//            String regexPattern = ".*\\b(" + joinedNumbers + ")\\b.*";
+//            boolean containsExactNumber = videoUrl.matches(regexPattern);
+//            if (containsLive && containsExactNumber) {
+//                Log.d("DRM_PLAYER", "URL contains 'live' and an exact target number. Switching to WebView.");
+//                switchToWebView(videoUrl);
+//                return;
+//            }
+//        }
 
         if (lastAttemptedUrl == null || !lastAttemptedUrl.equals(videoUrl)) {
             lastAttemptedUrl = videoUrl;
@@ -683,6 +731,23 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
     }
 
+    @SuppressLint("RestrictedApi")
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+
+            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                changeChannel(1);
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                changeChannel(-1);
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
@@ -708,15 +773,16 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             }
         }
 
-        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
-            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                changeChannel(1);
-                return true;
-            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                changeChannel(-1);
-                return true;
-            }
-        }
+//        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+//            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//                changeChannel(1);
+//                return true;
+//            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+//                changeChannel(-1);
+//                return true;
+//            }
+//        }
+
         return super.onKeyDown(keyCode, event);
     }
 
@@ -844,7 +910,9 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
 
 
-        initializePlayer(v_url, licenseUrl, userAgent, origin, referer, cookie);
+//        initializePlayer(v_url, licenseUrl, userAgent, origin, referer, cookie);
+
+        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, cookie, isFromHome);
     }
 
     private void showSettingsMenu() {
@@ -1040,6 +1108,8 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
             serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", 1);
             context.startService(serviceIntent);
+
+            TxUtils.checkPluginAndStartService(context,8180,false);
         } catch (Exception e) {
             Log.e("DRM_PLAYER", "Could not start background server", e);
         }
