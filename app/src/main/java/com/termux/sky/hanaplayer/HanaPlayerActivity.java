@@ -307,10 +307,19 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
 
         recyclerView = new RecyclerView(this);
-        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
-        int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
-        int spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+        int savedColumns = prefs.getInt("grid_columns", 0);
+        int spanCount;
+
+        if (savedColumns > 0) {
+            spanCount = savedColumns;
+        } else {
+            int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+            int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
+            spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+        }
+
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, spanCount);
+
         recyclerView.setLayoutManager(gridLayoutManager);
         adapter = new HanaChannelAdapter(displayList, this::onChannelClick, this::onChannelLongClick);
         recyclerView.setAdapter(adapter);
@@ -426,10 +435,50 @@ public class HanaPlayerActivity extends AppCompatActivity {
         prefs.edit().putString("fav_order", android.text.TextUtils.join(",", orderedUrls)).apply();
     }
 
+    private void showGridDialog() {
+        String[] options = {"Auto", "2 Columns", "3 Columns", "4 Columns", "5 Columns", "6 Columns", "7 Columns"};
+
+        int savedColumns = prefs.getInt("grid_columns", 0);
+
+        int selectedIndex = 0;
+        if (savedColumns >= 2 && savedColumns <= 7) {
+            selectedIndex = savedColumns - 1;
+        }
+
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Set Grid Columns")
+            .setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
+                int newColumns = (which == 0) ? 0 : (which + 1);
+                prefs.edit().putInt("grid_columns", newColumns).apply();
+
+                if (recyclerView != null && recyclerView.getLayoutManager() instanceof GridLayoutManager) {
+                    GridLayoutManager glm = (GridLayoutManager) recyclerView.getLayoutManager();
+                    int spanCount = newColumns;
+
+                    if (newColumns == 0) {
+                        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+                        int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
+                        spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+                    }
+
+                    glm.setSpanCount(spanCount);
+                    adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+                }
+
+                dialog.dismiss();
+                Toast.makeText(this, "Grid layout updated", Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
     private void showPopupMenu(View view) {
         Context wrapper = new ContextThemeWrapper(this, R.style.PopupMenuDarkTheme);
         PopupMenu popup = new PopupMenu(wrapper, view);
         popup.getMenuInflater().inflate(R.menu.hana_menu, popup.getMenu());
+
+        final int GRID_SETTINGS_ID = 1002;
+        MenuItem gridItem = popup.getMenu().add(0, GRID_SETTINGS_ID, 0, "Grid Settings");
 
         MenuItem autoPlayItem = popup.getMenu().findItem(R.id.menu_auto_play);
         boolean isAutoPlayEnabled = prefs.getBoolean("auto_launch_channel", false);
@@ -448,6 +497,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+
+            if (id == GRID_SETTINGS_ID) {
+                showGridDialog();
+                return true;
+            }
 
             if (id == REARRANGE_ID) {
                 isRearrangeMode = !isRearrangeMode;
