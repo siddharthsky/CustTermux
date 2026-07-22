@@ -30,11 +30,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.media3.common.util.UnstableApi;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
@@ -52,6 +54,7 @@ import com.termux.sky.txplayer.ExoPlayerActivityDRM;
 import com.termux.sky.txplayer.M3UParser;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class HanaPlayerActivity extends AppCompatActivity {
@@ -1132,7 +1135,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
                 if (responseCode >= 200 && responseCode < 400) {
                     java.io.InputStream in = conn.getInputStream();
-                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in, "UTF-8"));
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in, StandardCharsets.UTF_8));
                     String line;
 
                     while ((line = reader.readLine()) != null) {
@@ -1167,9 +1170,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
         return "";
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void onChannelClick(ChannelModel channel) {
 
-        if (isRearrangeMode && isTv(this) && selectedPorts.contains("Favorites") && currentSortMode == 0) {
+        if (isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0) {
             if (selectedMovePosition == -1) {
                 selectedMovePosition = displayList.indexOf(channel);
                 adapter.setMovingPosition(selectedMovePosition);
@@ -1217,12 +1221,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private void onChannelLongClick(ChannelModel channel) {
 
         if (isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0) {
-            if (isTv(this)) {
-                if (selectedMovePosition == -1) {
-                    selectedMovePosition = displayList.indexOf(channel);
-                    adapter.setMovingPosition(selectedMovePosition);
-                    Toast.makeText(this, "Use D-pad to move " + channel.name + ". Press Enter to drop.", Toast.LENGTH_SHORT).show();
-                }
+            if (selectedMovePosition == -1) {
+                selectedMovePosition = displayList.indexOf(channel);
+                adapter.setMovingPosition(selectedMovePosition);
+                Toast.makeText(this, "Use D-pad to move " + channel.name + ". Press Enter to drop.", Toast.LENGTH_SHORT).show();
             }
             return;
         }
