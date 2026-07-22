@@ -87,6 +87,8 @@ public class TxBootReceiver extends BroadcastReceiver {
             return;
         }
 
+        TxUtils.checkPluginAndStartService(context,8180, false);
+
         Handler handler = new Handler(Looper.getMainLooper());
 
         File homeDir = new File(context.getFilesDir(), "home");

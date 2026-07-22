@@ -77,7 +77,6 @@ import com.termux.shared.termux.settings.properties.TermuxAppSharedProperties;
 import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
-import com.termux.sky.SkySharedPref;
 import com.termux.sky.TxController;
 import com.termux.sky.TxStartupChecker;
 import com.termux.sky.TxUtils;
@@ -469,6 +468,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
 
         hanaPlayerViz();
+
+
+        TxUtils.checkPluginAndStartService(this,8180, true);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

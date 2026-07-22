@@ -6,8 +6,10 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,7 +28,12 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.termux.R;
 import com.termux.sky.filehandlers.FilePickerActivity;
+import com.termux.sky.txplayer.bak.DrmActivationService;
 import com.termux.view.TerminalView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -712,6 +719,36 @@ public class TxUtils {
                 }
                 fos.write(buffer, 0, bytesRead);
             }
+        }
+    }
+
+    public static void checkPluginAndStartService(Context context, int targetPort, boolean showToast) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("plugins_pref", Context.MODE_PRIVATE);
+        String pluginsJson = sharedPreferences.getString("plugins", "[]");
+
+        boolean isPluginInstalled = false;
+
+        try {
+            JSONArray pluginsArray = new JSONArray(pluginsJson);
+            for (int i = 0; i < pluginsArray.length(); i++) {
+                JSONObject plugin = pluginsArray.getJSONObject(i);
+
+                if (plugin.optInt("port", -1) == targetPort) {
+                    isPluginInstalled = true;
+                    break;
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("DRM_LAUNCHER", "Error parsing plugins configuration payload", e);
+        }
+
+        if (isPluginInstalled) {
+            Log.d("DRM_LAUNCHER", "Plugin found on port " + targetPort + ". Starting DRM activation service...");
+            Intent serviceIntent = new Intent(context, DrmActivationService.class);
+            serviceIntent.putExtra("toast", showToast);
+            context.startService(serviceIntent);
+        } else {
+            Log.d("DRM_LAUNCHER", "Target port " + targetPort + " not found or not active. Skipping activation.");
         }
     }
 }
