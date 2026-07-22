@@ -1,5 +1,6 @@
 package com.termux.sky.txplayer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -9,6 +10,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -122,7 +124,8 @@ public class PlugDRM extends AppCompatActivity {
     }
 
     private void showPopupMenu(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
+        Context wrapper = new ContextThemeWrapper(this, R.style.PopupMenuDarkTheme);
+        PopupMenu popup = new PopupMenu(wrapper, view);
         popup.getMenuInflater().inflate(R.menu.channel_menu, popup.getMenu());
 
         popup.getMenu().findItem(R.id.menu_layout_toggle)

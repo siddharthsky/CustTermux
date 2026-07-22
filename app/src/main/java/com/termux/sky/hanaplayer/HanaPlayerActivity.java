@@ -18,6 +18,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -426,7 +427,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void showPopupMenu(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
+        Context wrapper = new ContextThemeWrapper(this, R.style.PopupMenuDarkTheme);
+        PopupMenu popup = new PopupMenu(wrapper, view);
         popup.getMenuInflater().inflate(R.menu.hana_menu, popup.getMenu());
 
         MenuItem autoPlayItem = popup.getMenu().findItem(R.id.menu_auto_play);

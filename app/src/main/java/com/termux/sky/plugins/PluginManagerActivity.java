@@ -2,6 +2,7 @@ package com.termux.sky.plugins;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,6 +17,7 @@ import android.provider.OpenableColumns;
 import android.text.InputType;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -224,7 +226,8 @@ public class PluginManagerActivity extends AppCompatActivity {
     }
 
     private void showPopupMenu(View view) {
-        PopupMenu popup = new PopupMenu(this, view);
+        Context wrapper = new ContextThemeWrapper(this, R.style.PopupMenuDarkTheme);
+        PopupMenu popup = new PopupMenu(wrapper, view);
         popup.getMenuInflater().inflate(R.menu.plugin_menu, popup.getMenu());
 
 //        popup.getMenu().findItem(R.id.menu_layout_toggle)

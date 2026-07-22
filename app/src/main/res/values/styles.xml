@@ -88,5 +88,11 @@
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
+    <style name="PopupMenuDarkTheme" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:colorBackground">#0F172A</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:selectableItemBackground">@drawable/bg_switch_focus</item>
+        <item name="android:listChoiceBackgroundIndicator">@drawable/bg_switch_focus</item>
+    </style>
 
 </resources>
