@@ -1,5 +1,7 @@
 package com.termux.sky.hanaplayer;
 
+import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -27,11 +29,19 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -39,12 +49,12 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.media3.common.util.UnstableApi;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.startapp.sdk.ads.banner.Banner;
 import com.termux.R;
 import com.termux.sky.TxVerify;
-import com.termux.sky.txplayer.PlaylistManager;
 import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.tv_home_preview.FavoriteChannelsManager;
@@ -52,10 +62,17 @@ import com.termux.sky.tv_home_preview.RecentChannelsManager;
 import com.termux.sky.txplayer.ChannelModel;
 import com.termux.sky.txplayer.ExoPlayerActivityDRM;
 import com.termux.sky.txplayer.M3UParser;
+import com.termux.sky.txplayer.PlaylistManager;
 
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class HanaPlayerActivity extends AppCompatActivity {
 
@@ -66,7 +83,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private Set<String> selectedPorts = new HashSet<>();
     private boolean isUpdatingChips = false;
     private ImageButton btnMenu;
-    private ProgressBar progressBar;
+    private View loadingView;
 
     private ImageButton btnSearch;
     private EditText searchBox;
@@ -100,6 +117,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
         isLaunch = prefs.getBoolean("auto_launch_channel", false);
         currentSortMode = prefs.getInt("sort_mode", 0);
 
+        float density = getResources().getDisplayMetrics().density;
+
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.parseColor("#0E1628"));
@@ -108,6 +127,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
+
+
+        LayoutTransition transition = new LayoutTransition();
+        transition.enableTransitionType(LayoutTransition.CHANGING);
+        root.setLayoutTransition(transition);
 
         try {
             Window window = getWindow();
@@ -130,7 +154,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
             }
 
             ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-                // for status bar area
+
                 return insets;
             });
 
@@ -182,27 +206,33 @@ public class HanaPlayerActivity extends AppCompatActivity {
         View spacer = new View(this);
         header.addView(spacer, new LinearLayout.LayoutParams(0, 0, 1.0f));
 
-        // Search Button ---
+
         btnSearch = new ImageButton(this);
         btnSearch.setImageResource(R.drawable.tx_search);
         btnSearch.setBackgroundResource(R.drawable.img_btn_selector);
         btnSearch.setColorFilter(Color.WHITE);
         btnSearch.setPadding(10, 10, 10, 10);
+
+        btnSearch.setMinimumWidth((int) (48 * density));
+        btnSearch.setMinimumHeight((int) (48 * density));
         btnSearch.setOnClickListener(v -> toggleSearch());
         header.addView(btnSearch);
 
-        //Menu Button ---
+
         btnMenu = new ImageButton(this);
         btnMenu.setImageResource(R.drawable.tx_more);
         btnMenu.setBackgroundResource(R.drawable.img_btn_selector);
         btnMenu.setColorFilter(Color.WHITE);
         btnMenu.setPadding(10, 10, 10, 10);
+
+        btnMenu.setMinimumWidth((int) (48 * density));
+        btnMenu.setMinimumHeight((int) (48 * density));
         btnMenu.setOnClickListener(this::showPopupMenu);
         header.addView(btnMenu);
 
         root.addView(header);
 
-        //Banner
+
         rearrangeBanner = new TextView(this);
         rearrangeBanner.setText("Rearrange Mode ON: Long-press to drag (Phone) or select to move (TV)");
         rearrangeBanner.setBackgroundColor(Color.parseColor("#FFD700"));
@@ -214,8 +244,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         rearrangeBanner.setVisibility(View.GONE);
         root.addView(rearrangeBanner);
 
-        //Search Box
-        float density = getResources().getDisplayMetrics().density;
+
         FrameLayout searchContainer = new FrameLayout(this);
         searchContainer.setVisibility(View.GONE);
 
@@ -255,7 +284,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         int btnSize = (int) (40 * density);
         FrameLayout.LayoutParams clearBtnParams = new FrameLayout.LayoutParams(btnSize, btnSize);
         clearBtnParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-        clearBtnParams.rightMargin = (int) (8 * density); // Small offset from the edge
+        clearBtnParams.rightMargin = (int) (8 * density);
         btnClear.setLayoutParams(clearBtnParams);
         searchBox.addTextChangedListener(new TextWatcher() {
             @Override
@@ -276,7 +305,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
 
         HorizontalScrollView chipScroll = new HorizontalScrollView(this);
-        chipScroll.setPadding(10, 0, 10, 0);
+
+        chipScroll.setClipToPadding(false);
+        chipScroll.setPadding((int) (10 * density), 0, (int) (48 * density), 0);
         chipScroll.setHorizontalScrollBarEnabled(false);
         chipScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
@@ -288,7 +319,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         root.addView(chipScroll);
 
         HorizontalScrollView groupChipScroll = new HorizontalScrollView(this);
-        groupChipScroll.setPadding(10, 10, 10, 10);
+
+        groupChipScroll.setClipToPadding(false);
+        groupChipScroll.setPadding((int) (10 * density), (int) (10 * density), (int) (48 * density), (int) (10 * density));
         groupChipScroll.setHorizontalScrollBarEnabled(false);
         groupChipScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
@@ -299,15 +332,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         groupChipScroll.addView(groupChipGroup);
         root.addView(groupChipScroll);
 
-        progressBar = new ProgressBar(this);
-        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT);
-        progressParams.gravity = Gravity.CENTER;
-        progressBar.setLayoutParams(progressParams);
-        progressBar.setVisibility(View.GONE);
-        root.addView(progressBar);
 
+        loadingView = createSkeletonGrid(density);
+        root.addView(loadingView);
 
         recyclerView = new RecyclerView(this);
         int savedColumns = prefs.getInt("grid_columns", 0);
@@ -349,7 +376,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
                 @Override
                 public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                    // Not using swipe actions
+
                 }
 
                 @Override
@@ -383,6 +410,57 @@ public class HanaPlayerActivity extends AppCompatActivity {
         setupAds();
     }
 
+
+    private View createSkeletonGrid(float density) {
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f);
+        container.setLayoutParams(params);
+        container.setVisibility(View.GONE);
+
+
+        int savedColumns = prefs.getInt("grid_columns", 0);
+        int spanCount;
+
+        if (savedColumns > 0) {
+            spanCount = savedColumns;
+        } else {
+            int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+            int itemWidthPx = (int) (120 * density);
+            spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+        }
+
+        int cardHeight = (int) (110 * density);
+        int margin = (int) (8 * density);
+
+        for (int r = 0; r < 4; r++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+
+            for (int c = 0; c < spanCount; c++) {
+                CardView card = new CardView(this);
+                LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(0, cardHeight, 1.0f);
+                cp.setMargins(margin, margin, margin, margin);
+                card.setLayoutParams(cp);
+                card.setCardBackgroundColor(Color.parseColor("#1C2436"));
+                card.setRadius(12f * density);
+                card.setCardElevation(4f * density);
+
+                ObjectAnimator anim = ObjectAnimator.ofFloat(card, "alpha", 0.4f, 1f, 0.4f);
+                anim.setDuration(1200);
+                anim.setRepeatCount(ObjectAnimator.INFINITE);
+                anim.start();
+
+                row.addView(card);
+            }
+            container.addView(row);
+        }
+        return container;
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isRearrangeMode && selectedMovePosition != -1 && event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -402,13 +480,13 @@ public class HanaPlayerActivity extends AppCompatActivity {
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 newPos += spanCount;
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) {
-                selectedMovePosition = -1; // Drop item
+                selectedMovePosition = -1;
                 adapter.setMovingPosition(-1);
                 saveCustomFavoritesOrder();
                 Toast.makeText(this, "New arrangement saved", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_BACK) {
-                selectedMovePosition = -1; // Cancel move
+                selectedMovePosition = -1;
                 adapter.setMovingPosition(-1);
                 Toast.makeText(this, "Move cancelled", Toast.LENGTH_SHORT).show();
                 return true;
@@ -442,37 +520,55 @@ public class HanaPlayerActivity extends AppCompatActivity {
         String[] options = {"Auto", "2 Columns", "3 Columns", "4 Columns", "5 Columns", "6 Columns", "7 Columns"};
 
         int savedColumns = prefs.getInt("grid_columns", 0);
-
         int selectedIndex = 0;
+
         if (savedColumns >= 2 && savedColumns <= 7) {
             selectedIndex = savedColumns - 1;
         }
 
-        new android.app.AlertDialog.Builder(this)
-            .setTitle("Set Grid Columns")
-            .setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
-                int newColumns = (which == 0) ? 0 : (which + 1);
-                prefs.edit().putInt("grid_columns", newColumns).apply();
 
-                if (recyclerView != null && recyclerView.getLayoutManager() instanceof GridLayoutManager) {
-                    GridLayoutManager glm = (GridLayoutManager) recyclerView.getLayoutManager();
-                    int spanCount = newColumns;
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(
+            this,
+            R.style.GoldenFocusDialogTheme
+        );
 
-                    if (newColumns == 0) {
-                        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
-                        int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
-                        spanCount = Math.max(2, screenWidthPx / itemWidthPx);
-                    }
+        builder.setTitle("Set Grid Columns");
 
-                    glm.setSpanCount(spanCount);
-                    adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+
+        builder.setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
+            int newColumns = (which == 0) ? 0 : (which + 1);
+            prefs.edit().putInt("grid_columns", newColumns).apply();
+
+            if (recyclerView != null && recyclerView.getLayoutManager() instanceof GridLayoutManager) {
+                GridLayoutManager glm = (GridLayoutManager) recyclerView.getLayoutManager();
+                int spanCount = newColumns;
+
+                if (newColumns == 0) {
+                    int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+                    int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
+                    spanCount = Math.max(2, screenWidthPx / itemWidthPx);
                 }
 
-                dialog.dismiss();
-                Toast.makeText(this, "Grid layout updated", Toast.LENGTH_SHORT).show();
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+                glm.setSpanCount(spanCount);
+                adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+            }
+
+            dialog.dismiss();
+            Toast.makeText(this, "Grid layout updated", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+
+        android.widget.Button negButton = dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE);
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
+        }
     }
 
     private void showPopupMenu(View view) {
@@ -654,7 +750,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void applySort(List<ChannelModel> list) {
         if (currentSortMode == 0 && selectedPorts.contains("Favorites")) {
-            // Apply Custom Drag-and-Drop Sort
+
             String orderStr = prefs.getString("fav_order", "");
             if (!orderStr.isEmpty()) {
                 List<String> order = Arrays.asList(orderStr.split(","));
@@ -667,14 +763,14 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 });
             }
         } else if (currentSortMode == 1) {
-            // Sort by Name (A-Z)
+
             Collections.sort(list, (c1, c2) -> {
                 String n1 = c1.name != null ? c1.name : "";
                 String n2 = c2.name != null ? c2.name : "";
                 return n1.compareToIgnoreCase(n2);
             });
         } else if (currentSortMode == 2) {
-            // Sort by Number
+
             Collections.sort(list, (c1, c2) -> {
                 int num1 = extractChannelNumber(c1);
                 int num2 = extractChannelNumber(c2);
@@ -891,14 +987,24 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 if (M3UParser.existsInPrefs(this, portStr)) {
                     channels = M3UParser.getFromPrefs(this, portStr);
                 } else {
-                    runOnUiThread(() -> progressBar.setVisibility(View.VISIBLE));
+
+                    runOnUiThread(() -> {
+                        loadingView.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                    });
+
                     String content = p.playlist;
                     if (content != null && content.startsWith("http")) {
                         content = downloadUrl(content);
                     }
                     channels = M3UParser.parse(content);
                     M3UParser.saveToPrefs(this, portStr, channels);
-                    runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+
+
+                    runOnUiThread(() -> {
+                        loadingView.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                    });
                 }
 
                 for (ChannelModel cm : channels) {
