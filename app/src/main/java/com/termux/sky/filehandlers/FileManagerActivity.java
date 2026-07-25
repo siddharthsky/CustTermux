@@ -147,16 +147,20 @@ public class FileManagerActivity extends AppCompatActivity {
                     case 0: // Copy
                         clipboardFile = file;
                         isMoveOperation = false;
+                        updateToolbar();
                         break;
                     case 1: // Move
                         clipboardFile = file;
                         isMoveOperation = true;
+                        updateToolbar();
                         break;
                     case 2: // Delete
                         confirmDelete(file);
                         break;
+                    case 3: // Rename
+                        showRenameDialog(file);
+                        break;
                 }
-                updateToolbar();
             }).show();
     }
 
@@ -213,6 +217,31 @@ public class FileManagerActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void showRenameDialog(File file) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Rename: " + file.getName());
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setText(file.getName());
+        builder.setView(input);
+
+        builder.setPositiveButton("Rename", (dialog, which) -> {
+            String newName = input.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                File newFile = new File(file.getParent(), newName);
+                if (file.renameTo(newFile)) {
+                    Toast.makeText(this, "Renamed successfully", Toast.LENGTH_SHORT).show();
+                    updateFileList();
+                } else {
+                    Toast.makeText(this, "Rename failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
     }
 
     private void openFile(File file) {

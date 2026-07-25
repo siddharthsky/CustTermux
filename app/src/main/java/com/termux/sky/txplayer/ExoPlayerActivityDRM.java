@@ -161,6 +161,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
 
         FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(android.graphics.Color.BLACK);
 
         android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
         shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
@@ -177,6 +178,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         errorOverlay.setVisibility(View.GONE);
 
         playerView = new PlayerView(this);
+        playerView.setBackgroundColor(android.graphics.Color.BLACK);
         playerView.setKeepScreenOn(true);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
         root.addView(playerView);
