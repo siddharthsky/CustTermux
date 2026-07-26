@@ -57,6 +57,13 @@ import com.termux.sky.plugins.Plugin;
 import com.termux.sky.plugins.PluginStorage;
 import com.termux.sky.tv_home_preview.RecentChannelsManager;
 
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,10 +112,12 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        java.net.CookieManager cookieManager = new java.net.CookieManager();
-        cookieManager.setCookiePolicy(java.net.CookiePolicy.ACCEPT_ORIGINAL_SERVER);
-        if (java.net.CookieHandler.getDefault() != cookieManager) {
-            java.net.CookieHandler.setDefault(cookieManager);
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+
+        CookieManager cookieManager = new CookieManager();
+        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
+        if (CookieHandler.getDefault() != cookieManager) {
+            CookieHandler.setDefault(cookieManager);
         }
 
         disableSSLCertificateChecking();
@@ -182,6 +191,10 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         playerView.setKeepScreenOn(true);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
         root.addView(playerView);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            playerView.setDefaultFocusHighlightEnabled(false);
+        }
 
         playerView.setControllerAutoShow(false);
         playerView.hideController();
@@ -330,7 +343,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private int pingUrl2(String videoUrl, String userAgent, String origin, String referer) {
         try {
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
+            HttpURLConnection connection = (HttpURLConnection) new URL(videoUrl).openConnection();
             connection.setRequestMethod("HEAD");
             connection.setConnectTimeout(3000);
             connection.setReadTimeout(3000);
@@ -344,7 +357,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             int code = connection.getResponseCode();
             if (code == 403 || code == 405) {
 
-                java.net.HttpURLConnection getConn = (java.net.HttpURLConnection) new java.net.URL(videoUrl).openConnection();
+                HttpURLConnection getConn = (HttpURLConnection) new URL(videoUrl).openConnection();
                 getConn.setRequestMethod("GET");
                 getConn.setConnectTimeout(3000);
                 getConn.setReadTimeout(3000);
@@ -361,15 +374,15 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
         try {
-            java.net.URL url = new java.net.URL(videoUrl);
+            URL url = new URL(videoUrl);
             String host = url.getHost();
 
             boolean isIpAddress = host != null && host.matches("^([0-9]{1,3}\\.){3}[0-9]{1,3}$");
             boolean isLocalhost = host != null && host.equalsIgnoreCase("localhost");
 
             if (isIpAddress || isLocalhost) {
-                try (java.net.Socket socket = new java.net.Socket()) {
-                    socket.connect(new java.net.InetSocketAddress("127.0.0.1", 5789), 2000);
+                try (Socket socket = new Socket()) {
+                    socket.connect(new InetSocketAddress("127.0.0.1", 5789), 2000);
                     return 200;
                 } catch (Exception e) {
                     return -1;
