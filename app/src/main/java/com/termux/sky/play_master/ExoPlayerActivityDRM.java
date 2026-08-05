@@ -1,4 +1,4 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.play_master;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -49,13 +49,15 @@ import androidx.media3.ui.DefaultTrackNameProvider;
 import androidx.media3.ui.PlayerView;
 import androidx.media3.ui.TrackSelectionDialogBuilder;
 
-import com.startapp.sdk.adsbase.StartAppAd;
 import com.termux.R;
 import com.termux.sky.TxUtils;
-import com.termux.sky.TxVerify;
-import com.termux.sky.plugins.Plugin;
-import com.termux.sky.plugins.PluginStorage;
+import com.termux.sky.plugins_utils.Plugin;
+import com.termux.sky.plugins_utils.PluginStorage;
 import com.termux.sky.tv_home_preview.RecentChannelsManager;
+import com.termux.sky.plugin_parser.ChannelBannerManager;
+import com.termux.sky.plugin_parser.ChannelModel;
+import com.termux.sky.plugin_parser.M3UParser;
+import com.termux.sky.plugin_parser.PlaylistManager;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -66,7 +68,6 @@ import java.net.Socket;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

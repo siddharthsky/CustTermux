@@ -1,4 +1,4 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.plugin_parser;
 
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;

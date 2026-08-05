@@ -1,4 +1,4 @@
-package com.termux.sky.plugins;
+package com.termux.sky.plugins_utils;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;

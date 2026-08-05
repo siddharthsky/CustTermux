@@ -1,4 +1,4 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.plugin_parser;
 
 import java.util.ArrayList;
 import java.util.List;

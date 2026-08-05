@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -28,7 +27,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.termux.R;
 import com.termux.sky.filehandlers.FilePickerActivity;
-import com.termux.sky.txplayer.bak.DrmActivationService;
+import com.termux.sky.play_master.DrmActivationService;
 import com.termux.view.TerminalView;
 
 import org.json.JSONArray;

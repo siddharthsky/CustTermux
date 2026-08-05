@@ -1,4 +1,4 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.plugin_parser;
 
 import android.os.Handler;
 import android.os.Looper;

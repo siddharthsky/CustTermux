@@ -19,7 +19,7 @@
 -keep class * extends com.google.gson.reflect.TypeToken
 
 # Preserve model fields for Gson
--keepclassmembers class com.termux.sky.plugins.Plugin {
+-keepclassmembers class com.termux.sky.plugins_utils.Plugin {
     <fields>;
 }
 

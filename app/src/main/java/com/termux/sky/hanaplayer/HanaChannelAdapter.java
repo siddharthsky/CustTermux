@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.termux.R;
-import com.termux.sky.txplayer.ChannelModel;
+import com.termux.sky.plugin_parser.ChannelModel;
 
 import java.util.List;
 

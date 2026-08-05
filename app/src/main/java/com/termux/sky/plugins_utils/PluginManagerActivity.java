@@ -1,4 +1,4 @@
-package com.termux.sky.plugins;
+package com.termux.sky.plugins_utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -24,7 +24,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
@@ -40,32 +39,25 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.*;
 
 import com.termux.R;
-import com.termux.sky.txplayer.PlugDRM;
+import com.termux.sky.plugin_parser.PlugDRM;
 import com.termux.sky.filehandlers.FilePickerActivity;
-import com.termux.sky.txplayer.GenericWebActivity;
+import com.termux.sky.play_master.GenericWebActivity;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class PluginManagerActivity extends AppCompatActivity {
 

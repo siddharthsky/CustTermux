@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
@@ -16,7 +15,7 @@ import androidx.core.content.ContextCompat;
 import androidx.tvprovider.media.tv.TvContractCompat;
 
 import com.termux.R;
-import com.termux.sky.txplayer.ChannelModel;
+import com.termux.sky.plugin_parser.ChannelModel;
 
 import java.io.OutputStream;
 import java.util.List;

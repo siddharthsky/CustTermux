@@ -1,4 +1,4 @@
-package com.termux.sky.plugins;
+package com.termux.sky.plugins_utils;
 
 public class Plugin {
     public String title;

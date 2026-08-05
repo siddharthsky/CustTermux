@@ -1,32 +1,27 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.play_master;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.net.Uri;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
-public class WebViewPlayerActivity extends AppCompatActivity {
+
+public class GenericWebActivity extends AppCompatActivity {
 
     private WebView webView;
     private int backCount = 0;
     private static final int MAX_BACK = 5;
 
-    private long lastChannelChangeTime = 0;
-    private static final long DEBOUNCE_DELAY_MS = 500;
-    private boolean isSwitchingActivity = false;
 
     String port_no = null;
 
@@ -165,7 +160,7 @@ public class WebViewPlayerActivity extends AppCompatActivity {
                     }
                 }
             }
-            
+
 
             return uri.buildUpon()
                 .path(path)
@@ -178,6 +173,7 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
@@ -193,62 +189,6 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         }
     }
 
-
-    @Override
-    public boolean dispatchKeyEvent(android.view.KeyEvent event) {
-        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
-            int keyCode = event.getKeyCode();
-
-            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                if (!isSwitchingActivity && System.currentTimeMillis() - lastChannelChangeTime > DEBOUNCE_DELAY_MS) {
-                    lastChannelChangeTime = System.currentTimeMillis();
-                    changeChannel(1);
-                }
-                return true; // Return true so the WebView doesn't scroll
-            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                if (!isSwitchingActivity && System.currentTimeMillis() - lastChannelChangeTime > DEBOUNCE_DELAY_MS) {
-                    lastChannelChangeTime = System.currentTimeMillis();
-                    changeChannel(-1);
-                }
-                return true;
-            }
-        }
-        return super.dispatchKeyEvent(event);
-    }
-
-    private void changeChannel(int direction) {
-        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
-
-        isSwitchingActivity = true;
-
-        pauseWebViewMedia();
-
-        int newIndex = PlaylistManager.currentIndex + direction;
-        if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
-        if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
-
-        PlaylistManager.currentIndex = newIndex;
-        ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
-
-        String activePort = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
-
-        Intent intent = new Intent(this, ExoPlayerActivityDRM.class)
-            .putExtra("url", nextChannel.url)
-            .putExtra("name", nextChannel.name)
-            .putExtra("logo_url", nextChannel.logo)
-            .putExtra("license_key", nextChannel.licenseKey)
-            .putExtra("license_type", nextChannel.licenseType)
-            .putExtra("user_agent", nextChannel.userAgent)
-            .putExtra("manifest_type", nextChannel.manifestType)
-            .putExtra("plugin_port", activePort);
-
-        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        killWebView();
-
-        startActivity(intent);
-        finish();
-    }
 
     private void pauseWebViewMedia() {
         if (webView != null) {

@@ -1,4 +1,4 @@
-package com.termux.sky.txplayer;
+package com.termux.sky.plugin_parser;
 
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +28,9 @@ import com.termux.R;
 import com.termux.sky.TxVerify;
 import com.termux.sky.filehandlers.FileManagerActivity;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
+import com.termux.sky.play_master.ExoPlayerActivityDRM;
+import com.termux.sky.play_master.GenericWebActivity;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;

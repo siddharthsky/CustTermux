@@ -82,7 +82,7 @@ import com.termux.sky.TxStartupChecker;
 import com.termux.sky.TxUtils;
 import com.termux.sky.TxVerify;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
-import com.termux.sky.plugins.PluginManagerActivity;
+import com.termux.sky.plugins_utils.PluginManagerActivity;
 import com.termux.sky.iptv.AutoAppRedirectDialog;
 import com.termux.sky.iptv.LaunchFileObserver;
 import com.termux.sky.wizard.SetupWizardActivity;

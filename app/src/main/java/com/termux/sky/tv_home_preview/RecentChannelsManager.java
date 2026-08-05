@@ -8,8 +8,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import androidx.tvprovider.media.tv.TvContractCompat;
-import com.termux.sky.txplayer.ChannelModel;
-import com.termux.sky.txplayer.ExoPlayerActivityDRM;
+import com.termux.sky.plugin_parser.ChannelModel;
 
 import java.util.ArrayList;
 import java.util.List;

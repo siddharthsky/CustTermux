@@ -139,20 +139,20 @@
         </activity>
 
         <activity
-            android:name=".sky.plugins.PluginManagerActivity"
+            android:name=".sky.plugins_utils.PluginManagerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
         <activity
-            android:name=".sky.plugins.WebViewLoginActivity"
+            android:name=".sky.plugins_utils.WebViewLoginActivity"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             tools:ignore="DiscouragedApi"
             android:exported="true"/>
 
         <activity
-            android:name=".sky.txplayer.WebViewPlayerActivity"
+            android:name=".sky.play_master.WebViewPlayerActivity"
             android:launchMode="singleTask"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
@@ -161,7 +161,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
-            android:name=".sky.txplayer.GenericWebActivity"
+            android:name=".sky.play_master.GenericWebActivity"
             android:launchMode="singleTask"
             android:screenOrientation="sensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
@@ -170,7 +170,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
-            android:name=".sky.txplayer.ExoPlayerActivityDRM"
+            android:name=".sky.play_master.ExoPlayerActivityDRM"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="true"
@@ -187,7 +187,7 @@
 
 
         <activity
-            android:name=".sky.txplayer.PlugDRM"
+            android:name=".sky.plugin_parser.PlugDRM"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="true"/>
 
@@ -349,7 +349,7 @@
         </service>
 
         <service
-            android:name=".sky.txplayer.bak.DrmActivationService"
+            android:name=".sky.play_master.DrmActivationService"
             android:enabled="true"
             android:exported="false" />
 

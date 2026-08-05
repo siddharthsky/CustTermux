@@ -1,10 +1,9 @@
-package com.termux.sky.plugins;
+package com.termux.sky.plugins_utils;
 
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.util.Log;
 import android.view.*;
 import android.widget.*;
 
