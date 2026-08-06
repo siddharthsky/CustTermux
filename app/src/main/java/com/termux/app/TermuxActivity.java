@@ -470,7 +470,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         hanaPlayerViz();
 
 
-        TxUtils.checkPluginAndStartService(this,8180, true);
+        TxUtils.checkPluginAndStartService(this,8180, true, TxVerify.isPremium(this));
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

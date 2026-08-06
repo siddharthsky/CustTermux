@@ -721,7 +721,12 @@ public class TxUtils {
         }
     }
 
-    public static void checkPluginAndStartService(Context context, int targetPort, boolean showToast) {
+    public static void checkPluginAndStartService(Context context, int targetPort, boolean showToast, boolean isPremium) {
+        if (!isPremium) {
+            Log.d("DRM_LAUNCHER", "User is not premium. Skipping DRM activation.");
+            return;
+        }
+
         SharedPreferences sharedPreferences = context.getSharedPreferences("plugins_pref", Context.MODE_PRIVATE);
         String pluginsJson = sharedPreferences.getString("plugins", "[]");
 

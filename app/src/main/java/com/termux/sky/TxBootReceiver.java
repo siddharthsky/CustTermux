@@ -87,7 +87,7 @@ public class TxBootReceiver extends BroadcastReceiver {
             return;
         }
 
-        TxUtils.checkPluginAndStartService(context,8180, false);
+        TxUtils.checkPluginAndStartService(context,8180, false, TxVerify.isPremium(context));
 
         Handler handler = new Handler(Looper.getMainLooper());
 

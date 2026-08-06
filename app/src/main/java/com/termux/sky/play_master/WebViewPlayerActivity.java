@@ -161,7 +161,10 @@ public class WebViewPlayerActivity extends AppCompatActivity {
                 assert path != null;
                 if (path.contains("/live/")) {
                     Log.d("DRM_PLAYER_WEB", "Port 5006,5007 logic applied");
-                    path = path.replace("/live/mpd/", "/mpd/");
+
+                    path = path.replace("/live/", "/mpd/");
+
+                    path = path.replace("/mpd/mpd/", "/mpd/");
 
                     if (path.endsWith(".m3u8")) {
                         path = path.substring(0, path.length() - ".m3u8".length());
