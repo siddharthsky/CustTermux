@@ -39,6 +39,10 @@ import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.dash.DashMediaSource;
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManager;
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
+import androidx.media3.exoplayer.drm.HttpMediaDrmCallback;
+import androidx.media3.exoplayer.drm.UnsupportedDrmException;
 import androidx.media3.exoplayer.hls.HlsMediaSource;
 import androidx.media3.exoplayer.source.BehindLiveWindowException;
 import androidx.media3.exoplayer.source.MediaSource;
@@ -51,6 +55,7 @@ import androidx.media3.ui.TrackSelectionDialogBuilder;
 
 import com.termux.R;
 import com.termux.sky.TxUtils;
+import com.termux.sky.TxVerify;
 import com.termux.sky.plugins_utils.Plugin;
 import com.termux.sky.plugins_utils.PluginStorage;
 import com.termux.sky.tv_home_preview.RecentChannelsManager;
@@ -550,21 +555,83 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         switch (currentFormatTrackIndex) {
+//            case FORMAT_DASH:
+//                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
+//                if (licenseUrl != null && !licenseUrl.isEmpty()) {
+//
+//                    Log.d("ELX", licenseUrl);
+//
+//                    mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
+//                        .setLicenseUri(licenseUrl)
+//                        .setLicenseRequestHeaders(headers)
+//                        .setMultiSession(true)
+//                        .build());
+//                }
+//                mediaSource = new DashMediaSource.Factory(dataSourceFactory)
+//                    .createMediaSource(mediaItemBuilder.build());
+//                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD)");
+//                break;
+
             case FORMAT_DASH:
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
-                if (licenseUrl != null && !licenseUrl.isEmpty()) {
 
+                if (licenseUrl != null && !licenseUrl.isEmpty()) {
                     Log.d("ELX", licenseUrl);
 
-                    mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
-                        .setLicenseUri(licenseUrl)
-                        .setLicenseRequestHeaders(headers)
-                        .setMultiSession(true)
-                        .build());
+                    boolean isWidevine = licenseUrl.toLowerCase().contains("widevine") ||
+                        licenseUrl.toLowerCase().contains("wv") ||
+                        licenseUrl.toLowerCase().contains("/key/");
+
+                    if (licenseUrl.toLowerCase().contains("clearkey")) {
+                        isWidevine = false;
+                    }
+
+                    if (isWidevine) {
+                        Log.d("DRM_PLAYER", "Applying DrmVideoActivity Widevine L3 Architecture");
+
+                        HttpMediaDrmCallback drmCallback = new HttpMediaDrmCallback(licenseUrl,
+                            new DefaultHttpDataSource.Factory()
+                                .setUserAgent(finalUserAgent)
+                                .setDefaultRequestProperties(headers));
+
+                        DefaultDrmSessionManager drmSessionManager = new DefaultDrmSessionManager.Builder()
+                            .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, uuid -> {
+                                try {
+                                    FrameworkMediaDrm drm = FrameworkMediaDrm.newInstance(uuid);
+                                    drm.setPropertyString("securityLevel", "L3");
+                                    return drm;
+                                } catch (UnsupportedDrmException e) {
+                                    throw new IllegalStateException(e);
+                                }
+                            })
+                            .build(drmCallback);
+
+                        androidx.media3.exoplayer.source.DefaultMediaSourceFactory mediaSourceFactory =
+                            new androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this)
+                                .setDataSourceFactory(dataSourceFactory)
+                                .setDrmSessionManagerProvider(mediaItem -> drmSessionManager);
+
+                        mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+                            .setLicenseUri(licenseUrl)
+                            .setLicenseRequestHeaders(headers)
+                            .build());
+
+                        mediaSource = mediaSourceFactory.createMediaSource(mediaItemBuilder.build());
+                        Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD) with Widevine L3");
+                        break;
+                    } else {
+                        Log.d("DRM_PLAYER", "Configuring ClearKey DRM");
+                        mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
+                            .setLicenseUri(licenseUrl)
+                            .setLicenseRequestHeaders(headers)
+                            .setMultiSession(true)
+                            .build());
+                    }
                 }
+
                 mediaSource = new DashMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(mediaItemBuilder.build());
-                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD)");
+                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD) with Default Factory");
                 break;
 
             case FORMAT_HLS:
@@ -1125,7 +1192,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", 1);
             context.startService(serviceIntent);
 
-            TxUtils.checkPluginAndStartService(context,8180,false);
+            TxUtils.checkPluginAndStartService(context,8180,false, TxVerify.isPremium(context));
         } catch (Exception e) {
             Log.e("DRM_PLAYER", "Could not start background server", e);
         }
