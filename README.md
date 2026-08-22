@@ -10,7 +10,7 @@
 <p align="center"><b>Fork of Termux optimized for TV streaming with extended plugin support.</b></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.5-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.9-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/build-stable-brightgreen?style=flat-square" alt="Build Status">
   <img src="https://img.shields.io/badge/license-GPLv3-orange?style=flat-square" alt="License">
 </p>
