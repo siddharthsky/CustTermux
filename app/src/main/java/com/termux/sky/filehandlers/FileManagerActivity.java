@@ -8,11 +8,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -22,7 +24,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
+import com.startapp.sdk.ads.banner.Banner;
 import com.termux.R;
+import com.termux.sky.TxVerify;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -77,6 +81,8 @@ public class FileManagerActivity extends AppCompatActivity {
             }
             return true;
         });
+
+        setupAds();
     }
 
     private void showRootMenu() {
@@ -338,4 +344,25 @@ public class FileManagerActivity extends AppCompatActivity {
             return view;
         }
     }
+
+    private void setupAds() {
+        FrameLayout adContainer = findViewById(R.id.ad_container);
+
+        if (adContainer != null) {
+            if (!TxVerify.isPremium(this)) {
+                Banner banner = new Banner(this);
+                FrameLayout.LayoutParams bannerParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                );
+                bannerParams.gravity = Gravity.CENTER;
+                banner.setLayoutParams(bannerParams);
+                adContainer.addView(banner);
+                adContainer.setVisibility(View.VISIBLE);
+            } else {
+                adContainer.setVisibility(View.GONE);
+            }
+        }
+    }
+
 }
