@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.ViewCompat;
@@ -579,6 +580,13 @@ public class HanaPlayerActivity extends AppCompatActivity {
         final int GRID_SETTINGS_ID = 1002;
         MenuItem gridItem = popup.getMenu().add(0, GRID_SETTINGS_ID, 0, "Grid Settings");
 
+        final int REFETCH_ALL_ID = 1003;
+        popup.getMenu().add(0, REFETCH_ALL_ID, 0, "Refetch All Playlists");
+
+        final int CLEAR_FAV_ID = 1004;
+        MenuItem clearFavItem = popup.getMenu().add(0, CLEAR_FAV_ID, 0, "Clear All Favorites");
+        clearFavItem.setVisible(selectedPorts.contains("Favorites"));
+
         MenuItem autoPlayItem = popup.getMenu().findItem(R.id.menu_auto_play);
         boolean isAutoPlayEnabled = prefs.getBoolean("auto_launch_channel", false);
         if (autoPlayItem != null) autoPlayItem.setChecked(isAutoPlayEnabled);
@@ -597,6 +605,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
 
+            if (id == CLEAR_FAV_ID) {
+                clearAllFavorites();
+                return true;
+            }
+
+            if (id == REFETCH_ALL_ID) {
+                refetchAllPluginsWithFavorites();
+                return true;
+            }
+
             if (id == GRID_SETTINGS_ID) {
                 showGridDialog();
                 return true;
@@ -604,7 +622,6 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
             if (id == REARRANGE_ID) {
                 isRearrangeMode = !isRearrangeMode;
-
                 rearrangeBanner.setVisibility(isRearrangeMode ? View.VISIBLE : View.GONE);
 
                 if (!isRearrangeMode) {
@@ -646,6 +663,149 @@ public class HanaPlayerActivity extends AppCompatActivity {
         });
 
         popup.show();
+    }
+
+    private void clearAllFavorites() {
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+            .setTitle("Clear Favorites")
+            .setMessage("Are you sure you want to remove all channels from your favorites?")
+            .setPositiveButton("Yes, Clear All", (d, which) -> {
+
+                Toast.makeText(this, "Clearing favorites...", Toast.LENGTH_SHORT).show();
+
+                new Thread(() -> {
+                    List<Plugin> plugins = PluginStorage.load(this);
+
+                    for (Plugin p : plugins) {
+                        if (p.tool != null && p.tool) continue;
+
+                        String portStr = String.valueOf(p.port);
+
+                        if (M3UParser.existsInPrefs(this, portStr)) {
+                            List<ChannelModel> channels = M3UParser.getFromPrefs(this, portStr);
+                            boolean updated = false;
+
+                            for (ChannelModel ch : channels) {
+                                if (ch.isFavorite) {
+                                    ch.isFavorite = false;
+                                    updated = true;
+                                }
+                            }
+
+                            if (updated) {
+                                M3UParser.saveToPrefs(this, portStr, channels);
+                            }
+                        }
+                    }
+
+                    prefs.edit().remove("fav_order").apply();
+
+                    runOnUiThread(() -> {
+                        loadActiveData();
+                        Toast.makeText(this, "All favorites cleared.", Toast.LENGTH_SHORT).show();
+                    });
+                }).start();
+
+            })
+            .setNegativeButton("Cancel", null)
+            .create();
+
+        dialog.show();
+
+        android.widget.Button posButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
+        android.widget.Button negButton = dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(android.graphics.Color.parseColor("#FF5252")); // Red for destructive action
+            posButton.setFocusable(true);
+        }
+
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
+        }
+    }
+
+    private void refetchAllPluginsWithFavorites() {
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+            .setTitle("Refetch All Playlists")
+            .setMessage("Are you sure you want to re-download all playlists? This might take a moment.")
+            .setPositiveButton("Yes, Refetch", (d, which) -> {
+
+                Toast.makeText(this, "Refetching all playlists...", Toast.LENGTH_SHORT).show();
+
+                loadingView.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+
+                new Thread(() -> {
+                    List<Plugin> plugins = PluginStorage.load(this);
+
+                    for (Plugin p : plugins) {
+                        if (p.tool != null && p.tool) continue;
+
+                        String portStr = String.valueOf(p.port);
+                        String content = p.playlist;
+
+                        if (content != null && content.startsWith("http")) {
+                            content = downloadUrl(content);
+                        }
+
+                        if (content != null && !content.trim().isEmpty()) {
+                            List<ChannelModel> newChannels = M3UParser.parse(content);
+
+                            if (M3UParser.existsInPrefs(this, portStr)) {
+                                List<ChannelModel> existingChannels = M3UParser.getFromPrefs(this, portStr);
+
+                                java.util.Set<String> favoriteUrls = new java.util.HashSet<>();
+                                for (ChannelModel oldCh : existingChannels) {
+                                    if (oldCh.isFavorite && oldCh.url != null) {
+                                        favoriteUrls.add(oldCh.url);
+                                    }
+                                }
+
+                                for (ChannelModel newCh : newChannels) {
+                                    if (newCh.url != null && favoriteUrls.contains(newCh.url)) {
+                                        newCh.isFavorite = true;
+                                    }
+                                }
+                            }
+
+                            M3UParser.saveToPrefs(this, portStr, newChannels);
+                        }
+                    }
+
+                    runOnUiThread(() -> {
+                        loadActiveData();
+                        Toast.makeText(this, "All playlists updated successfully!", Toast.LENGTH_SHORT).show();
+                    });
+                }).start();
+
+            })
+            .setNegativeButton("Cancel", null)
+            .create();
+
+        dialog.show();
+
+        android.widget.Button posButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
+        android.widget.Button negButton = dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(android.graphics.Color.WHITE);
+            posButton.setFocusable(true);
+        }
+
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(android.graphics.Color.WHITE);
+            negButton.setFocusable(true);
+        }
     }
 
     private void exportFavoritesToM3U() {
@@ -1040,6 +1200,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
             final List<String> availableGroups = new ArrayList<>(groups);
 
             new Handler(Looper.getMainLooper()).post(() -> {
+
+                loadingView.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
 
                 getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
                     .putStringSet(SELECTED_GROUPS_KEY, selectedGroups).apply();

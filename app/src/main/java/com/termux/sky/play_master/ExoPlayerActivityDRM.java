@@ -595,6 +595,7 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
                                 .setDefaultRequestProperties(headers));
 
                         DefaultDrmSessionManager drmSessionManager = new DefaultDrmSessionManager.Builder()
+                            .setMultiSession(true)
                             .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, uuid -> {
                                 try {
                                     FrameworkMediaDrm drm = FrameworkMediaDrm.newInstance(uuid);

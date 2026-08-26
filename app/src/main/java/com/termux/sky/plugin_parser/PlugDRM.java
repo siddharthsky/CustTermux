@@ -78,11 +78,11 @@ public class PlugDRM extends AppCompatActivity {
         int portInt = getIntent().getIntExtra("port", 0);
         port = String.valueOf(portInt);
 
-        loadData(false);
+        loadData(false, false);
 
         btnReload.setOnClickListener(v -> {
             Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
-            loadData(true);
+            loadData(true, false);
         });
 
         String pluginWatchUrl = getIntent().getStringExtra("watch_url");
@@ -137,7 +137,7 @@ public class PlugDRM extends AppCompatActivity {
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.menu_layout_toggle) {
-                loadData(true);
+                loadData(true, true);
                 Toast.makeText(this, "Clearing...", Toast.LENGTH_SHORT).show();
 
                 Intent intent = new Intent(this, HanaPlayerActivity.class);
@@ -147,7 +147,7 @@ public class PlugDRM extends AppCompatActivity {
                 return true;
             } else if (id == R.id.menu_refresh) {
                 Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show();
-                loadData(true);
+                loadData(true, false);
                 return true;
             } else if (id == R.id.menu_file) {
                 Intent intent = new Intent(this, FileManagerActivity.class);
@@ -160,7 +160,7 @@ public class PlugDRM extends AppCompatActivity {
     }
 
 
-    private void loadData(boolean forceRefresh) {
+    private void loadData(boolean forceRefresh, boolean clearFavorites) {
         progressBar.setVisibility(View.VISIBLE);
 
         executor.execute(() -> {
@@ -182,6 +182,24 @@ public class PlugDRM extends AppCompatActivity {
                 }
 
                 channels = M3UParser.parse(content);
+
+                if (!clearFavorites && M3UParser.existsInPrefs(this, port)) {
+                    List<ChannelModel> oldChannels = M3UParser.getFromPrefs(this, port);
+
+                    java.util.Set<String> favoriteUrls = new java.util.HashSet<>();
+                    for (ChannelModel oldCh : oldChannels) {
+                        if (oldCh.isFavorite && oldCh.url != null) {
+                            favoriteUrls.add(oldCh.url);
+                        }
+                    }
+
+                    for (ChannelModel newCh : channels) {
+                        if (newCh.url != null && favoriteUrls.contains(newCh.url)) {
+                            newCh.isFavorite = true;
+                        }
+                    }
+                }
+
                 M3UParser.saveToPrefs(this, port, channels);
             }
 
