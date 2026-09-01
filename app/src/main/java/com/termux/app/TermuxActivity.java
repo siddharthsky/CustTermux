@@ -568,11 +568,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void checkForUpdate() {
+
+        if (BuildConfig.DEBUG) {
+            Log.d("GFX", "Debug build detected. Skipping update checks to save API limits.");
+            return;
+        }
+
         String localVersion = "0.0";
 
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-
             if (pInfo != null && pInfo.versionName != null && !pInfo.versionName.trim().isEmpty()) {
                 localVersion = pInfo.versionName.trim();
             } else {
@@ -584,81 +589,185 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             Log.e("TxActivity", "Unexpected error getting local version", e);
         }
 
-        Log.d("GFX",localVersion);
+        Log.d("GFX", "Local Version: " + localVersion);
 
-        String finalLocalVersion = localVersion;
+        final String finalLocalVersion = localVersion;
+        final boolean isPremium = TxVerify.isPremium(this);
 
         new Thread(() -> {
             boolean showUpdate = false;
-            JSONArray assets = null;
-            JSONObject jsonObject = null;
 
-            try {
-                URL url = new URL("https://api.github.com/repos/siddharthsky/CustTermux/releases/latest");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
+            if (isPremium) {
+                Log.d("GFX", "Checking GitLab for Premium update...");
+                showUpdate = checkGitLabUpdate(finalLocalVersion);
+            }
 
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
-
-                    jsonObject = new JSONObject(response.toString());
-                    latestVersionTag = jsonObject.optString("tag_name", "").trim();
-                    String remoteVersion = latestVersionTag.replaceFirst("^[vV]", "");
-
-                    Log.d("GFX",
-                        "Local=" + finalLocalVersion +
-                            " Remote=" + remoteVersion +
-                            " Tag=" + latestVersionTag);
-
-                    boolean newer = isNewerVersion(remoteVersion, finalLocalVersion);
-
-                    Log.d("GFX", "Release ID=" + jsonObject.optLong("id"));
-                    Log.d("GFX", "Tag=" + jsonObject.optString("tag_name"));
-                    Log.d("GFX", "Name=" + jsonObject.optString("name"));
-                    Log.d("GFX", "Assets=" + jsonObject.optJSONArray("assets"));
-
-                    if (!newer) {
-                        showUpdate = false;
-                    } else {
-                        assets = jsonObject.optJSONArray("assets");
-                        assert assets != null;
-                        downloadUrl = getApkUrlFromAssets(assets);
-                        showUpdate = downloadUrl != null;
-                    }
-
-//                    if (isNewerVersion(remoteVersion, finalLocalVersion)) {
-//                        assets = jsonObject.optJSONArray("assets");
-//                        downloadUrl = getApkUrlFromAssets(assets);
-//                        if (downloadUrl != null && !downloadUrl.isEmpty()) {
-//                            showUpdate = true;
-//                        }
-//                    }
-                }
-            } catch (Exception e) {
-                Log.e("TxActivity", "Update check failed or rate-limited", e);
+            if (!showUpdate && !isPremium) {
+                Log.d("GFX", "Checking GitHub for standard update...");
+                showUpdate = checkGitHubUpdate(finalLocalVersion);
             }
 
             final boolean finalShowUpdate = showUpdate;
             runOnUiThread(() -> {
                 Button updateBtn = findViewById(R.id.button_update);
-                if (finalShowUpdate) {
-                    updateBtn.setVisibility(View.VISIBLE);
-                    updateBtn.setOnClickListener(v -> downloadAndInstallApk());
-                } else {
-                    updateBtn.setVisibility(View.GONE);
+                if (updateBtn != null) {
+                    if (finalShowUpdate) {
+                        updateBtn.setVisibility(View.VISIBLE);
+                        updateBtn.setOnClickListener(v -> downloadAndInstallApk());
+                    } else {
+                        updateBtn.setVisibility(View.GONE);
+                    }
                 }
             });
         }).start();
     }
 
+ 
+    private boolean checkGitLabUpdate(String localVersion) {
+        try {
+            URL url = new URL("https://gitlab.com/api/v4/projects/85983176/releases");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Accept", "application/json");
+
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:102.0) Gecko/102.0 Firefox/102.0");
+
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+
+            int responseCode = connection.getResponseCode();
+            Log.d("GFX", "GitLab API Response Code: " + responseCode);
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                JSONArray releasesArray = new JSONArray(response.toString());
+                if (releasesArray.length() == 0) {
+                    Log.d("GFX", "GitLab returned an empty releases array.");
+                    return false;
+                }
+
+                JSONObject latestRelease = releasesArray.getJSONObject(0);
+                latestVersionTag = latestRelease.optString("tag_name", "").trim();
+                String remoteVersion = latestVersionTag.replaceFirst("^[vV]", "");
+
+                Log.d("GFX", "GitLab -> Local=" + localVersion + " Remote=" + remoteVersion + " Tag=" + latestVersionTag);
+
+                if (isNewerVersion(remoteVersion, localVersion)) {
+                    JSONObject assetsObj = latestRelease.optJSONObject("assets");
+                    if (assetsObj != null) {
+                        JSONArray links = assetsObj.optJSONArray("links");
+                        if (links != null) {
+                            downloadUrl = getApkUrlFromGitLabLinks(links);
+                            Log.d("GFX", "GitLab Download URL found: " + downloadUrl);
+                            return downloadUrl != null && !downloadUrl.isEmpty();
+                        } else {
+                            Log.e("GFX", "GitLab 'links' array is null!");
+                        }
+                    } else {
+                        Log.e("GFX", "GitLab 'assets' object is null!");
+                    }
+                } else {
+                    Log.d("GFX", "GitLab remote version is not newer than local version.");
+                }
+            } else {
+                Log.e("GFX", "GitLab API failed with HTTP " + responseCode + ". Message: " + connection.getResponseMessage());
+            }
+        } catch (Exception e) {
+            Log.e("TxActivity", "GitLab update check failed", e);
+        }
+        return false;
+    }
+
+    private boolean checkGitHubUpdate(String localVersion) {
+        try {
+            URL url = new URL("https://api.github.com/repos/siddharthsky/CustTermux/releases/latest");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+            connection.setRequestProperty("User-Agent", "CustTermux-App");
+
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+
+            int responseCode = connection.getResponseCode();
+            Log.d("GFX", "GitHub API Response Code: " + responseCode);
+
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                JSONObject jsonObject = new JSONObject(response.toString());
+                latestVersionTag = jsonObject.optString("tag_name", "").trim();
+                String remoteVersion = latestVersionTag.replaceFirst("^[vV]", "");
+
+                Log.d("GFX", "GitHub -> Local=" + localVersion + " Remote=" + remoteVersion + " Tag=" + latestVersionTag);
+
+                if (isNewerVersion(remoteVersion, localVersion)) {
+                    JSONArray assets = jsonObject.optJSONArray("assets");
+                    if (assets != null) {
+                        downloadUrl = getApkUrlFromGitHubAssets(assets);
+                        Log.d("GFX", "GitHub Download URL found: " + downloadUrl);
+                        return downloadUrl != null && !downloadUrl.isEmpty();
+                    }
+                }
+            } else {
+                Log.e("GFX", "GitHub API failed with HTTP " + responseCode + ". Message: " + connection.getResponseMessage());
+            }
+        } catch (Exception e) {
+            Log.e("TxActivity", "GitHub update check failed", e);
+        }
+        return false;
+    }
+    private String getApkUrlFromGitLabLinks(JSONArray links) throws Exception {
+        String targetAbiSuffix = getTargetAbiSuffix();
+        String fallbackSuffix = "universal.apk";
+        String universalUrl = null;
+
+        for (int i = 0; i < links.length(); i++) {
+            JSONObject asset = links.getJSONObject(i);
+            String fileName = asset.getString("name").toLowerCase(Locale.US);
+            String directUrl = asset.getString("url");
+
+            if (fileName.endsWith(targetAbiSuffix.toLowerCase(Locale.US))) {
+                return directUrl;
+            } else if (fileName.endsWith(fallbackSuffix)) {
+                universalUrl = directUrl;
+            }
+        }
+
+        return universalUrl;
+    }
+
+    private String getApkUrlFromGitHubAssets(JSONArray assets) throws Exception {
+        String targetAbiSuffix = getTargetAbiSuffix();
+        String fallbackSuffix = "universal.apk";
+        String universalUrl = null;
+
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            String fileName = asset.getString("name").toLowerCase(Locale.US);
+            String browserUrl = asset.getString("browser_download_url");
+
+            if (fileName.endsWith(targetAbiSuffix.toLowerCase(Locale.US))) {
+                return browserUrl;
+            } else if (fileName.endsWith(fallbackSuffix)) {
+                universalUrl = browserUrl;
+            }
+        }
+
+        return universalUrl;
+    }
     private boolean isNewerVersion(String remote, String local) {
         if (remote == null || local == null) {
             return false;

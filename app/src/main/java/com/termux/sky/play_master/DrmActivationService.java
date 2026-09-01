@@ -36,7 +36,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 
 @OptIn(markerClass = UnstableApi.class)
@@ -128,8 +130,26 @@ public class DrmActivationService extends Service {
                 if (content != null && !content.isEmpty()) {
                     List<ChannelModel> channels = M3UParser.parse(content);
                     if (!channels.isEmpty()) {
+
+                        if (M3UParser.existsInPrefs(DrmActivationService.this, portStr)) {
+                            List<ChannelModel> existingChannels = M3UParser.getFromPrefs(DrmActivationService.this, portStr);
+
+                            Set<String> favoriteUrls = new HashSet<>();
+                            for (ChannelModel oldCh : existingChannels) {
+                                if (oldCh.isFavorite && oldCh.url != null) {
+                                    favoriteUrls.add(oldCh.url);
+                                }
+                            }
+
+                            for (ChannelModel newCh : channels) {
+                                if (newCh.url != null && favoriteUrls.contains(newCh.url)) {
+                                    newCh.isFavorite = true;
+                                }
+                            }
+                        }
+
                         M3UParser.saveToPrefs(DrmActivationService.this, portStr, channels);
-                        Log.d(TAG, "Phase 2: Refresh successful! Data saved. Moving to Phase 3.");
+                        Log.d(TAG, "Phase 2: Refresh successful! Data saved with favorites retained. Moving to Phase 3.");
                         phase3ActivateNewData();
                         return;
                     }
@@ -140,7 +160,6 @@ public class DrmActivationService extends Service {
             });
         });
     }
-
     
     private void phase3ActivateNewData() {
         SharedPreferences prefs = getSharedPreferences("port_" + targetPort, Context.MODE_PRIVATE);
