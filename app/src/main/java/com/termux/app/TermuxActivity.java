@@ -44,9 +44,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.startapp.sdk.ads.banner.Banner;
-import com.startapp.sdk.adsbase.StartAppAd;
-import com.startapp.sdk.adsbase.StartAppSDK;
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.ads.AdMetaInfo;
+import com.inmobi.ads.InMobiInterstitial;
+import com.inmobi.ads.listeners.InterstitialAdEventListener;
+import com.inmobi.sdk.InMobiSdk;
+import com.inmobi.sdk.SdkInitializationListener;
 import com.termux.BuildConfig;
 import com.termux.sky.MoreOptions;
 import com.termux.R;
@@ -234,63 +237,63 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final int CONTEXT_MENU_HELP_ID = 7;
     private static final int CONTEXT_MENU_SETTINGS_ID = 8;
     private static final int CONTEXT_MENU_REPORT_ID = 9;
-
     private static final String ARG_TERMINAL_TOOLBAR_TEXT_INPUT = "terminal_toolbar_text_input";
     private static final String ARG_ACTIVITY_RECREATED = "activity_recreated";
-
     private static final String LOG_TAG = "TermuxActivity";
-
     private Handler handler = new Handler();
     private TxStartupChecker startup;
-
     private Runnable redirectCheckTask;
-
-
     TxController termuxController = new TxController(this);
     TxStartupChecker txStartupChecker = new TxStartupChecker(this);
-
     private TextView ipAddressText;
     private TextView storageStatus;
     private TextView overlayStatus;
     private TextView premiumStatus;
-
     private TextView restartBanner;
-
     private AutoAppRedirectDialog redirect;
     private boolean redirectShown = false;
-
     private LaunchFileObserver launchObserver;
-
-    private StartAppAd exitAd;
-
     private String downloadUrl = null;
     private String latestVersionTag = null;
+    private InMobiInterstitial mInterstitialAd;
 
     private void startio() {
-        StartAppSDK.initParams(this, "205859761")
-            .setCallback(new Runnable() {
-                public void run () {
+        InMobiSdk.init(this, "5bdfd8c077e34cdda2cd4c34aa65af1c", null, new SdkInitializationListener() {
+            @Override
+            public void onInitializationComplete(@Nullable Error error) {
+                if (null != error) {
+                    Log.e("TAG", "InMobi Init failed -" + error.getMessage());
+                } else {
+                    Log.d("TAG", "InMobi Init Successful");
+
+                    runOnUiThread(() -> {
+                        FrameLayout adContainer = findViewById(R.id.ad_container);
+                        if (!TxVerify.isPremium(TermuxActivity.this) && adContainer != null) {
+                            InMobiBanner banner = new InMobiBanner(TermuxActivity.this, 10000798256L);
+                            banner.setRefreshInterval(60);
+                            adContainer.addView(banner);
+                            banner.load();
+                        }
+
+                        if (!TxVerify.isPremium(TermuxActivity.this)) {
+                            mInterstitialAd = new InMobiInterstitial(TermuxActivity.this, 10000798261L, new InterstitialAdEventListener() {
+                                @Override
+                                public void onAdLoadSucceeded(@NonNull InMobiInterstitial inMobiInterstitial, @NonNull AdMetaInfo adMetaInfo) {
+                                    Log.d("TAG", "Interstitial loaded");
+                                }
+
+                                @Override
+                                public void onAdDismissed(@NonNull InMobiInterstitial inMobiInterstitial) {
+                                    super.onAdDismissed(inMobiInterstitial);
+                                    finishActivityIfNotFinishing();
+                                }
+                            });
+                            mInterstitialAd.load();
+                        }
+                    });
                 }
-            })
-            .init();
-
-//        Log.d("CZ", String.valueOf(BuildConfig.DEBUG));
-
-        StartAppSDK.setTestAdsEnabled(BuildConfig.DEBUG);
-
-        exitAd = new StartAppAd(this);
-        exitAd.loadAd();
-    }
-
-    private void setupAds() {
-        Banner banner = new Banner(this);
-        FrameLayout adContainer = findViewById(R.id.ad_container);
-        if (!TxVerify.isPremium(this)) {
-            adContainer.addView(banner);
-            adContainer.setVisibility(VISIBLE);
-        } else {
-            adContainer.setVisibility(GONE);
-        }
+            }
+        });
     }
 
     @Override
@@ -316,7 +319,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setContentView(R.layout.activity_termux);
 
-        setupAds();
+//        setupAds();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
@@ -1092,7 +1095,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         checkSetupDone();
         checkRestartRequired();
 
-        setupAds();
+//        setupAds();
 
         File homeDir = new File(getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");
@@ -1542,14 +1545,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @SuppressLint({"RtlHardcoded", "MissingSuperCall"})
     @Override
     public void onBackPressed() {
-        if (!TxVerify.isPremium(this)) {
-            StartAppAd.onBackPressed(this);
-        }
-
         if (getDrawer().isDrawerOpen(Gravity.LEFT)) {
             getDrawer().closeDrawers();
         } else {
-            finishActivityIfNotFinishing();
+            if (!TxVerify.isPremium(this) && mInterstitialAd != null && mInterstitialAd.isReady()) {
+                mInterstitialAd.show();
+            } else {
+                finishActivityIfNotFinishing();
+            }
         }
     }
 

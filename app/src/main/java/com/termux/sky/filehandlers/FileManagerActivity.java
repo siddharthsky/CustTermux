@@ -24,7 +24,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
-import com.startapp.sdk.ads.banner.Banner;
+import com.inmobi.ads.AdMetaInfo;
+import com.inmobi.ads.InMobiAdRequestStatus;
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.ads.listeners.BannerAdEventListener;
+
 import com.termux.R;
 import com.termux.sky.TxVerify;
 
@@ -346,22 +350,35 @@ public class FileManagerActivity extends AppCompatActivity {
     }
 
     private void setupAds() {
-        FrameLayout adContainer = findViewById(R.id.ad_container);
+        if (!TxVerify.isPremium(this)) {
+            FrameLayout adContainer = findViewById(R.id.ad_container);
 
-        if (adContainer != null) {
-            if (!TxVerify.isPremium(this)) {
-                Banner banner = new Banner(this);
-                FrameLayout.LayoutParams bannerParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                );
-                bannerParams.gravity = Gravity.CENTER;
-                banner.setLayoutParams(bannerParams);
-                adContainer.addView(banner);
-                adContainer.setVisibility(View.VISIBLE);
-            } else {
-                adContainer.setVisibility(View.GONE);
-            }
+            adContainer.setVisibility(View.VISIBLE);
+
+            InMobiBanner banner = new InMobiBanner(this, 10000798269L);
+            banner.setBannerSize(320, 50);
+            banner.setRefreshInterval(60);
+
+            FrameLayout.LayoutParams adParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            adParams.gravity = android.view.Gravity.CENTER;
+
+            banner.setListener(new BannerAdEventListener() {
+                @Override
+                public void onAdLoadSucceeded(@NonNull InMobiBanner inMobiBanner, @NonNull AdMetaInfo adMetaInfo) {
+                    Log.d("CTxFileManager", "InMobi Banner loaded successfully");
+                }
+
+                @Override
+                public void onAdLoadFailed(@NonNull InMobiBanner inMobiBanner, @NonNull InMobiAdRequestStatus inMobiAdRequestStatus) {
+                    Log.e("CTxFileManager", "InMobi Banner failed to load: " + inMobiAdRequestStatus.getMessage());
+                }
+            });
+
+            adContainer.addView(banner, adParams);
+            banner.load();
         }
     }
 

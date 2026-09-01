@@ -53,7 +53,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.startapp.sdk.ads.banner.Banner;
+import com.inmobi.ads.InMobiBanner;
+
 import com.termux.R;
 import com.termux.sky.TxVerify;
 import com.termux.sky.plugins_utils.Plugin;
@@ -1540,18 +1541,33 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private void setupAds() {
         FrameLayout adContainer = findViewById(R.id.ad_container);
+        float density = getResources().getDisplayMetrics().density;
+        int widthPx = (int) (320 * density + 0.5f);
+        int heightPx = (int) (50 * density + 0.5f);
+        adContainer.setId(View.generateViewId());
+        adContainer.setMinimumHeight(heightPx);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthPx, heightPx);
+        params.gravity = Gravity.CENTER_HORIZONTAL;
+
+        adContainer.setLayoutParams(params);
 
         if (adContainer != null) {
             if (!TxVerify.isPremium(this)) {
-                Banner banner = new Banner(this);
+                InMobiBanner banner = new InMobiBanner(this, 10000798268L);
+
+                banner.setBannerSize(320, 50);
+                banner.setRefreshInterval(60);
+
                 FrameLayout.LayoutParams bannerParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT
                 );
                 bannerParams.gravity = Gravity.CENTER;
-                banner.setLayoutParams(bannerParams);
-                adContainer.addView(banner);
+
+                adContainer.addView(banner, bannerParams);
                 adContainer.setVisibility(View.VISIBLE);
+
+                banner.load();
             } else {
                 adContainer.setVisibility(View.GONE);
             }

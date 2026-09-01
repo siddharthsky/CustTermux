@@ -19,11 +19,19 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.common.util.UnstableApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.startapp.sdk.ads.banner.Banner;
+import com.inmobi.ads.AdMetaInfo;
+import com.inmobi.ads.InMobiAdRequestStatus;
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.ads.listeners.BannerAdEventListener;
+
 import com.termux.R;
 import com.termux.sky.TxVerify;
 import com.termux.sky.filehandlers.FileManagerActivity;
@@ -261,6 +269,7 @@ public class PlugDRM extends AppCompatActivity {
         if (adapter != null) adapter.updateList(filteredList);
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void playVideo(ChannelModel channel) {
         Intent intent = new Intent(this, ExoPlayerActivityDRM.class);
         intent.putExtra("url", channel.url);
@@ -366,9 +375,34 @@ public class PlugDRM extends AppCompatActivity {
 
     private void setupAds() {
         if (!TxVerify.isPremium(this)) {
-            Banner banner = new Banner(this);
             FrameLayout adContainer = findViewById(R.id.ad_container);
-            adContainer.addView(banner);
+
+            adContainer.setVisibility(View.VISIBLE);
+
+            InMobiBanner banner = new InMobiBanner(this, 10000798269L);
+            banner.setBannerSize(320, 50);
+            banner.setRefreshInterval(60);
+
+            FrameLayout.LayoutParams adParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            adParams.gravity = android.view.Gravity.CENTER;
+
+            banner.setListener(new BannerAdEventListener() {
+                @Override
+                public void onAdLoadSucceeded(@NonNull InMobiBanner inMobiBanner, @NonNull AdMetaInfo adMetaInfo) {
+                    Log.d("PlugDRM", "InMobi Banner loaded successfully");
+                }
+
+                @Override
+                public void onAdLoadFailed(@NonNull InMobiBanner inMobiBanner, @NonNull InMobiAdRequestStatus inMobiAdRequestStatus) {
+                    Log.e("PlugDRM", "InMobi Banner failed to load: " + inMobiAdRequestStatus.getMessage());
+                }
+            });
+
+            adContainer.addView(banner, adParams);
+            banner.load();
         }
     }
 }

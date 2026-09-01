@@ -52,7 +52,7 @@ android {
         implementation 'com.github.hzy3774:AndroidP7zip:v1.7.2'
 
         //noinspection GradleDynamicVersion
-        implementation 'com.startapp:inapp-sdk:5.3.1'
+//        implementation 'com.startapp:inapp-sdk:5.3.1'
 
 
         implementation("androidx.media3:media3-exoplayer:1.10.1")
@@ -67,6 +67,20 @@ android {
 //        implementation "com.google.android.exoplayer:exoplayer-dash:2.16.0"
 //        implementation "com.google.android.exoplayer:exoplayer-ui:2.16.0"
 
+        implementation 'com.inmobi.monetization:inmobi-ads-kotlin:11.4.1'
+
+        implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+        implementation 'com.google.android.gms:play-services-location:21.0.1'//optional dependency for better targeting
+        implementation 'androidx.browser:browser:1.8.0'
+        implementation 'com.squareup.picasso:picasso:2.8'
+        implementation 'com.google.android.gms:play-services-appset:16.0.2' //optional dependency for better targeting
+        implementation 'com.google.android.gms:play-services-tasks:18.0.2' //optional dependency for better targeting
+        implementation "com.squareup.okhttp3:okhttp:3.14.9"
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1"
+        implementation "androidx.core:core-ktx:1.5.0"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib:2.1.21"
+        implementation "com.squareup.okio:okio:3.7.0"
+        implementation "androidx.media3:media3-exoplayer:1.4.1"
     }
 
 //    configurations.configureEach {
@@ -83,6 +97,8 @@ android {
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
+
+        multiDexEnabled true
 
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
 
