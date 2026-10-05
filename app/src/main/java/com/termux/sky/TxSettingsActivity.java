@@ -462,53 +462,79 @@ public class TxSettingsActivity extends AppCompatActivity {
         container.setPadding(dp20, dp16, dp20, dp16);
 
         TextView info = new TextView(this);
-        info.setText("Enter your premium license key.\nRemove ads and unlock premium.");
+        info.setText(isPremium ? "Your premium license is active.\nThank you for your support!" : "Enter your premium license key.\nRemove ads and unlock premium.");
         info.setTextColor(Color.LTGRAY);
         info.setTextSize(14f);
         info.setPadding(0, 0, 0, dp16);
         container.addView(info);
 
-        Button selectFileBtn = new Button(this);
-        selectFileBtn.setText("Select Licence File");
-        selectFileBtn.setBackgroundResource(R.drawable.golden_focus_selector);
-        selectFileBtn.setTextColor(Color.WHITE);
+        if (!isPremium) {
+            Button buyPremiumBtn = new Button(this);
+            buyPremiumBtn.setText("Get / Buy Premium");
+            buyPremiumBtn.setBackgroundResource(R.drawable.golden_focus_selector);
+            buyPremiumBtn.setTextColor(Color.WHITE);
 
-        LinearLayout.LayoutParams selectFileParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        selectFileParams.bottomMargin = dp16;
-        selectFileBtn.setLayoutParams(selectFileParams);
+            LinearLayout.LayoutParams buyParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            buyParams.bottomMargin = dp16;
+            buyPremiumBtn.setLayoutParams(buyParams);
 
-        selectFileBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, FilePickerActivity.class);
-            intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".lic"});
-            startActivityForResult(intent, REQUEST_CODE_LICENSE_FILE);
-        });
+            buyPremiumBtn.setOnClickListener(v -> {
+                try {
+                    Intent tgIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=CTxEngineBot&start=start"));
+                    startActivity(tgIntent);
+                } catch (android.content.ActivityNotFoundException e) {
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/CTxEngineBot"));
+                    startActivity(webIntent);
+                }
+            });
 
-        container.addView(selectFileBtn);
+            container.addView(buyPremiumBtn);
 
-        mLicenseInput = new EditText(this);
-        mLicenseInput.setHint(isPremium ? "Premium Active" : "Enter License Key");
-        mLicenseInput.setTextSize(16f);
-        mLicenseInput.setMinLines(2);
-        mLicenseInput.setMaxLines(4);
-        mLicenseInput.setInputType(
-            InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        );
+            Button selectFileBtn = new Button(this);
+            selectFileBtn.setText("Select Licence File");
+            selectFileBtn.setBackgroundResource(R.drawable.golden_focus_selector);
+            selectFileBtn.setTextColor(Color.WHITE);
 
-        mLicenseInput.setFocusable(true);
-        mLicenseInput.setFocusableInTouchMode(true);
-        mLicenseInput.setBackgroundResource(R.drawable.edittext_bg);
+            LinearLayout.LayoutParams selectFileParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            selectFileParams.bottomMargin = dp16;
+            selectFileBtn.setLayoutParams(selectFileParams);
 
-        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        inputParams.bottomMargin = dp16;
-        mLicenseInput.setLayoutParams(inputParams);
+            selectFileBtn.setOnClickListener(v -> {
+                Intent intent = new Intent(this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".lic"});
+                startActivityForResult(intent, REQUEST_CODE_LICENSE_FILE);
+            });
 
-        container.addView(mLicenseInput);
+            container.addView(selectFileBtn);
+
+            mLicenseInput = new EditText(this);
+            mLicenseInput.setHint("Enter License Key");
+            mLicenseInput.setTextSize(16f);
+            mLicenseInput.setMinLines(2);
+            mLicenseInput.setMaxLines(4);
+            mLicenseInput.setInputType(
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            );
+
+            mLicenseInput.setFocusable(true);
+            mLicenseInput.setFocusableInTouchMode(true);
+            mLicenseInput.setBackgroundResource(R.drawable.edittext_bg);
+
+            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            inputParams.bottomMargin = dp16;
+            mLicenseInput.setLayoutParams(inputParams);
+
+            container.addView(mLicenseInput);
+        }
 
         TextView label = new TextView(this);
         label.setText("Device ID");
@@ -578,9 +604,9 @@ public class TxSettingsActivity extends AppCompatActivity {
         )
             .setTitle(title)
             .setView(container)
-            .setPositiveButton("Activate", null)
+            .setPositiveButton(isPremium ? "OK" : "Activate", null)
             .setNeutralButton("Clear License", null)
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(isPremium ? null : "Cancel", null)
             .create();
 
         dialog.setOnShowListener(d -> {
@@ -611,7 +637,12 @@ public class TxSettingsActivity extends AppCompatActivity {
                 );
 
                 activate.setOnClickListener(v -> {
+                    if (isPremium) {
+                        dialog.dismiss();
+                        return;
+                    }
 
+                    if (mLicenseInput == null) return;
                     String license =
                         mLicenseInput.getText().toString().trim();
 
@@ -664,7 +695,9 @@ public class TxSettingsActivity extends AppCompatActivity {
 
         dialog.show();
 
-        mLicenseInput.requestFocus();
+        if (!isPremium && mLicenseInput != null) {
+            mLicenseInput.requestFocus();
+        }
     }
 
     @Override
