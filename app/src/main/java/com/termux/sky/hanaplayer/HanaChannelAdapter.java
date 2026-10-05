@@ -45,8 +45,12 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
     public void setMovingPosition(int position) {
         int old = this.movingPosition;
         this.movingPosition = position;
-        if (old != -1) notifyItemChanged(old);
-        if (position != -1) notifyItemChanged(position);
+        if (old != -1 && old < list.size()) notifyItemChanged(old);
+        if (position != -1 && position < list.size()) notifyItemChanged(position);
+    }
+
+    public void updateMovingPositionOnly(int position) {
+        this.movingPosition = position;
     }
 
     @NonNull
@@ -55,12 +59,10 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         Context ctx = parent.getContext();
         float density = ctx.getResources().getDisplayMetrics().density;
 
-
         int marginPx = (int) (8 * density);
         int cardHeightPx = (int) (110 * density);
         int iconSizePx = (int) (24 * density);
         int paddingPx = (int) (10 * density);
-
 
         CardView card = new CardView(ctx);
         RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
@@ -76,13 +78,11 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         card.setClickable(true);
         card.setLongClickable(true);
 
-
         FrameLayout rootFrame = new FrameLayout(ctx);
         rootFrame.setLayoutParams(new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
-
 
         ImageView logo = new ImageView(ctx);
         logo.setLayoutParams(new FrameLayout.LayoutParams(
@@ -93,7 +93,6 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         logo.setPadding(paddingPx, paddingPx, paddingPx, (int) (32 * density));
         rootFrame.addView(logo);
-
 
         View gradientView = new View(ctx);
         FrameLayout.LayoutParams gradientParams = new FrameLayout.LayoutParams(
@@ -110,7 +109,6 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         gradientView.setBackground(shadow);
         rootFrame.addView(gradientView);
 
-
         TextView name = new TextView(ctx);
         FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -126,7 +124,6 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         name.setMaxLines(1);
         rootFrame.addView(name);
 
-
         ImageView favIcon = new ImageView(ctx);
         FrameLayout.LayoutParams favParams = new FrameLayout.LayoutParams(iconSizePx, iconSizePx);
         favParams.gravity = Gravity.TOP | Gravity.END;
@@ -137,7 +134,6 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         favIcon.setColorFilter(Color.parseColor("#FFD700"));
         favIcon.setAlpha(0.95f);
 
-
         GradientDrawable starBg = new GradientDrawable();
         starBg.setShape(GradientDrawable.OVAL);
         starBg.setColor(Color.parseColor("#80000000"));
@@ -146,6 +142,22 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         favIcon.setVisibility(View.GONE);
         rootFrame.addView(favIcon);
 
+        ImageView catchupIcon = new ImageView(ctx);
+        FrameLayout.LayoutParams catchupParams = new FrameLayout.LayoutParams(iconSizePx, iconSizePx);
+        catchupParams.gravity = Gravity.TOP | Gravity.START; 
+        catchupParams.topMargin = (int) (6 * density);
+        catchupParams.leftMargin = (int) (6 * density);
+        catchupIcon.setLayoutParams(catchupParams);
+        catchupIcon.setImageResource(R.drawable.tx_catch); 
+        catchupIcon.setColorFilter(Color.parseColor("#00E5FF")); 
+        catchupIcon.setAlpha(0.95f);
+        GradientDrawable catchupBg = new GradientDrawable();
+        catchupBg.setShape(GradientDrawable.OVAL);
+        catchupBg.setColor(Color.parseColor("#80000000"));
+        catchupIcon.setBackground(catchupBg);
+        catchupIcon.setPadding((int) (4 * density), (int) (4 * density), (int) (4 * density), (int) (4 * density));
+        catchupIcon.setVisibility(View.GONE);
+        rootFrame.addView(catchupIcon);
 
         View focusBorder = new View(ctx);
         focusBorder.setLayoutParams(new FrameLayout.LayoutParams(
@@ -163,7 +175,7 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         card.addView(rootFrame);
 
-        return new VH(card, logo, name, favIcon, focusBorder);
+        return new VH(card, logo, name, favIcon, catchupIcon, focusBorder);
     }
 
     @Override
@@ -172,10 +184,28 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         holder.name.setText(channel.name);
         holder.favIcon.setVisibility(channel.isFavorite ? View.VISIBLE : View.GONE);
 
-
         holder.itemView.animate().cancel();
         holder.focusBorder.animate().cancel();
 
+        
+        boolean isCatchupChannel = false;
+        String activePort = channel.originPort;
+        if (activePort == null || activePort.trim().isEmpty()) {
+            activePort = channel.url != null && channel.url.contains("5007") ? "5007" : "0";
+        }
+
+        if ("5006".equals(activePort)) {
+            android.content.SharedPreferences prefs = holder.itemView.getContext().getSharedPreferences("settings", Context.MODE_PRIVATE);
+            boolean isCatchupEnabled = prefs.getBoolean("5006_catchup", false);
+
+            if (isCatchupEnabled) {
+                isCatchupChannel = ChannelDataManager.isCatchupAvailable(holder.itemView.getContext(), channel.id);
+            }
+        }
+
+        
+        holder.catchupIcon.setVisibility(isCatchupChannel ? View.VISIBLE : View.GONE);
+        
 
         if (position == movingPosition) {
             holder.itemView.setAlpha(0.7f);
@@ -195,15 +225,25 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
             .dontAnimate()
             .into(holder.logo);
 
+        
+        holder.itemView.setOnClickListener(v -> {
+            int pos = holder.getBindingAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION && pos < list.size()) {
+                clickListener.onClick(list.get(pos));
+            }
+        });
 
-        holder.itemView.setOnClickListener(v -> clickListener.onClick(channel));
         holder.itemView.setOnLongClickListener(v -> {
-            longClickListener.onLongClick(channel);
+            int pos = holder.getBindingAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION && pos < list.size()) {
+                longClickListener.onLongClick(list.get(pos));
+            }
             return true;
         });
 
         holder.itemView.setOnFocusChangeListener((v, hasFocus) -> {
-            if (position == movingPosition) return;
+            int pos = holder.getBindingAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION && pos == movingPosition) return;
 
             float targetScale = hasFocus ? 1.08f : 1.0f;
             float targetElevation = hasFocus ? 12f : 4f;
@@ -249,13 +289,15 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         ImageView logo;
         TextView name;
         ImageView favIcon;
+        ImageView catchupIcon;
         View focusBorder;
 
-        VH(View v, ImageView logo, TextView name, ImageView favIcon, View focusBorder) {
+        VH(View v, ImageView logo, TextView name, ImageView favIcon, ImageView catchupIcon, View focusBorder) {
             super(v);
             this.logo = logo;
             this.name = name;
             this.favIcon = favIcon;
+            this.catchupIcon = catchupIcon;
             this.focusBorder = focusBorder;
         }
     }

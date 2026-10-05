@@ -3,6 +3,7 @@ package com.termux.sky.hanaplayer;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -33,6 +34,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -87,6 +89,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private View loadingView;
 
     private ImageButton btnSearch;
+    private ImageButton btnRemap;
     private EditText searchBox;
     private String currentSearchQuery = "";
 
@@ -108,6 +111,10 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private int selectedMovePosition = -1;
     private TextView rearrangeBanner;
     private RecyclerView recyclerView;
+
+    private boolean mLongPressConsumed = false;
+    private boolean mIsTrackingRemap = false;
+
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -218,6 +225,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
         btnSearch.setMinimumHeight((int) (48 * density));
         btnSearch.setOnClickListener(v -> toggleSearch());
         header.addView(btnSearch);
+
+        btnRemap = new ImageButton(this);
+        btnRemap.setImageResource(R.drawable.tx_remote);
+        btnRemap.setBackgroundResource(R.drawable.img_btn_selector);
+        btnRemap.setColorFilter(android.graphics.Color.WHITE);
+        btnRemap.setPadding(10, 10, 10, 10);
+
+        btnRemap.setMinimumWidth((int) (48 * density));
+        btnRemap.setMinimumHeight((int) (48 * density));
+        btnRemap.setOnClickListener(v -> showButtonRemappingDialog());
+        header.addView(btnRemap);
 
 
         btnMenu = new ImageButton(this);
@@ -367,22 +385,43 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
                 @Override
                 public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                    int from = viewHolder.getAdapterPosition();
-                    int to = target.getAdapterPosition();
+                    int from = viewHolder.getBindingAdapterPosition();
+                    int to = target.getBindingAdapterPosition();
 
-                    Collections.swap(displayList, from, to);
+                    if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION || from == to) {
+                        return false;
+                    }
+
+                    if (from < to) {
+                        for (int i = from; i < to; i++) {
+                            Collections.swap(displayList, i, i + 1);
+                        }
+                    } else {
+                        for (int i = from; i > to; i--) {
+                            Collections.swap(displayList, i, i - 1);
+                        }
+                    }
+
                     adapter.notifyItemMoved(from, to);
                     return true;
                 }
 
                 @Override
                 public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                }
 
+                @Override
+                public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                    super.onSelectedChanged(viewHolder, actionState);
+                    if (actionState == androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG && viewHolder != null) {
+                        viewHolder.itemView.animate().scaleX(1.06f).scaleY(1.06f).alpha(0.8f).setDuration(150).start();
+                    }
                 }
 
                 @Override
                 public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                     super.clearView(recyclerView, viewHolder);
+                    viewHolder.itemView.animate().scaleX(1.0f).scaleY(1.0f).alpha(1.0f).setDuration(150).start();
                     if (selectedPorts.contains("Favorites") && currentSortMode == 0) {
                         saveCustomFavoritesOrder();
                     }
@@ -409,8 +448,232 @@ public class HanaPlayerActivity extends AppCompatActivity {
         initChips();
         loadActiveData();
         setupAds();
+
+        new Thread(() -> {
+            ChannelDataManager.syncChannelsIfNeeded(getApplicationContext(), "5006");
+        }).start();
+
     }
 
+    public void showButtonRemappingDialog() {
+        String[] buttons = {
+            "Up", "Down", "Right", "Left", "OK (Long)", //"OK / Enter",Enter
+            "Up (Long)", "Down (Long)", "Right (Long)", "Left (Long)"
+        };
+        String[] prefKeys = {
+            "pref_map_up", "pref_map_down", "pref_map_right", "pref_map_left", "pref_map_ok_long" ,//"pref_map_ok",
+            "pref_map_up_long", "pref_map_down_long", "pref_map_right_long", "pref_map_left_long"
+        };
+        String[] defaultActions = {
+            "Channel Up", "Channel Down", "Forward 10 Sec", "Backward 10 Sec", "Settings",  //"Do Nothing",
+            "Do Nothing", "Do Nothing", "Do Nothing", "Do Nothing",
+        };
+
+        String[] availableActions = {
+            "Channel Up", "Channel Down",
+            "Volume Up", "Volume Down",
+            "Forward 10 Sec", "Backward 10 Sec",
+            "Settings", "Do Nothing"
+        };
+
+        float density = getResources().getDisplayMetrics().density;
+        final Dialog dialog = new Dialog(this, R.style.GoldenFocusDialogTheme);
+        
+        android.widget.LinearLayout mainLayout = new android.widget.LinearLayout(this);
+        mainLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        mainLayout.setPadding((int)(24 * density), (int)(24 * density), (int)(24 * density), (int)(24 * density));
+        mainLayout.setMinimumWidth((int)(350 * density));
+
+        GradientDrawable dialogBg = new GradientDrawable();
+        dialogBg.setColor(android.graphics.Color.parseColor("#E6121212"));
+        dialogBg.setCornerRadius(30f);
+        dialogBg.setStroke(3, android.graphics.Color.parseColor("#444444"));
+        mainLayout.setBackground(dialogBg);
+        
+        TextView titleView = new TextView(this);
+        titleView.setText("Remap Remote Buttons");
+        titleView.setTextColor(android.graphics.Color.WHITE);
+        titleView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 20);
+        titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+        android.widget.LinearLayout.LayoutParams titleParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+        titleParams.bottomMargin = (int)(16 * density);
+        mainLayout.addView(titleView, titleParams);
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+        scrollView.setVerticalScrollBarEnabled(false);
+        android.widget.LinearLayout.LayoutParams scrollParams = new android.widget.LinearLayout.LayoutParams(-1, 0, 1f);
+
+        android.widget.LinearLayout rowsContainer = new android.widget.LinearLayout(this);
+        rowsContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+        scrollView.addView(rowsContainer, new android.widget.FrameLayout.LayoutParams(-1, -2));
+        mainLayout.addView(scrollView, scrollParams);
+        
+        android.widget.LinearLayout shortContainer = new android.widget.LinearLayout(this);
+        shortContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+
+        android.widget.LinearLayout longContainer = new android.widget.LinearLayout(this);
+        longContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+        longContainer.setVisibility(View.GONE); //Hidden
+        
+        for (int i = 0; i < buttons.length; i++) {
+            final int index = i;
+
+            android.widget.LinearLayout rowLayout = new android.widget.LinearLayout(this);
+            rowLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            rowLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            rowLayout.setPadding((int)(16 * density), (int)(16 * density), (int)(16 * density), (int)(16 * density));
+            rowLayout.setMinimumHeight((int)(64 * density));
+
+            android.widget.LinearLayout.LayoutParams rowParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+            rowParams.bottomMargin = (int)(8 * density);
+            rowLayout.setLayoutParams(rowParams);
+            rowLayout.setFocusable(true);
+            rowLayout.setClickable(true);
+            
+            StateListDrawable states = new StateListDrawable();
+            GradientDrawable focusedState = new GradientDrawable();
+            focusedState.setColor(android.graphics.Color.parseColor("#33FFFFFF"));
+            focusedState.setCornerRadius(12f * density);
+            focusedState.setStroke((int)(2 * density), android.graphics.Color.parseColor("#FFD700"));
+
+            GradientDrawable pressedState = new GradientDrawable();
+            pressedState.setColor(android.graphics.Color.parseColor("#22FFFFFF"));
+            pressedState.setCornerRadius(12f * density);
+
+            GradientDrawable defaultState = new GradientDrawable();
+            defaultState.setColor(android.graphics.Color.TRANSPARENT);
+            defaultState.setCornerRadius(12f * density);
+
+            states.addState(new int[]{android.R.attr.state_focused}, focusedState);
+            states.addState(new int[]{android.R.attr.state_pressed}, pressedState);
+            states.addState(new int[]{}, defaultState);
+            rowLayout.setBackground(states);
+            
+            ImageView iconView = new android.widget.ImageView(this);
+            iconView.setImageResource(R.drawable.tx_remote);
+            iconView.setColorFilter(android.graphics.Color.parseColor("#AAAAAA"));
+            LinearLayout.LayoutParams iconParams = new android.widget.LinearLayout.LayoutParams((int)(24 * density), (int)(24 * density));
+            iconParams.rightMargin = (int)(16 * density);
+            rowLayout.addView(iconView, iconParams);
+            
+            TextView nameView = new TextView(this);
+            nameView.setText(buttons[i]);
+            nameView.setTextColor(android.graphics.Color.WHITE);
+            nameView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+            nameView.setTypeface(null, android.graphics.Typeface.BOLD);
+            android.widget.LinearLayout.LayoutParams nameParams = new android.widget.LinearLayout.LayoutParams(0, -2, 1f);
+            rowLayout.addView(nameView, nameParams);
+            
+            TextView actionView = new TextView(this);
+            String currentAction = prefs.getString(prefKeys[i], defaultActions[i]);
+            actionView.setText(currentAction);
+            actionView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+            actionView.setPadding((int)(12 * density), (int)(6 * density), (int)(12 * density), (int)(6 * density));
+
+            GradientDrawable badgeBg = new GradientDrawable();
+            badgeBg.setCornerRadius(8f * density);
+            
+            int actionColor = getActionColor(currentAction);
+            actionView.setTextColor(actionColor);
+            badgeBg.setColor((actionColor & 0x00FFFFFF) | 0x22000000); 
+            actionView.setBackground(badgeBg);
+
+            rowLayout.addView(actionView);
+            
+            rowLayout.setOnClickListener(v -> {
+                new android.app.AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+                    .setTitle("Select Action for " + buttons[index])
+                    .setItems(availableActions, (subDialog, actionWhich) -> {
+                        String selectedAction = availableActions[actionWhich];
+                        prefs.edit().putString(prefKeys[index], selectedAction).apply();
+                        Toast.makeText(this, buttons[index] + " mapped to " + selectedAction, Toast.LENGTH_SHORT).show();
+                        
+                        actionView.setText(selectedAction);
+                        int newColor = getActionColor(selectedAction);
+                        actionView.setTextColor(newColor);
+                        badgeBg.setColor((newColor & 0x00FFFFFF) | 0x22000000);
+                    })
+                    .show();
+            });
+            
+            if (i < 5) {
+                shortContainer.addView(rowLayout);
+            } else {
+                longContainer.addView(rowLayout);
+            }
+        }
+        
+        rowsContainer.addView(shortContainer);
+        
+        TextView toggleLongPressBtn = new TextView(this);
+        toggleLongPressBtn.setText("▼ Advanced: Long Press Actions");
+        toggleLongPressBtn.setTextColor(android.graphics.Color.parseColor("#CCCCCC"));
+        toggleLongPressBtn.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+        toggleLongPressBtn.setPadding((int)(16 * density), (int)(16 * density), (int)(16 * density), (int)(16 * density));
+        toggleLongPressBtn.setGravity(android.view.Gravity.CENTER);
+        toggleLongPressBtn.setFocusable(true);
+        toggleLongPressBtn.setClickable(true);
+        
+        StateListDrawable toggleStates = new StateListDrawable();
+        GradientDrawable toggleFocused = new GradientDrawable();
+        toggleFocused.setColor(android.graphics.Color.parseColor("#33FFFFFF"));
+        toggleFocused.setCornerRadius(8f * density);
+        GradientDrawable toggleDefault = new GradientDrawable();
+        toggleDefault.setColor(android.graphics.Color.TRANSPARENT);
+        toggleStates.addState(new int[]{android.R.attr.state_focused}, toggleFocused);
+        toggleStates.addState(new int[]{}, toggleDefault);
+        toggleLongPressBtn.setBackground(toggleStates);
+
+        android.widget.LinearLayout.LayoutParams toggleParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+        toggleParams.bottomMargin = (int)(8 * density);
+
+        toggleLongPressBtn.setOnClickListener(v -> {
+            boolean isHidden = longContainer.getVisibility() == View.GONE;
+            longContainer.setVisibility(isHidden ? View.VISIBLE : View.GONE);
+            toggleLongPressBtn.setText(isHidden ? "▲ Hide Long Press Actions" : "▼ Advanced: Long Press Actions");
+
+            if (isHidden) {
+                scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+            }
+        });
+
+        rowsContainer.addView(toggleLongPressBtn, toggleParams);
+        rowsContainer.addView(longContainer);
+
+        android.widget.Button closeButton = new android.widget.Button(this);
+        closeButton.setText("Close");
+        closeButton.setTextColor(android.graphics.Color.WHITE);
+        closeButton.setBackgroundColor(android.graphics.Color.parseColor("#333333"));
+        android.widget.LinearLayout.LayoutParams btnParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+        btnParams.topMargin = (int)(16 * density);
+        closeButton.setLayoutParams(btnParams);
+
+        StateListDrawable btnStates = new StateListDrawable();
+        ColorDrawable btnFocused = new ColorDrawable(android.graphics.Color.parseColor("#555555"));
+        ColorDrawable btnDefault = new ColorDrawable(android.graphics.Color.parseColor("#333333"));
+        btnStates.addState(new int[]{android.R.attr.state_focused}, btnFocused);
+        btnStates.addState(new int[]{}, btnDefault);
+        closeButton.setBackground(btnStates);
+
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+        mainLayout.addView(closeButton);
+
+        dialog.setContentView(mainLayout);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+        dialog.show();
+    }
+
+    private int getActionColor(String action) {
+        if (action == null) return android.graphics.Color.parseColor("#FFD700");
+        if (action.contains("Channel")) return android.graphics.Color.parseColor("#4CAF50");
+        if (action.contains("Volume")) return android.graphics.Color.parseColor("#2196F3");
+        if (action.contains("Skip")) return android.graphics.Color.parseColor("#FF9800");
+        if (action.contains("Settings")) return android.graphics.Color.parseColor("#E91E63");
+        if (action.contains("Do Nothing")) return android.graphics.Color.parseColor("#9E9E9E");
+        return android.graphics.Color.parseColor("#FFD700");
+    }
 
     private View createSkeletonGrid(float density) {
         LinearLayout container = new LinearLayout(this);
@@ -462,15 +725,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
         return container;
     }
 
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isRearrangeMode && selectedMovePosition != -1 && event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
             int newPos = selectedMovePosition;
 
-            int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
-            int itemWidthPx = (int) (120 * getResources().getDisplayMetrics().density);
-            int spanCount = Math.max(2, screenWidthPx / itemWidthPx);
+            int spanCount = 1;
+            if (recyclerView != null && recyclerView.getLayoutManager() instanceof GridLayoutManager) {
+                spanCount = ((GridLayoutManager) recyclerView.getLayoutManager()).getSpanCount();
+            }
 
             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
                 newPos--;
@@ -481,25 +746,58 @@ public class HanaPlayerActivity extends AppCompatActivity {
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 newPos += spanCount;
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) {
+                int droppedPos = selectedMovePosition;
                 selectedMovePosition = -1;
                 adapter.setMovingPosition(-1);
                 saveCustomFavoritesOrder();
                 Toast.makeText(this, "New arrangement saved", Toast.LENGTH_SHORT).show();
+                if (recyclerView != null) {
+                    recyclerView.post(() -> {
+                        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(droppedPos);
+                        if (vh != null) vh.itemView.requestFocus();
+                    });
+                }
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+                int canceledPos = selectedMovePosition;
                 selectedMovePosition = -1;
                 adapter.setMovingPosition(-1);
                 Toast.makeText(this, "Move cancelled", Toast.LENGTH_SHORT).show();
+                if (recyclerView != null) {
+                    recyclerView.post(() -> {
+                        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(canceledPos);
+                        if (vh != null) vh.itemView.requestFocus();
+                    });
+                }
                 return true;
             }
 
             if (newPos >= 0 && newPos < displayList.size() && newPos != selectedMovePosition) {
-                Collections.swap(displayList, selectedMovePosition, newPos);
-                adapter.notifyItemMoved(selectedMovePosition, newPos);
-                selectedMovePosition = newPos;
-                adapter.setMovingPosition(selectedMovePosition);
+                int from = selectedMovePosition;
+                int to = newPos;
+
+                if (from < to) {
+                    for (int i = from; i < to; i++) {
+                        Collections.swap(displayList, i, i + 1);
+                    }
+                } else {
+                    for (int i = from; i > to; i--) {
+                        Collections.swap(displayList, i, i - 1);
+                    }
+                }
+
+                selectedMovePosition = to;
+                adapter.updateMovingPositionOnly(to);
+                adapter.notifyItemMoved(from, to);
+
                 if (recyclerView != null) {
-                    recyclerView.scrollToPosition(selectedMovePosition);
+                    recyclerView.scrollToPosition(to);
+                    recyclerView.post(() -> {
+                        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(to);
+                        if (vh != null) {
+                            vh.itemView.requestFocus();
+                        }
+                    });
                 }
                 return true;
             }
@@ -510,11 +808,14 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private void saveCustomFavoritesOrder() {
         List<String> orderedUrls = new ArrayList<>();
         for (ChannelModel cm : displayList) {
-            if (cm.url != null) {
+            if (cm.url != null && !orderedUrls.contains(cm.url)) {
                 orderedUrls.add(cm.url);
             }
         }
         prefs.edit().putString("fav_order", android.text.TextUtils.join(",", orderedUrls)).apply();
+        if (selectedPorts.contains("Favorites")) {
+            currentPortChannels = new ArrayList<>(displayList);
+        }
     }
 
     private void showGridDialog() {
@@ -718,7 +1019,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         if (posButton != null) {
             posButton.setBackgroundTintList(null);
             posButton.setBackgroundResource(R.drawable.golden_focus_selector);
-            posButton.setTextColor(android.graphics.Color.parseColor("#FF5252")); // Red for destructive action
+            posButton.setTextColor(android.graphics.Color.parseColor("#FF5252"));
             posButton.setFocusable(true);
         }
 
@@ -1009,6 +1310,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void addChip(String label, String portValue) {
         Chip chip = new Chip(this);
         chip.setText(label);
@@ -1042,6 +1344,31 @@ public class HanaPlayerActivity extends AppCompatActivity {
             chip.setForeground(getTvFocusBorder(this));
         }
 
+        if ("5006".equals(portValue)) {
+            chip.setCloseIconVisible(true);
+            chip.setCloseIconResource(R.drawable.tx_settings);
+            chip.setCloseIconTint(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE));
+
+            chip.setOnTouchListener((v, event) -> {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    float touchX = event.getX();
+                    float gearTouchArea = 50 * density;
+
+                    if (touchX >= (v.getWidth() - gearTouchArea)) {
+                        show5006SettingsDialog();
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            chip.setOnLongClickListener(v -> {
+                show5006SettingsDialog();
+                return true;
+            });
+        }
+
+        
         if (selectedPorts.contains(portValue)) {
             chip.setChecked(true);
         }
@@ -1076,6 +1403,110 @@ public class HanaPlayerActivity extends AppCompatActivity {
         });
 
         chipGroup.addView(chip);
+    }
+
+    private void show5006SettingsDialog() {
+        List<ChannelModel> p5006Channels = M3UParser.getFromPrefs(this, "5006");
+        Set<String> dynamicLangSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (ChannelModel ch : p5006Channels) {
+            if (ch.language != null && !ch.language.trim().isEmpty()) {
+                dynamicLangSet.add(ch.language.trim());
+            }
+        }
+
+        if (dynamicLangSet.isEmpty()) {
+            dynamicLangSet.addAll(Arrays.asList("English", "Hindi", "Marathi"));
+        }
+
+        final String[] languages = dynamicLangSet.toArray(new String[0]);
+
+        final Set<String> tempSelectedLangs = new HashSet<>(
+            prefs.getStringSet("5006_langs", Collections.emptySet())
+        );
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme);
+        builder.setTitle("Plugin 5006 Settings");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        layout.setPadding(padding, padding, padding, padding);
+
+        android.widget.CheckBox catchupCheck = new android.widget.CheckBox(this);
+        catchupCheck.setText("Enable Catchup");
+        catchupCheck.setTextColor(android.graphics.Color.WHITE);
+        catchupCheck.setChecked(prefs.getBoolean("5006_catchup", false));
+        layout.addView(catchupCheck);
+
+        android.widget.Button langButton = new android.widget.Button(this);
+        int initialCount = tempSelectedLangs.size();
+        langButton.setText(initialCount == 0 ? "Languages: ALL" : "Languages (" + initialCount + " selected)");
+        langButton.setTextColor(android.graphics.Color.WHITE);
+        langButton.setBackgroundResource(R.drawable.img_btn_selector);
+
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        btnParams.topMargin = (int) (16 * getResources().getDisplayMetrics().density);
+        layout.addView(langButton, btnParams);
+
+        langButton.setOnClickListener(v -> {
+            boolean[] checkedItems = new boolean[languages.length];
+            for (int i = 0; i < languages.length; i++) {
+                checkedItems[i] = tempSelectedLangs.contains(languages[i]);
+            }
+
+            AlertDialog.Builder langBuilder = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme);
+            langBuilder.setTitle("Filter by Language");
+
+            langBuilder.setMultiChoiceItems(languages, checkedItems, (d, which, isChecked) -> {
+                checkedItems[which] = isChecked;
+                if (isChecked) {
+                    tempSelectedLangs.add(languages[which]);
+                } else {
+                    tempSelectedLangs.remove(languages[which]);
+                }
+            });
+
+            langBuilder.setPositiveButton("OK", (dialog, which) -> {
+                int count = tempSelectedLangs.size();
+                langButton.setText(count == 0 ? "Languages: ALL" : "Languages (" + count + " selected)");
+            });
+
+            langBuilder.setNeutralButton("ALL (Clear)", (dialog, which) -> {
+                tempSelectedLangs.clear();
+                Arrays.fill(checkedItems, false);
+                langButton.setText("Languages: ALL");
+                Toast.makeText(this, "All languages will be shown", Toast.LENGTH_SHORT).show();
+            });
+
+            AlertDialog langDialog = langBuilder.create();
+            langDialog.show();
+
+            android.widget.Button neutralBtn = langDialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL);
+            if (neutralBtn != null) neutralBtn.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+        });
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            prefs.edit()
+                .putBoolean("5006_catchup", catchupCheck.isChecked())
+                .putStringSet("5006_langs", new HashSet<>(tempSelectedLangs))
+                .apply();
+
+            Toast.makeText(this, "Settings Saved & Filter Applied", Toast.LENGTH_SHORT).show();
+
+            applyGroupFilter();
+        });
+        builder.setNegativeButton("Close", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        android.widget.Button posButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
+        if (posButton != null) posButton.setTextColor(android.graphics.Color.parseColor("#FFD700"));
     }
 
     private StateListDrawable getTvFocusBorder(Context context) {
@@ -1223,6 +1654,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
         List<ChannelModel> filteredList = new ArrayList<>();
         String query = currentSearchQuery.toLowerCase().trim();
 
+        Set<String> selectedLangs = prefs.getStringSet("5006_langs", Collections.emptySet());
+
         for (ChannelModel cm : currentPortChannels) {
             boolean matchesGroup = selectedGroups.contains("All") ||
                 (cm.group != null && selectedGroups.contains(cm.group.trim()));
@@ -1230,7 +1663,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
             boolean matchesSearch = query.isEmpty() ||
                 (cm.name != null && cm.name.toLowerCase().contains(query));
 
-            if (matchesGroup && matchesSearch) {
+            boolean matchesLang = true;
+            if ("5006".equals(cm.originPort) && selectedLangs != null && !selectedLangs.isEmpty()) {
+                if (cm.language != null && !cm.language.trim().isEmpty()) {
+                    matchesLang = selectedLangs.contains(cm.language.trim());
+                } else {
+                    matchesLang = false;
+                }
+            }
+
+            if (matchesGroup && matchesSearch && matchesLang) {
                 filteredList.add(cm);
             }
         }
@@ -1441,17 +1883,26 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     @OptIn(markerClass = UnstableApi.class)
     private void onChannelClick(ChannelModel channel) {
-
         if (isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0) {
+            int clickedPos = displayList.indexOf(channel);
+            if (clickedPos == -1) return;
+
             if (selectedMovePosition == -1) {
-                selectedMovePosition = displayList.indexOf(channel);
+                selectedMovePosition = clickedPos;
                 adapter.setMovingPosition(selectedMovePosition);
-                Toast.makeText(this, "Moving " + channel.name + "... Use D-pad. Press OK to drop.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Moving " + channel.name + "... Use D-pad to move, press OK to drop.", Toast.LENGTH_SHORT).show();
             } else {
+                int droppedPos = selectedMovePosition;
                 selectedMovePosition = -1;
                 adapter.setMovingPosition(-1);
                 saveCustomFavoritesOrder();
                 Toast.makeText(this, "Position saved", Toast.LENGTH_SHORT).show();
+                if (recyclerView != null) {
+                    recyclerView.post(() -> {
+                        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(droppedPos);
+                        if (vh != null) vh.itemView.requestFocus();
+                    });
+                }
             }
             return;
         }
@@ -1466,6 +1917,23 @@ public class HanaPlayerActivity extends AppCompatActivity {
         String activePort = channel.originPort;
         if (activePort == null || activePort.trim().isEmpty()) {
             activePort = channel.url.contains("5007") ? "5007" : "0";
+        }
+
+        boolean isCatchupEnabled = prefs.getBoolean("5006_catchup", false);
+        boolean channelSupportsCatchup = ChannelDataManager.isCatchupAvailable(this, channel.id);
+
+        Log.d("MASK", String.valueOf(isCatchupEnabled));
+        Log.d("MASKsupp", String.valueOf(channelSupportsCatchup));
+
+        if ("5006".equals(activePort) && isCatchupEnabled && channelSupportsCatchup) {
+            Intent catchupIntent = new Intent(this, CatchupActivity.class)
+                .putExtra("channel_id", channel.id)
+                .putExtra("channel_name", channel.name)
+                .putExtra("channel_logo", channel.logo)
+                .putExtra("channel_url", channel.url)
+                .putExtra("plugin_port", activePort);
+            startActivity(catchupIntent);
+            return;
         }
 
         Intent intent = new Intent(this, ExoPlayerActivityDRM.class)
@@ -1488,12 +1956,12 @@ public class HanaPlayerActivity extends AppCompatActivity {
     }
 
     private void onChannelLongClick(ChannelModel channel) {
-
         if (isRearrangeMode && selectedPorts.contains("Favorites") && currentSortMode == 0) {
-            if (selectedMovePosition == -1) {
-                selectedMovePosition = displayList.indexOf(channel);
+            int clickedPos = displayList.indexOf(channel);
+            if (clickedPos != -1 && selectedMovePosition == -1) {
+                selectedMovePosition = clickedPos;
                 adapter.setMovingPosition(selectedMovePosition);
-                Toast.makeText(this, "Use D-pad to move " + channel.name + ". Press Enter to drop.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Use D-pad to move " + channel.name + ". Press OK to drop.", Toast.LENGTH_SHORT).show();
             }
             return;
         }

@@ -197,6 +197,14 @@
             android:exported="true"/>
 
         <activity
+            android:name=".sky.hanaplayer.CatchupActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            tools:ignore="DiscouragedApi" />
+
+
+        <activity
             android:name=".sky.filehandlers.FilePickerActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:label="Select File"

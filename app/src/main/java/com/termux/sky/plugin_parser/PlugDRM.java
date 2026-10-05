@@ -199,7 +199,6 @@ public class PlugDRM extends AppCompatActivity {
                         }
                     }
                 }
-
                 M3UParser.saveToPrefs(this, port, channels);
             }
 

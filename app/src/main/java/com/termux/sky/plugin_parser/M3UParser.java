@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,6 +96,14 @@ public class M3UParser {
     public static void saveToPrefs(Context context, String port, List<ChannelModel> channels) {
         SharedPreferences prefs = context.getSharedPreferences("port_" + port, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
+
+        SharedPreferences settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        if (Objects.equals(port, "5006")) {
+            settings.edit()
+                .putBoolean("5006_catchup", false)
+                .remove("5006_langs")
+                .apply();
+        }
 
         editor.putInt("count", channels.size());
 

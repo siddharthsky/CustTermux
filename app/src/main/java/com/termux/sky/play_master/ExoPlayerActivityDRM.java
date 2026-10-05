@@ -3,9 +3,11 @@ package com.termux.sky.play_master;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -113,6 +115,15 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
 
     private boolean controllerVisible = false;
 
+    private boolean isLongPressFired = false;
+
+    private TextView volumeOverlay;
+    private float currentSoftwareVolume = 1.0f;
+    private android.os.Handler volumeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable hideVolumeRunnable = () -> {
+        if (volumeOverlay != null) volumeOverlay.setVisibility(View.GONE);
+    };
+
     @OptIn(markerClass = UnstableApi.class)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -202,10 +213,18 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             playerView.setDefaultFocusHighlightEnabled(false);
         }
 
+        UiModeManager uiModeManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
+        boolean isTv = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
+
         playerView.setControllerAutoShow(false);
         playerView.hideController();
-        playerView.setShowNextButton(false);
-        playerView.setShowPreviousButton(false);
+        if (!isTv) {
+            playerView.setShowNextButton(true);
+            playerView.setShowPreviousButton(true);
+        } else {
+            playerView.setShowNextButton(false);
+            playerView.setShowPreviousButton(false);
+        }
         playerView.setShowFastForwardButton(false);
         playerView.setShowRewindButton(false);
 
@@ -229,24 +248,35 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             pauseBtn.setColorFilter(android.graphics.Color.WHITE);
         }
 
+        ImageButton nextBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_next);
+        ImageButton prevBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_prev);
+
+        if (nextBtn != null) {
+            nextBtn.setOnClickListener(v -> changeChannel(1));
+        }
+
+        if (prevBtn != null) {
+            prevBtn.setOnClickListener(v -> changeChannel(-1));
+        }
+
         View nextButton = playerView.findViewById(androidx.media3.ui.R.id.exo_duration);
         if (nextButton != null && nextButton.getParent() instanceof android.view.ViewGroup) {
             android.view.ViewGroup controlGroup = (android.view.ViewGroup) nextButton.getParent();
             int nextButtonIndex = controlGroup.indexOfChild(nextButton);
 
-            ImageButton btnResize = createCustomControl(nextButton, R.drawable.tx_resize, v ->
-                showScreenScaleMenu());
-            ImageButton btnAudio = createCustomControl(nextButton, R.drawable.tx_audio, v ->
-                showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track"));
-            ImageButton btnVideo = createCustomControl(nextButton, R.drawable.tx_videohd, v ->
-                showCustomVideoTrackSelector());
-            ImageButton btnCC = createCustomControl(nextButton, R.drawable.tx_closed_caption, v ->
-                showTrackSelector(C.TRACK_TYPE_TEXT, "Select Subtitles / CC"));
+            ImageButton btnResize = createCustomControl(nextButton, R.drawable.tx_resize, v -> showScreenScaleMenu());
+            ImageButton btnAudio = createCustomControl(nextButton, R.drawable.tx_audio, v -> showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track"));
+            ImageButton btnVideo = createCustomControl(nextButton, R.drawable.tx_videohd, v -> showCustomVideoTrackSelector());
+            ImageButton btnCC = createCustomControl(nextButton, R.drawable.tx_closed_caption, v -> showTrackSelector(C.TRACK_TYPE_TEXT, "Select Subtitles / CC"));
+            ImageButton btnVolDown = createCustomControl(nextButton, R.drawable.tx_vol_down, v -> adjustSoftwareVolume(false));
+            ImageButton btnVolUp = createCustomControl(nextButton, R.drawable.tx_vol_up, v -> adjustSoftwareVolume(true));
 
             controlGroup.addView(btnResize, nextButtonIndex + 1);
             controlGroup.addView(btnAudio, nextButtonIndex + 2);
             controlGroup.addView(btnVideo, nextButtonIndex + 3);
             controlGroup.addView(btnCC, nextButtonIndex + 4);
+            controlGroup.addView(btnVolDown, nextButtonIndex + 5);
+            controlGroup.addView(btnVolUp, nextButtonIndex + 6);
         }
 
         int savedScale = prefs.getInt("global_screen_scale", AspectRatioFrameLayout.RESIZE_MODE_FIT);
@@ -264,7 +294,30 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         );
         errorParams.gravity = android.view.Gravity.CENTER;
 
+        volumeOverlay = new TextView(this);
+        android.graphics.drawable.GradientDrawable volShape = new android.graphics.drawable.GradientDrawable();
+        volShape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        volShape.setCornerRadius(30f);
+        volShape.setColor(android.graphics.Color.parseColor("#D91A1A1A"));
+        volShape.setStroke(3, android.graphics.Color.parseColor("#4444FF")); 
+        volumeOverlay.setBackground(volShape);
+        volumeOverlay.setTextColor(android.graphics.Color.WHITE);
+        volumeOverlay.setGravity(android.view.Gravity.CENTER);
+        volumeOverlay.setTextSize(16);
+        volumeOverlay.setPadding(40, 20, 40, 20);
+        volumeOverlay.setVisibility(View.GONE);
+        
+        FrameLayout.LayoutParams volParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        volParams.gravity = android.view.Gravity.TOP | android.view.Gravity.CENTER_HORIZONTAL;
+        volParams.topMargin = 100;
+
         root.addView(errorOverlay, errorParams);
+
+        root.addView(volumeOverlay, volParams);
+
         setContentView(root);
 
 //        // --- MANUAL PING TEST BLOCK ---
@@ -814,60 +867,189 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
             player = null;
         }
     }
+//
+//    @SuppressLint("RestrictedApi")
+//    @Override
+//    public boolean dispatchKeyEvent(KeyEvent event) {
+//        int keyCode = event.getKeyCode();
+//        boolean isLongPress = event.isLongPress();
+//
+//        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+//            String prefKey = null;
+//            String defaultAction = null;
+//
+//            // Determine which key and state (short/long) was pressed
+//            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//                prefKey = isLongPress ? "pref_map_up_long" : "pref_map_up";
+//                defaultAction = isLongPress ? "Do Nothing" : "Channel Up";
+//            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+//                prefKey = isLongPress ? "pref_map_down_long" : "pref_map_down";
+//                defaultAction = isLongPress ? "Do Nothing" : "Channel Down";
+//            } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+//                prefKey = isLongPress ? "pref_map_left_long" : "pref_map_left";
+//                defaultAction = isLongPress ? "Do Nothing" : "Backward 10 Sec";
+//            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//                prefKey = isLongPress ? "pref_map_right_long" : "pref_map_right";
+//                defaultAction = isLongPress ? "Do Nothing" : "Forward 10 Sec";
+//            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+//                prefKey = isLongPress ? "pref_map_ok_long" : "pref_map_ok";
+//                defaultAction = isLongPress ? "Settings" : "Do Nothing";
+//            }
+//
+//            // Execute the mapped action
+//            if (prefKey != null) {
+//                event.startTracking(); // Required for Android to detect Long Presses
+//                String action = prefs.getString(prefKey, defaultAction);
+//
+//                // Crucial: If mapped to "Do Nothing", let Android handle it normally
+//                // (This ensures clicking UI elements with 'OK' still works)
+//                if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return super.dispatchKeyEvent(event);
+//    }
+
+//    @Override
+//    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
+//            showSettingsMenu();
+//            return true;
+//        }
+//
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            if (playerView != null && controllerVisible) {
+//                playerView.hideController();
+//                return true;
+//            }
+//        }
+//
+//        if (playerView != null && !controllerVisible) {
+//            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+//                keyCode == KeyEvent.KEYCODE_ENTER ||
+//                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+//                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//
+//                playerView.showController();
+//                return true;
+//            }
+//        }
+//
+////        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+////            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+////                changeChannel(1);
+////                return true;
+////            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+////                changeChannel(-1);
+////                return true;
+////            }
+////        }
+//
+//        return super.onKeyDown(keyCode, event);
+//    }
+
+/////////---
+
+
 
     @SuppressLint("RestrictedApi")
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            int keyCode = event.getKeyCode();
+        if (!controllerVisible && isCustomMappedKey(event.getKeyCode())) {
 
-            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                changeChannel(1);
-                return true;
-            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                changeChannel(-1);
+            KeyEvent.DispatcherState state = getWindow().getDecorView().getKeyDispatcherState();
+
+            if (event.dispatch(this, state, this)) {
                 return true;
             }
         }
+
         return super.dispatchKeyEvent(event);
     }
 
+
     @Override
-    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
-            showSettingsMenu();
-            return true;
-        }
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (isCustomMappedKey(keyCode)) {
+            String actionShort = getMappedAction(keyCode, false);
+            String actionLong = getMappedAction(keyCode, true);
 
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (playerView != null && controllerVisible) {
-                playerView.hideController();
+            if (!actionShort.equals("Do Nothing") || !actionLong.equals("Do Nothing")) {
+                if (event.getRepeatCount() == 0) {
+                    event.startTracking();
+                    isLongPressFired = false;
+                }
                 return true;
             }
         }
-
-        if (playerView != null && !controllerVisible) {
-            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
-                keyCode == KeyEvent.KEYCODE_ENTER ||
-                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
-                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-
-                playerView.showController();
-                return true;
-            }
-        }
-
-//        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
-//            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-//                changeChannel(1);
-//                return true;
-//            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-//                changeChannel(-1);
-//                return true;
-//            }
-//        }
-
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+        if (isCustomMappedKey(keyCode)) {
+            String action = getMappedAction(keyCode, true);
+
+            if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+                isLongPressFired = true;
+                return true;
+            }
+        }
+        return super.onKeyLongPress(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (isCustomMappedKey(keyCode)) {
+            if (isLongPressFired) {
+                isLongPressFired = false;
+                return true;
+            }
+            
+            if (!event.isCanceled()) {
+                String action = getMappedAction(keyCode, false);
+                if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+                    return true;
+                }
+            }
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+
+    private boolean isCustomMappedKey(int keyCode) {
+        if (controllerVisible) {
+            return false;
+        }
+
+        return keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+            keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+            keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER;
+    }
+
+    private String getMappedAction(int keyCode, boolean isLongPress) {
+        String prefKey = null;
+        String defaultAction = null;
+
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+            prefKey = isLongPress ? "pref_map_up_long" : "pref_map_up";
+            defaultAction = isLongPress ? "Do Nothing" : "Channel Up";
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            prefKey = isLongPress ? "pref_map_down_long" : "pref_map_down";
+            defaultAction = isLongPress ? "Do Nothing" : "Channel Down";
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+            prefKey = isLongPress ? "pref_map_left_long" : "pref_map_left";
+            defaultAction = isLongPress ? "Do Nothing" : "Backward 10 Sec";
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            prefKey = isLongPress ? "pref_map_right_long" : "pref_map_right";
+            defaultAction = isLongPress ? "Do Nothing" : "Forward 10 Sec";
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+            prefKey = isLongPress ? "pref_map_ok_long" : "pref_map_ok";
+            defaultAction = isLongPress ? "Settings" : "Do Nothing";
+        }
+
+        return prefs.getString(prefKey, defaultAction);
     }
 
     private void changeChannel(int direction) {
@@ -1285,5 +1467,217 @@ public class ExoPlayerActivityDRM extends ComponentActivity {
         }
 
         PlaylistManager.currentList = null;
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void adjustSoftwareVolume(boolean increase) {
+        if (player == null) return;
+
+        if (increase) {
+            currentSoftwareVolume = Math.min(1.0f, currentSoftwareVolume + 0.1f);
+        } else {
+            currentSoftwareVolume = Math.max(0.0f, currentSoftwareVolume - 0.1f);
+        }
+        player.setVolume(currentSoftwareVolume);
+
+        volumeOverlay.setText("Volume: " + (int)(currentSoftwareVolume * 100) + "%");
+        volumeOverlay.setVisibility(View.VISIBLE);
+
+        // Auto-hide after 2 seconds
+        volumeHandler.removeCallbacks(hideVolumeRunnable);
+        volumeHandler.postDelayed(hideVolumeRunnable, 2000);
+    }
+
+    private boolean handleRemappedAction(String action) {
+        if (action == null || player == null) return false;
+
+        switch (action) {
+            case "Channel Up":
+                changeChannel(1);
+                return true;
+            case "Channel Down":
+                changeChannel(-1);
+                return true;
+            case "Volume Up":
+                adjustSoftwareVolume(true);
+                return true;
+            case "Volume Down":
+                adjustSoftwareVolume(false);
+                return true;
+            case "Forward 10 Sec":
+                player.seekTo(player.getCurrentPosition() + 10000);
+                return true;
+            case "Backward 10 Sec":
+                player.seekTo(player.getCurrentPosition() - 10000);
+                return true;
+            case "Settings":
+                showSettingsMenu();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public void showButtonRemappingDialog() {
+        String[] buttons = {
+            "Up", "Down", "Left", "Right", "OK / Enter",
+            "Up (Long)", "Down (Long)", "Left (Long)", "Right (Long)", "OK (Long)"
+        };
+        String[] prefKeys = {
+            "pref_map_up", "pref_map_down", "pref_map_left", "pref_map_right", "pref_map_ok",
+            "pref_map_up_long", "pref_map_down_long", "pref_map_left_long", "pref_map_right_long", "pref_map_ok_long"
+        };
+        String[] defaultActions = {
+            "Channel Up", "Channel Down", "Backward 10 Sec", "Forward 10 Sec", "Do Nothing",
+            "Do Nothing", "Do Nothing", "Do Nothing", "Do Nothing", "Settings"
+        };
+
+        String[] availableActions = {
+            "Channel Up", "Channel Down",
+            "Volume Up", "Volume Down",
+            "Forward 10 Sec", "Backward 10 Sec",
+            "Settings", "Do Nothing"
+        };
+
+        float density = getResources().getDisplayMetrics().density;
+        final Dialog dialog = new Dialog(this, R.style.GoldenFocusDialogTheme);
+
+        
+        android.widget.LinearLayout mainLayout = new android.widget.LinearLayout(this);
+        mainLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        mainLayout.setPadding((int)(24 * density), (int)(24 * density), (int)(24 * density), (int)(24 * density));
+        mainLayout.setMinimumWidth((int)(350 * density));
+
+        android.graphics.drawable.GradientDrawable dialogBg = new android.graphics.drawable.GradientDrawable();
+        dialogBg.setColor(android.graphics.Color.parseColor("#E6121212"));
+        dialogBg.setCornerRadius(30f);
+        dialogBg.setStroke(3, android.graphics.Color.parseColor("#444444"));
+        mainLayout.setBackground(dialogBg);
+
+        
+        TextView titleView = new TextView(this);
+        titleView.setText("Remap Remote Buttons");
+        titleView.setTextColor(android.graphics.Color.WHITE);
+        titleView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 20);
+        titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+        android.widget.LinearLayout.LayoutParams titleParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+        titleParams.bottomMargin = (int)(16 * density);
+        mainLayout.addView(titleView, titleParams);
+
+        
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+        scrollView.setVerticalScrollBarEnabled(false);
+        android.widget.LinearLayout.LayoutParams scrollParams = new android.widget.LinearLayout.LayoutParams(-1, 0, 1f);
+
+        android.widget.LinearLayout rowsContainer = new android.widget.LinearLayout(this);
+        rowsContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+        scrollView.addView(rowsContainer, new android.widget.FrameLayout.LayoutParams(-1, -2));
+        mainLayout.addView(scrollView, scrollParams);
+
+        
+        for (int i = 0; i < buttons.length; i++) {
+            final int index = i;
+
+            android.widget.LinearLayout rowLayout = new android.widget.LinearLayout(this);
+            rowLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            rowLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            rowLayout.setPadding((int)(16 * density), (int)(16 * density), (int)(16 * density), (int)(16 * density));
+            rowLayout.setMinimumHeight((int)(64 * density));
+
+            android.widget.LinearLayout.LayoutParams rowParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+            rowParams.bottomMargin = (int)(8 * density);
+            rowLayout.setLayoutParams(rowParams);
+            rowLayout.setFocusable(true);
+            rowLayout.setClickable(true);
+
+            android.graphics.drawable.StateListDrawable states = new android.graphics.drawable.StateListDrawable();
+
+            android.graphics.drawable.GradientDrawable focusedState = new android.graphics.drawable.GradientDrawable();
+            focusedState.setColor(android.graphics.Color.parseColor("#33FFFFFF"));
+            focusedState.setCornerRadius(12f * density);
+            focusedState.setStroke((int)(2 * density), android.graphics.Color.parseColor("#FFD700"));
+
+            android.graphics.drawable.GradientDrawable pressedState = new android.graphics.drawable.GradientDrawable();
+            pressedState.setColor(android.graphics.Color.parseColor("#22FFFFFF"));
+            pressedState.setCornerRadius(12f * density);
+
+            android.graphics.drawable.GradientDrawable defaultState = new android.graphics.drawable.GradientDrawable();
+            defaultState.setColor(android.graphics.Color.TRANSPARENT);
+            defaultState.setCornerRadius(12f * density);
+
+            states.addState(new int[]{android.R.attr.state_focused}, focusedState);
+            states.addState(new int[]{android.R.attr.state_pressed}, pressedState);
+            states.addState(new int[]{}, defaultState);
+            rowLayout.setBackground(states);
+
+            android.widget.ImageView iconView = new android.widget.ImageView(this);
+            iconView.setImageResource(R.drawable.tx_remote);
+            iconView.setColorFilter(android.graphics.Color.parseColor("#AAAAAA"));
+            android.widget.LinearLayout.LayoutParams iconParams = new android.widget.LinearLayout.LayoutParams((int)(24 * density), (int)(24 * density));
+            iconParams.rightMargin = (int)(16 * density);
+            rowLayout.addView(iconView, iconParams);
+
+            TextView nameView = new TextView(this);
+            nameView.setText(buttons[i]);
+            nameView.setTextColor(android.graphics.Color.WHITE);
+            nameView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+            nameView.setTypeface(null, android.graphics.Typeface.BOLD);
+            android.widget.LinearLayout.LayoutParams nameParams = new android.widget.LinearLayout.LayoutParams(0, -2, 1f);
+            rowLayout.addView(nameView, nameParams);
+
+
+            TextView actionView = new TextView(this);
+            String currentAction = prefs.getString(prefKeys[i], defaultActions[i]);
+            actionView.setText(currentAction);
+            actionView.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+            actionView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+            actionView.setPadding((int)(12 * density), (int)(6 * density), (int)(12 * density), (int)(6 * density));
+
+            android.graphics.drawable.GradientDrawable badgeBg = new android.graphics.drawable.GradientDrawable();
+            badgeBg.setColor(android.graphics.Color.parseColor("#22FFD700"));
+            badgeBg.setCornerRadius(8f * density);
+            actionView.setBackground(badgeBg);
+            rowLayout.addView(actionView);
+
+            rowLayout.setOnClickListener(v -> {
+                new android.app.AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+                    .setTitle("Select Action for " + buttons[index])
+                    .setItems(availableActions, (subDialog, actionWhich) -> {
+                        String selectedAction = availableActions[actionWhich];
+                        prefs.edit().putString(prefKeys[index], selectedAction).apply();
+                        Toast.makeText(this, buttons[index] + " mapped to " + selectedAction, Toast.LENGTH_SHORT).show();
+                        actionView.setText(selectedAction); // Update UI badge instantly
+                    })
+                    .show();
+            });
+
+            rowsContainer.addView(rowLayout);
+        }
+
+        
+        android.widget.Button closeButton = new android.widget.Button(this);
+        closeButton.setText("Close");
+        closeButton.setTextColor(android.graphics.Color.WHITE);
+        closeButton.setBackgroundColor(android.graphics.Color.parseColor("#333333"));
+        android.widget.LinearLayout.LayoutParams btnParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+        btnParams.topMargin = (int)(16 * density);
+        closeButton.setLayoutParams(btnParams);
+
+        android.graphics.drawable.StateListDrawable btnStates = new android.graphics.drawable.StateListDrawable();
+        android.graphics.drawable.ColorDrawable btnFocused = new android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#555555"));
+        android.graphics.drawable.ColorDrawable btnDefault = new android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#333333"));
+        btnStates.addState(new int[]{android.R.attr.state_focused}, btnFocused);
+        btnStates.addState(new int[]{}, btnDefault);
+        closeButton.setBackground(btnStates);
+
+        closeButton.setOnClickListener(v -> dialog.dismiss());
+        mainLayout.addView(closeButton);
+
+        
+        dialog.setContentView(mainLayout);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
+        dialog.show();
     }
 }
