@@ -41,7 +41,7 @@
 //import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder;
 //import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 //import com.google.android.exoplayer2.util.MimeTypes;
-//import com.startapp.sdk.adsbase.StartAppAd;
+//
 //import com.termux.R;
 //import com.termux.sky.TxVerify;
 //import com.termux.sky.plugins.Plugin;

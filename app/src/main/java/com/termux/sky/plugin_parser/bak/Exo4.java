@@ -48,7 +48,7 @@
 //import androidx.media3.ui.PlayerView;
 //import androidx.media3.ui.TrackSelectionDialogBuilder;
 //
-//import com.startapp.sdk.adsbase.StartAppAd;
+//
 //import com.termux.R;
 //import com.termux.sky.TxVerify;
 //import com.termux.sky.plugins.Plugin;

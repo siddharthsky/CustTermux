@@ -42,7 +42,12 @@
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.AD_ID" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"
+        tools:ignore="LeanbackUsesWifi" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
     <application
         android:name=".app.TermuxApplication"
@@ -84,14 +89,6 @@
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
-
-            <meta-data
-                android:name="com.startapp.sdk.APPLICATION_ID"
-                android:value="205859761" />
-
-            <meta-data
-                android:name="com.startapp.sdk.SPLASH_ENABLED"
-                android:value="false" />
 
         </activity>
 

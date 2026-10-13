@@ -23,11 +23,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
-import com.startapp.sdk.ads.banner.Banner;
-import com.startapp.sdk.ads.banner.BannerListener;
+import com.inmobi.ads.InMobiBanner;
+
+
 import com.termux.R;
 import com.termux.sky.TxVerify;
 import com.termux.sky.hanaplayer.HanaPlayerActivity;
@@ -35,6 +37,11 @@ import com.termux.sky.hanaplayer.HanaPlayerActivity;
 import java.io.File;
 import java.util.Locale;
 import java.util.Objects;
+
+import com.inmobi.ads.InMobiBanner;
+import com.inmobi.ads.listeners.BannerAdEventListener;
+import com.inmobi.ads.AdMetaInfo;
+import com.inmobi.ads.InMobiAdRequestStatus;
 
 public class AutoAppRedirectDialog {
 
@@ -44,7 +51,10 @@ public class AutoAppRedirectDialog {
     private CountDownTimer timer;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private Banner preloadedBanner;
+//    private Banner preloadedBanner;
+
+    private InMobiBanner preloadedBanner;
+
 
     @SuppressLint("UseCompatLoadingForDrawables")
     public void show(Activity activity) {
@@ -95,29 +105,29 @@ public class AutoAppRedirectDialog {
                 TxVerify.isPremium(activity);
 
             if (premium) {
-
                 bannerContainer.setVisibility(View.GONE);
-
             } else {
-
                 bannerContainer.setVisibility(View.VISIBLE);
 
+                // 1. Define strict layout params for the Ad view
+                FrameLayout.LayoutParams adParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                );
+
                 if (preloadedBanner != null) {
-
                     if (preloadedBanner.getParent() != null) {
-                        ((ViewGroup) preloadedBanner.getParent())
-                            .removeView(preloadedBanner);
+                        ((ViewGroup) preloadedBanner.getParent()).removeView(preloadedBanner);
                     }
-
-                    bannerContainer.addView(preloadedBanner);
-
+                    // 2. Pass the params here
+                    bannerContainer.addView(preloadedBanner, adParams);
                 } else {
-
-                    Banner fallbackBanner =
-                        new Banner(activity);
-
-                    bannerContainer.addView(fallbackBanner);
-                    fallbackBanner.loadAd();
+                    InMobiBanner fallbackBanner = new InMobiBanner(activity, 10000798264L);
+                    fallbackBanner.setBannerSize(320, 50);
+                    fallbackBanner.setRefreshInterval(60);
+                    // 3. And pass the params here
+                    bannerContainer.addView(fallbackBanner, adParams);
+                    fallbackBanner.load();
                 }
             }
 
@@ -159,7 +169,7 @@ public class AutoAppRedirectDialog {
 
                 @Override
                 public void onFinish() {
-                    isRedirecting = true; // Mark as redirecting so onDismiss doesn't cancel our intent
+                    isRedirecting = true;
                     dialog.dismiss();
                     launch(activity, pkg, cls, minimize);
                 }
@@ -175,34 +185,29 @@ public class AutoAppRedirectDialog {
         File file = new File(homeDir, fileName);
         return file.exists() && file.isFile();
     }
-
     public void preloadBanner(Activity activity) {
         if (activity == null || activity.isFinishing()) return;
 
-        preloadedBanner = new Banner(activity, new BannerListener() {
-            @Override
-            public void onReceiveAd(View view) {
-                Log.d(TAG, "StartApp Banner preloaded successfully");
+        preloadedBanner = new InMobiBanner(activity, 10000798264L);
+        preloadedBanner.setBannerSize(320, 50);
+        preloadedBanner.setRefreshInterval(60);
 
-                if (preloadedBanner != null) {
-                    preloadedBanner.setVisibility(View.VISIBLE);
-                }
+        preloadedBanner.setListener(new BannerAdEventListener() {
+            @Override
+            public void onAdLoadSucceeded(@NonNull InMobiBanner inMobiBanner, @NonNull AdMetaInfo adMetaInfo) {
+                Log.d(TAG, "InMobi Banner preloaded successfully");
             }
 
             @Override
-            public void onFailedToReceiveAd(View view) {
-                Log.e(TAG, "StartApp Banner failed to preload");
+            public void onAdLoadFailed(@NonNull InMobiBanner inMobiBanner, @NonNull InMobiAdRequestStatus inMobiAdRequestStatus) {
+                Log.e(TAG, "InMobi Banner failed to preload: " + inMobiAdRequestStatus.getMessage());
+                preloadedBanner = null;
             }
-
-            @Override
-            public void onImpression(View view) {}
-
-            @Override
-            public void onClick(View view) {}
         });
 
-        preloadedBanner.setVisibility(View.INVISIBLE);
+        preloadedBanner.load();
     }
+
 
     public void launch(Context context, String pkg, String cls, Boolean minimize) {
         try {
