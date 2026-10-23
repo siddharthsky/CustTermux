@@ -159,7 +159,7 @@ public class AutoAppRedirectDialog {
 
                 @Override
                 public void onFinish() {
-                    isRedirecting = true; // Mark as redirecting so onDismiss doesn't cancel our intent
+                    isRedirecting = true;
                     dialog.dismiss();
                     launch(activity, pkg, cls, minimize);
                 }
@@ -238,7 +238,7 @@ public class AutoAppRedirectDialog {
         if (timer != null) {
             timer.cancel();
         }
-        // CRITICAL: Prevent the handler from firing if the dialog is cancelled during the 200ms delay
+
         handler.removeCallbacksAndMessages(null);
 
         if (dialog != null && dialog.isShowing()) {

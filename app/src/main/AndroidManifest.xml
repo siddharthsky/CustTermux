@@ -161,6 +161,16 @@
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
         <activity
+            android:name=".sky.play_master.PointerWebViewActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:ignore="DiscouragedApi"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"/>
+
+        <activity
             android:name=".sky.play_master.GenericWebActivity"
             android:launchMode="singleTask"
             android:screenOrientation="sensor"

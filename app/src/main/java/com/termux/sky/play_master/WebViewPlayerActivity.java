@@ -13,10 +13,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.media3.common.util.UnstableApi;
 
 import com.termux.sky.plugin_parser.ChannelModel;
 import com.termux.sky.plugin_parser.PlaylistManager;
@@ -184,6 +186,7 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
@@ -222,6 +225,7 @@ public class WebViewPlayerActivity extends AppCompatActivity {
         return super.dispatchKeyEvent(event);
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void changeChannel(int direction) {
         if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
 

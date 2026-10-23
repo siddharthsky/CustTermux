@@ -19,7 +19,10 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.common.util.UnstableApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -260,6 +263,7 @@ public class PlugDRM extends AppCompatActivity {
         if (adapter != null) adapter.updateList(filteredList);
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     private void playVideo(ChannelModel channel) {
         Intent intent = new Intent(this, ExoPlayerActivityDRM.class);
         intent.putExtra("url", channel.url);

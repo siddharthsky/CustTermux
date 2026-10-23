@@ -40,6 +40,7 @@ import com.termux.R;
 import com.termux.sky.filehandlers.FileManagerActivity;
 import com.termux.sky.filehandlers.FilePickerActivity;
 import com.termux.sky.iptv.AppPickerActivity;
+import com.termux.sky.plugins_utils.PluginManagerActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class TxSettingsActivity extends AppCompatActivity {
     private EditText mLicenseInput;
 
     public enum SettingId {
-        IPTV_MANAGER, FILE_MANAGER, AUTO_START, BACKUP_RESTORE,
+        PLUGIN_MANAGER, HANA_PLAYER, IPTV_MANAGER, FILE_MANAGER, AUTO_START, BACKUP_RESTORE,
         REMOVE_ADS, TELEGRAM, GITHUB, ABOUT, HEADER_DANGER_ZONE,
         CLEAR_PLUGINS, RESET_APP_DATA, HEADER_EXP_ZONE
     }
@@ -72,6 +73,25 @@ public class TxSettingsActivity extends AppCompatActivity {
             if (item.getType() == SettingItem.ItemType.HEADER) return;
 
             switch (item.getId()) {
+                case PLUGIN_MANAGER: {
+                    Intent intent = new Intent(this, PluginManagerActivity.class);
+                    this.startActivity(intent);
+                    break;
+                }
+                case HANA_PLAYER: {
+                    if (isHanaPlayerInstalled()) {
+                        Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.ctxengine.hanaplayer");
+                        if (launchIntent != null) {
+                            Toast.makeText(this, "App is already installed, Launching HanaPlayer", Toast.LENGTH_SHORT).show();
+                            startActivity(launchIntent);
+                        } else {
+                            Toast.makeText(this, "App is installed but cannot be launched.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        showHanaDownloadDialog();
+                    }
+                    break;
+                }
                 case IPTV_MANAGER: {
                     Intent intent = new Intent(this, AppPickerActivity.class);
                     this.startActivity(intent);
@@ -133,10 +153,102 @@ public class TxSettingsActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    private boolean isHanaPlayerInstalled() {
+        try {
+            getPackageManager().getPackageInfo("com.ctxengine.hanaplayer", 0);
+            return true;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            return false;
+        }
+    }
+
+    private void showHanaDownloadDialog() {
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setMax(100);
+        progressBar.setPadding(50, 30, 50, 30);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+            .setTitle("Hana Player Required")
+            .setMessage("Hana Player is not installed. Downloading...")
+            .setView(progressBar)
+            .setCancelable(false)
+            .setNegativeButton("Cancel", (d, which) -> {
+            })
+            .create();
+
+        dialog.show();
+        new Thread(() -> {
+            java.io.File apkFile = new java.io.File(getExternalCacheDir(), "hanaplayer.apk");
+
+            if (apkFile.exists()) {
+                apkFile.delete();
+            }
+
+            try {
+                java.net.URL url = new java.net.URL("https://gitlab.com/api/v4/projects/87554177/packages/generic/release-assets/release-20261023-f53c2822/HanaPlayer.apk");
+                java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                int fileLength = connection.getContentLength();
+                java.io.InputStream input = new java.io.BufferedInputStream(connection.getInputStream());
+                java.io.OutputStream output = new java.io.FileOutputStream(apkFile);
+
+                byte[] data = new byte[1024];
+                long total = 0;
+                int count;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    int progress = (int) (total * 100 / fileLength);
+                    runOnUiThread(() -> progressBar.setProgress(progress));
+                    output.write(data, 0, count);
+                }
+
+                output.flush();
+                output.close();
+                input.close();
+
+                runOnUiThread(() -> {
+                    dialog.dismiss();
+                    installHanaPlayer(apkFile);
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    dialog.dismiss();
+                    Toast.makeText(TxSettingsActivity.this, "Download failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+    private void installHanaPlayer(java.io.File apkFile) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        Uri apkUri;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            apkUri = androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".provider", apkFile);
+        } else {
+            apkUri = Uri.fromFile(apkFile);
+        }
+
+        intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to launch installer.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void loadSettingsOptions() {
         List<SettingItem> masterList = new ArrayList<>();
 
+        masterList.add(new SettingItem(SettingId.PLUGIN_MANAGER, "Plugin Manager", R.drawable.tx_m_plugin, true));
         masterList.add(new SettingItem(SettingId.IPTV_MANAGER, "IPTV Manager", R.drawable.tx_m_tv, true));
+        masterList.add(new SettingItem(SettingId.HANA_PLAYER, "Install Shortcut to HanaPlayer", R.drawable.tx_hana_player_sm, true));
         masterList.add(new SettingItem(SettingId.AUTO_START, "Auto-Start on boot", R.drawable.tx_boot, true));
         masterList.add(new SettingItem(SettingId.BACKUP_RESTORE, "Backup and Restore", R.drawable.tx_backup, true));
         masterList.add(new SettingItem(SettingId.REMOVE_ADS, "Activate Premium", R.drawable.tx_ads, true));

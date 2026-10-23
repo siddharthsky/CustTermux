@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.ContextThemeWrapper;
@@ -39,6 +40,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.*;
 
 import com.termux.R;
+import com.termux.sky.play_master.PointerWebViewActivity;
 import com.termux.sky.plugin_parser.PlugDRM;
 import com.termux.sky.filehandlers.FilePickerActivity;
 import com.termux.sky.play_master.GenericWebActivity;
@@ -673,6 +675,7 @@ public class PluginManagerActivity extends AppCompatActivity {
             .setPositiveButton("Open", (d, w) -> {
 
                 Intent intent = new Intent(this, WebViewLoginActivity.class);
+//                Intent intent = new Intent(this, VirtualMouseWebViewActivity.class);
                 intent.putExtra("url", plugin.login_url);
                 startActivity(intent);
 
@@ -743,6 +746,15 @@ public class PluginManagerActivity extends AppCompatActivity {
 
         if (!isTool) {
             Log.d("GIO", plugin.port + " "+plugin.playlist);
+
+            if (TextUtils.isEmpty(plugin.playlist) && !TextUtils.isEmpty(plugin.watch_url)) {
+                Log.d("GIO", "No playlist found. Starting GenericWebActivity with watch_url: " + plugin.watch_url);
+                Intent intent = new Intent(this, PointerWebViewActivity.class);
+                intent.putExtra("url", plugin.watch_url);
+                intent.putExtra("port", plugin.port);
+                startActivity(intent);
+                return;
+            }
 
             Intent intent = new Intent(this, PlugDRM.class);
             intent.putExtra("playlist_url", plugin.playlist);

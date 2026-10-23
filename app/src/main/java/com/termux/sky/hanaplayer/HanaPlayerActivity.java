@@ -37,6 +37,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +58,8 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.startapp.sdk.ads.banner.Banner;
 import com.termux.R;
+import com.termux.sky.TxSettingsActivity;
+import com.termux.sky.TxUtils;
 import com.termux.sky.TxVerify;
 import com.termux.sky.plugins_utils.Plugin;
 import com.termux.sky.plugins_utils.PluginStorage;
@@ -67,6 +70,8 @@ import com.termux.sky.play_master.ExoPlayerActivityDRM;
 import com.termux.sky.plugin_parser.M3UParser;
 import com.termux.sky.plugin_parser.PlaylistManager;
 
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +116,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
     private int selectedMovePosition = -1;
     private TextView rearrangeBanner;
     private RecyclerView recyclerView;
+
+    private AlertDialog serverInitDialog;
 
     private boolean mLongPressConsumed = false;
     private boolean mIsTrackingRemap = false;
@@ -444,14 +451,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         setContentView(root);
 
-        hideSystemUI();
-        initChips();
-        loadActiveData();
-        setupAds();
+//        hideSystemUI();
+//        initChips();
+//        loadActiveData();
+//        setupAds();
+//
+//        new Thread(() -> {
+//            ChannelDataManager.syncChannelsIfNeeded(getApplicationContext(), "5006");
+//        }).start();
 
-        new Thread(() -> {
-            ChannelDataManager.syncChannelsIfNeeded(getApplicationContext(), "5006");
-        }).start();
+        hideSystemUI();
+        verifyServerAndInitApp();
 
     }
 
@@ -903,8 +913,17 @@ public class HanaPlayerActivity extends AppCompatActivity {
         rearrangeItem.setChecked(isRearrangeMode);
         rearrangeItem.setVisible(selectedPorts.contains("Favorites") && currentSortMode == 0);
 
+        final int SETTINGS_INTENT_ID = 1005;
+        popup.getMenu().add(0, SETTINGS_INTENT_ID, 0, "Settings");
+
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+
+            if (id == SETTINGS_INTENT_ID) {
+                Intent intent = new Intent(HanaPlayerActivity.this, TxSettingsActivity.class);
+                startActivity(intent);
+                return true;
+            }
 
             if (id == CLEAR_FAV_ID) {
                 clearAllFavorites();
@@ -2024,5 +2043,119 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 adContainer.setVisibility(View.GONE);
             }
         }
+    }
+
+
+    private boolean isServerRunning() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("127.0.0.1", 5789), 1500);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void showServerStartingDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.HORIZONTAL);
+        layout.setPadding(padding, padding, padding, padding);
+        layout.setGravity(Gravity.CENTER_VERTICAL);
+        layout.setBackgroundColor(Color.parseColor("#1A1A1B"));
+
+        ProgressBar progressBar = new ProgressBar(this);
+        progressBar.setIndeterminate(true);
+        progressBar.getIndeterminateDrawable().setTint(Color.parseColor("#FFD700"));
+
+        int pbSize = (int) (40 * getResources().getDisplayMetrics().density);
+        LinearLayout.LayoutParams pbParams = new LinearLayout.LayoutParams(pbSize, pbSize);
+        progressBar.setLayoutParams(pbParams);
+        layout.addView(progressBar);
+
+        TextView textView = new TextView(this);
+        textView.setText("⏳ Starting server, please wait...");
+        textView.setTextColor(Color.WHITE);
+        textView.setTextSize(16);
+        textView.setTypeface(null, Typeface.BOLD);
+
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        textParams.setMargins(padding, 0, 0, 0);
+        textView.setLayoutParams(textParams);
+        layout.addView(textView);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme);
+        builder.setCancelable(false);
+        builder.setView(layout);
+
+        serverInitDialog = builder.create();
+        serverInitDialog.show();
+    }
+
+    private void dismissServerStartingDialog() {
+        if (serverInitDialog != null && serverInitDialog.isShowing()) {
+            serverInitDialog.dismiss();
+            serverInitDialog = null;
+        }
+    }
+
+    private void verifyServerAndInitApp() {
+        new Thread(() -> {
+            boolean alive = isServerRunning();
+
+            if (alive) {
+                runOnUiThread(this::proceedWithInitialization);
+                return;
+            }
+
+            runOnUiThread(this::showServerStartingDialog);
+
+            new TxUtils().ensureServerIsRunning(getApplicationContext());
+
+            int maxRetries = 8;
+            boolean serverReady = false;
+
+            for (int i = 0; i < maxRetries; i++) {
+                try {
+                    Thread.sleep(1500);
+                } catch (InterruptedException ignored) {
+                    break;
+                }
+
+                if (isServerRunning()) {
+                    serverReady = true;
+                    break;
+                }
+            }
+
+            final boolean finalReady = serverReady;
+            runOnUiThread(() -> {
+                dismissServerStartingDialog();
+                if (!finalReady) {
+                    Toast.makeText(this, "⚠️ Server failed to start. Running offline mode.", Toast.LENGTH_SHORT).show();
+                }
+                proceedWithInitialization();
+            });
+        }).start();
+    }
+
+    private void proceedWithInitialization() {
+        initChips();
+        loadActiveData();
+        setupAds();
+
+        new Thread(() -> {
+            ChannelDataManager.syncChannelsIfNeeded(getApplicationContext(), "5006");
+        }).start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        dismissServerStartingDialog();
+        super.onDestroy();
     }
 }

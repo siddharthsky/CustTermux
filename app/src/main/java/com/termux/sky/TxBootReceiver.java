@@ -82,14 +82,18 @@ public class TxBootReceiver extends BroadcastReceiver {
             context.startService(serviceIntent);
         }
 
-        if (!autoStart || !boot_start_app) {
-            Log.d("BOOT", "SKIP");
-            return;
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        if (background && autoStart) {
+            handler.postDelayed(() -> {
+                TxUtils.checkPluginAndStartService(context, 8180, false, TxVerify.isPremium(context));
+            }, 5000);
         }
 
-        TxUtils.checkPluginAndStartService(context,8180, false, TxVerify.isPremium(context));
-
-        Handler handler = new Handler(Looper.getMainLooper());
+        if (!autoStart || !boot_start_app) {
+            Log.d("BOOT", "SKIP APP LAUNCH");
+            return;
+        }
 
         File homeDir = new File(context.getFilesDir(), "home");
         File launchFile = new File(homeDir, ".launch");

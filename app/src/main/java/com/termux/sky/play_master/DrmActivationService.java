@@ -203,7 +203,7 @@ public class DrmActivationService extends Service {
             Log.w(TAG, "Playback timed out before reaching READY state. Aborting this phase.");
             completeAction.run();
         };
-        mainHandler.postDelayed(failsafeRunnable, 15000);
+        mainHandler.postDelayed(failsafeRunnable, 5000);
 
         player.addListener(new Player.Listener() {
             boolean hasStarted15SecTimer = false;
@@ -214,14 +214,13 @@ public class DrmActivationService extends Service {
                     hasStarted15SecTimer = true;
                     Log.d(TAG, "Playback is READY. Keeping alive for exactly 15 seconds...");
 
-                    
                     mainHandler.removeCallbacks(failsafeRunnable);
 
-                    
                     mainHandler.postDelayed(() -> {
                         Log.d(TAG, "15 seconds completed. Ending playback phase.");
+                        Toast.makeText(getApplicationContext(), "DRM Activation Successful!", Toast.LENGTH_SHORT).show();
                         completeAction.run();
-                    }, 15000);
+                    }, 5000);
                 }
             }
 

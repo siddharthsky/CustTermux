@@ -755,4 +755,22 @@ public class TxUtils {
             Log.d("DRM_LAUNCHER", "Target port " + targetPort + " not found or not active. Skipping activation.");
         }
     }
+
+    public void ensureServerIsRunning(Context context) {
+        try {
+            Intent serviceIntent = new Intent();
+            serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+            serviceIntent.setAction("com.termux.RUN_COMMAND");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutilz.sh");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--run", "boot"});
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", 1);
+            context.startService(serviceIntent);
+
+            TxUtils.checkPluginAndStartService(context,8180,false, TxVerify.isPremium(context));
+        } catch (Exception e) {
+            Log.e("DRM_PLAYER", "Could not start background server", e);
+        }
+    }
 }
