@@ -28,24 +28,41 @@ import androidx.appcompat.app.AlertDialog;
 import com.termux.R;
 import com.termux.sky.filehandlers.FilePickerActivity;
 import com.termux.sky.play_master.DrmActivationService;
+import com.termux.sky.plugin_parser.ChannelModel;
+import com.termux.sky.plugin_parser.M3UParser;
+import com.termux.sky.plugins_utils.Plugin;
+import com.termux.sky.plugins_utils.PluginStorage;
 import com.termux.view.TerminalView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class TxUtils {
 
@@ -722,6 +739,7 @@ public class TxUtils {
     }
 
     public static void checkPluginAndStartService(Context context, int targetPort, boolean showToast, boolean isPremium) {
+
         if (!isPremium) {
             Log.d("DRM_LAUNCHER", "User is not premium. Skipping DRM activation.");
             return;
@@ -754,6 +772,127 @@ public class TxUtils {
         } else {
             Log.d("DRM_LAUNCHER", "Target port " + targetPort + " not found or not active. Skipping activation.");
         }
+    }
+
+    public static void updateAllPlaylistsInBackground(Context context) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+
+            List<Plugin> plugins = PluginStorage.load(context); 
+
+            if (plugins == null || plugins.isEmpty()) {
+                Log.d("PLAYLIST_UPDATER", "No plugins found to update.");
+                return;
+            }
+
+            Log.d("PLAYLIST_UPDATER", "Starting background update for " + plugins.size() + " plugins.");
+
+            for (Plugin plugin : plugins) { 
+                String targetPlaylistUrl = plugin.playlist; 
+                int targetPort = plugin.port;
+
+
+                if (targetPlaylistUrl == null || targetPlaylistUrl.isEmpty() ||
+                    targetPlaylistUrl.startsWith("content://") || targetPlaylistUrl.startsWith("file://")) {
+                    Log.d("PLAYLIST_UPDATER", "Skipping port " + targetPort + " (No valid network playlist URL)");
+                    continue;
+                }
+
+
+                HttpURLConnection connection = null;
+                try {
+                    URL url = new URL(targetPlaylistUrl);
+                    connection = (HttpURLConnection) url.openConnection();
+
+                    // Bypass SSL verification only for localhost / 127.0.0.1
+                    if (connection instanceof HttpsURLConnection &&
+                        ("localhost".equalsIgnoreCase(url.getHost()) || "127.0.0.1".equals(url.getHost()))) {
+                        bypassSslForLocalhost((HttpsURLConnection) connection);
+                    }
+                    
+                    connection.setConnectTimeout(10000);
+                    connection.setReadTimeout(10000);
+                    connection.setRequestMethod("GET");
+
+                    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        StringBuilder result = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            result.append(line).append("\n");
+                        }
+                        reader.close();
+                        String content = result.toString();
+
+                        
+                        List<ChannelModel> channels = M3UParser.parse(content); 
+
+                        if (!channels.isEmpty()) {
+                            String portStr = String.valueOf(targetPort);
+
+                            
+                            if (M3UParser.existsInPrefs(context, portStr)) { 
+                                List<ChannelModel> existingChannels = M3UParser.getFromPrefs(context, portStr); 
+                                Set<String> favoriteUrls = new HashSet<>();
+
+                                for (ChannelModel oldCh : existingChannels) {
+                                    if (oldCh.isFavorite && oldCh.url != null) { 
+                                        favoriteUrls.add(oldCh.url);
+                                    }
+                                }
+
+                                for (ChannelModel newCh : channels) {
+                                    if (newCh.url != null && favoriteUrls.contains(newCh.url)) {
+                                        newCh.isFavorite = true;
+                                    }
+                                }
+                            }
+
+                            
+                            M3UParser.saveToPrefs(context, portStr, channels); 
+                            Log.d("PLAYLIST_UPDATER", "Playlist for port " + targetPort + " successfully updated.");
+                        } else {
+                            Log.w("PLAYLIST_UPDATER", "Parsed playlist is empty for port " + targetPort);
+                        }
+                    } else {
+                        Log.e("PLAYLIST_UPDATER", "Failed to fetch playlist for port " + targetPort + ". HTTP Code: " + connection.getResponseCode());
+                    }
+                } catch (Exception e) {
+                    
+                    Log.e("PLAYLIST_UPDATER", "Error updating playlist for port " + targetPort, e);
+                } finally {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                }
+            }
+
+            Log.d("PLAYLIST_UPDATER", "All plugin playlists update cycle finished.");
+        });
+    }
+
+    private static void bypassSslForLocalhost(HttpsURLConnection httpsConn) throws Exception {
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            }
+        };
+
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+
+        httpsConn.setSSLSocketFactory(sc.getSocketFactory());
+        httpsConn.setHostnameVerifier((hostname, session) ->
+            "localhost".equalsIgnoreCase(hostname) || "127.0.0.1".equals(hostname)
+        );
     }
 
     public void ensureServerIsRunning(Context context) {

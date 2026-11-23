@@ -139,9 +139,16 @@ public class TxBootReceiver extends BroadcastReceiver {
         handler.postDelayed(checkTask, 1000);
     }
 
-    private void startTermuxActivity(Context context) {
+    private void startTermuxActivity2(Context context) {
         Intent activityIntent = new Intent();
         activityIntent.setClassName("com.termux", "com.termux.app.TermuxActivity");
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(activityIntent);
+    }
+
+    private void startTermuxActivity(Context context) {
+        Intent activityIntent = new Intent();
+        activityIntent.setClassName("com.termux", "com.termux.sky.hanaplayer.HanaPlayerActivity");
         activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(activityIntent);
     }

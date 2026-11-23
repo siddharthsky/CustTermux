@@ -185,7 +185,7 @@ public class TxSettingsActivity extends AppCompatActivity {
             }
 
             try {
-                java.net.URL url = new java.net.URL("https://gitlab.com/api/v4/projects/87554177/packages/generic/release-assets/release-20261023-f53c2822/HanaPlayer.apk");
+                java.net.URL url = new java.net.URL("https://gitlab.com/droidesks-group/ctx-assets/-/raw/main/assets/HanaPlayer.apk");
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
                 connection.connect();
 

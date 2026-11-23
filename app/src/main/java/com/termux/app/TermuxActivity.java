@@ -3,6 +3,8 @@ package com.termux.app;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import static com.termux.sky.TxUtils.updateAllPlaylistsInBackground;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -94,6 +96,7 @@ import com.termux.view.TerminalViewClient;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -254,6 +257,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private TextView overlayStatus;
     private TextView premiumStatus;
 
+    private TextView storageDot;
+
+    private TextView overlayDot;
+
     private TextView restartBanner;
 
     private AutoAppRedirectDialog redirect;
@@ -367,9 +374,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 //        Button button6 = findViewById(R.id.button6);
 
         ipAddressText = findViewById(R.id.ip_address);
-        storageStatus = findViewById(R.id.storage_permission_status);
-        overlayStatus = findViewById(R.id.overlay_permission_status);
-        premiumStatus = findViewById(R.id.premium_status);
+//        storageStatus = findViewById(R.id.storage_permission_status);
+//        overlayStatus = findViewById(R.id.overlay_permission_status);
+//        premiumStatus = findViewById(R.id.premium_status);
+         storageDot = findViewById(R.id.storage_permission_dot);
+         overlayDot = findViewById(R.id.overlay_permission_dot);
 
         restartBanner = findViewById(R.id.restartBanner);
 
@@ -469,7 +478,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         hanaPlayerViz();
 
-
+        updateAllPlaylistsInBackground(this);
         TxUtils.checkPluginAndStartService(this,8180, true, TxVerify.isPremium(this));
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1129,34 +1138,38 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
 
         if (storageGranted) {
-            storageStatus.setText("Granted");
-            storageStatus.setTextColor(0xFF00C853);
+//            storageStatus.setText("Granted");
+//            storageStatus.setTextColor(0xFF00C853);
+            storageDot.setTextColor(android.graphics.Color.TRANSPARENT);
         } else {
-            storageStatus.setText("Not Granted");
-            storageStatus.setTextColor(0xFFFF5252);
+//            storageStatus.setText("Not Granted");
+//            storageStatus.setTextColor(0xFFFF5252);
+            storageDot.setTextColor(android.graphics.Color.parseColor("#FF5252"));
         }
 
         boolean overlayGranted = Settings.canDrawOverlays(this);
 
         if (overlayGranted) {
-            overlayStatus.setText("Granted");
-            overlayStatus.setTextColor(0xFF00C853);
+//            overlayStatus.setText("Granted");
+//            overlayStatus.setTextColor(0xFF00C853);
+            overlayDot.setTextColor(android.graphics.Color.TRANSPARENT);
         } else {
-            overlayStatus.setText("Not Granted");
-            overlayStatus.setTextColor(0xFFFF5252);
+//            overlayStatus.setText("Not Granted");
+//            overlayStatus.setTextColor(0xFFFF5252);
+            overlayDot.setTextColor(android.graphics.Color.parseColor("#FF5252"));
         }
 
         boolean isPremium = TxVerify.isPremium(this);
 
-        if (isPremium) {
-            premiumStatus.setVisibility(VISIBLE);
-            premiumStatus.setText("Active");
-            premiumStatus.setTextColor(0xFF00C853);
-        } else {
-            premiumStatus.setVisibility(GONE);
-            premiumStatus.setText("Inactive");
-            premiumStatus.setTextColor(0xFFFF5252);
-        }
+//        if (isPremium) {
+//            premiumStatus.setVisibility(VISIBLE);
+//            premiumStatus.setText("Active");
+//            premiumStatus.setTextColor(0xFF00C853);
+//        } else {
+//            premiumStatus.setVisibility(GONE);
+//            premiumStatus.setText("Inactive");
+//            premiumStatus.setTextColor(0xFFFF5252);
+//        }
     }
 
 

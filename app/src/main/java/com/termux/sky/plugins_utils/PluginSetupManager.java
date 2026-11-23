@@ -39,7 +39,7 @@ public class PluginSetupManager {
     }
 
     public void initPlugin(int port, String repoUrl, String repoBranch, String startComm,
-                           String binDownloadURL, String postInstallScript) {
+                           String binDownloadURL, String postInstallScript, String[] pkgs) {
 
         String folderName = String.valueOf(port);
 
@@ -53,6 +53,9 @@ public class PluginSetupManager {
         File zipFile = new File(activity.getCacheDir(), folderName + ".zip");
         new Thread(() -> {
             try {
+                if (pkgs != null && pkgs.length > 0) {
+                    installRequiredPackages(pkgs, pluginDir, port);
+                }
                 boolean hasBin = binDownloadURL != null && !binDownloadURL.trim().isEmpty();
                 boolean hasRepo = repoUrl != null && !repoUrl.trim().isEmpty();
 
@@ -121,6 +124,108 @@ public class PluginSetupManager {
                 handleError("Plugin install failed", e);
             }
         }).start();
+    }
+
+    private void installRequiredPackages(String[] pkgs, File pluginDir, int port) {
+        if (pkgs != null && pkgs.length > 0) {
+            writeRequiredPackagesTempFile(port, pkgs);
+        }
+    }
+
+    private void writeRequiredPackagesTempFile(int port, String[] pkgs) {
+        StringBuilder pkgNames = new StringBuilder();
+        for (String pkg : pkgs) {
+            if (pkg != null && !pkg.trim().isEmpty()) {
+                if (pkgNames.length() > 0) pkgNames.append(" ");
+                pkgNames.append(pkg.trim());
+            }
+        }
+        if (pkgNames.length() == 0) return;
+
+        final String pkgListStr = pkgNames.toString();
+        final androidx.appcompat.app.AlertDialog[] noticeDialog = new androidx.appcompat.app.AlertDialog[1];
+
+        activity.runOnUiThread(() -> {
+            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                noticeDialog[0] = new androidx.appcompat.app.AlertDialog.Builder(
+                    activity, com.termux.R.style.GoldenFocusDialogTheme)
+                    .setTitle("Package Installation Warning")
+                    .setIcon(com.termux.R.drawable.tx_warning_amber)
+                    .setMessage("This plugin requires the following packages:\n\n" + pkgListStr +
+                        "\n\nIf you are unaware of this, please cancel by exiting the app.")
+                    .setCancelable(false)
+                    .show();
+            }
+        });
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+
+        activity.runOnUiThread(() -> {
+            try {
+                if (noticeDialog[0] != null && noticeDialog[0].isShowing()) {
+                    noticeDialog[0].dismiss();
+                }
+            } catch (Exception ignored) {}
+        });
+
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+
+        try {
+            File homeDir = new File(activity.getFilesDir(), "home");
+            if (!homeDir.exists()) homeDir.mkdirs();
+            File tempPkgFile = new File(homeDir, ".post_install_temp");
+            String line = "plugin_" + port + " = " + pkgListStr + "\n";
+            FileOutputStream fos = new FileOutputStream(tempPkgFile, true); // append mode
+            fos.write(line.getBytes());
+            fos.close();
+            Log.d("PluginPkg", "Appended to .post_install_temp: " + line.trim());
+        } catch (Exception e) {
+            Log.e("PluginPkg", "Failed to write .post_install_temp", e);
+        }
+    }
+
+    public void writeUninstallPackagesTempFile(int port, String[] pkgs) {
+        if (pkgs == null || pkgs.length == 0) return;
+
+        StringBuilder pkgNames = new StringBuilder();
+        for (String pkg : pkgs) {
+            if (pkg != null && !pkg.trim().isEmpty()) {
+                if (pkgNames.length() > 0) pkgNames.append(" ");
+                pkgNames.append(pkg.trim());
+            }
+        }
+        if (pkgNames.length() == 0) return;
+
+        try {
+            File homeDir = new File(activity.getFilesDir(), "home");
+            if (!homeDir.exists()) homeDir.mkdirs();
+            File tempUninstallFile = new File(homeDir, ".post_uninstall_temp");
+            String line = "plugin_" + port + " = " + pkgNames.toString() + "\n";
+            FileOutputStream fos = new FileOutputStream(tempUninstallFile, true); // append mode
+            fos.write(line.getBytes());
+            fos.close();
+            Log.d("PluginPkg", "Appended to .post_uninstall_temp: " + line.trim());
+        } catch (Exception e) {
+            Log.e("PluginPkg", "Failed to write .post_uninstall_temp", e);
+        }
+    }
+
+    private void runSilentPkgScript(File scriptFile, File workDir) {
+        Intent intent = new Intent();
+        intent.setClassName("com.termux", "com.termux.app.RunCommandService");
+        intent.setAction("com.termux.RUN_COMMAND");
+        intent.putExtra("com.termux.RUN_COMMAND_PATH", scriptFile.getAbsolutePath());
+        intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", workDir.getAbsolutePath());
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+
+        activity.startService(intent);
+        Log.d("PluginPkg", "Triggered silent package install: " + scriptFile.getAbsolutePath());
     }
 
     public String getRepoZipUrl(String repoUrl, String repoBranch) throws Exception {

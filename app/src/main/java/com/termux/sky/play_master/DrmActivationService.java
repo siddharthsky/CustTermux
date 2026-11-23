@@ -51,6 +51,12 @@ public class DrmActivationService extends Service {
     private int targetPort = 8180;
     private String targetPlaylistUrl = "";
 
+    
+    private interface PlaybackCallback {
+        void onSuccess();
+        void onError(String reason);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -101,7 +107,6 @@ public class DrmActivationService extends Service {
         return START_NOT_STICKY;
     }
 
-    
     private void phase1ActivateExisting() {
         SharedPreferences prefs = getSharedPreferences("port_" + targetPort, Context.MODE_PRIVATE);
         String dashManifestUrl = prefs.getString("ch_0_url", "");
@@ -109,38 +114,49 @@ public class DrmActivationService extends Service {
 
         if (dashManifestUrl.isEmpty() || clearKeyLicenseUrl.isEmpty()) {
             Log.e(TAG, "Phase 1: Existing URLs missing. Moving to Phase 2 directly.");
-            phase2FetchNewData();
+            phase2FetchNewData(true); 
         } else {
-            Log.d(TAG, "Phase 1: Found existing URLs. Activating...");
-            startPlaybackSequence(dashManifestUrl, clearKeyLicenseUrl, this::phase2FetchNewData);
+            Log.d(TAG, "Phase 1: Found existing URLs. Attempting activation...");
+
+            startPlaybackSequence(dashManifestUrl, clearKeyLicenseUrl, false, new PlaybackCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "Phase 1 Success: Server activated. Fetching new data silently to update cache.");
+                    
+                    phase2FetchNewData(false);
+                }
+
+                @Override
+                public void onError(String reason) {
+                    Log.w(TAG, "Phase 1 Failed (" + reason + "). Falling back to Phase 2 to fetch new URLs.");
+                    
+                    phase2FetchNewData(true);
+                }
+            });
         }
     }
 
-
-    private void phase2FetchNewData() {
+    private void phase2FetchNewData(boolean needsPhase3Activation) {
         Log.d(TAG, "Phase 2: Fetching new playlist data in background...");
-        Executors.newSingleThreadExecutor().execute(() -> {
 
+        Executors.newSingleThreadExecutor().execute(() -> {
             String playlistUrl = targetPlaylistUrl;
             String portStr = String.valueOf(targetPort);
-
             String content = downloadUrl(playlistUrl);
 
             mainHandler.post(() -> {
                 if (content != null && !content.isEmpty()) {
                     List<ChannelModel> channels = M3UParser.parse(content);
                     if (!channels.isEmpty()) {
-
+                        
                         if (M3UParser.existsInPrefs(DrmActivationService.this, portStr)) {
                             List<ChannelModel> existingChannels = M3UParser.getFromPrefs(DrmActivationService.this, portStr);
-
                             Set<String> favoriteUrls = new HashSet<>();
                             for (ChannelModel oldCh : existingChannels) {
                                 if (oldCh.isFavorite && oldCh.url != null) {
                                     favoriteUrls.add(oldCh.url);
                                 }
                             }
-
                             for (ChannelModel newCh : channels) {
                                 if (newCh.url != null && favoriteUrls.contains(newCh.url)) {
                                     newCh.isFavorite = true;
@@ -149,8 +165,14 @@ public class DrmActivationService extends Service {
                         }
 
                         M3UParser.saveToPrefs(DrmActivationService.this, portStr, channels);
-                        Log.d(TAG, "Phase 2: Refresh successful! Data saved with favorites retained. Moving to Phase 3.");
-                        phase3ActivateNewData();
+                        Log.d(TAG, "Phase 2: Refresh successful! Data saved.");
+
+                        if (needsPhase3Activation) {
+                            phase3ActivateNewData();
+                        } else {
+                            Log.d(TAG, "Phase 2 completed silently. Service stopping.");
+                            stopSelf();
+                        }
                         return;
                     }
                 }
@@ -160,7 +182,7 @@ public class DrmActivationService extends Service {
             });
         });
     }
-    
+
     private void phase3ActivateNewData() {
         SharedPreferences prefs = getSharedPreferences("port_" + targetPort, Context.MODE_PRIVATE);
         String dashManifestUrl = prefs.getString("ch_0_url", "");
@@ -171,64 +193,76 @@ public class DrmActivationService extends Service {
             stopSelf();
         } else {
             Log.d(TAG, "Phase 3: Found new URLs. Activating...");
-            
-            startPlaybackSequence(dashManifestUrl, clearKeyLicenseUrl, this::stopSelf);
+
+            startPlaybackSequence(dashManifestUrl, clearKeyLicenseUrl, true, new PlaybackCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d(TAG, "Phase 3 Success: DRM Sequence Complete.");
+                    stopSelf();
+                }
+
+                @Override
+                public void onError(String reason) {
+                    Log.e(TAG, "Phase 3 Failed (" + reason + "). Aborting.");
+                    stopSelf();
+                }
+            });
         }
     }
 
-    
-    private void startPlaybackSequence(String dashManifestUrl, String clearKeyLicenseUrl, Runnable onComplete) {
-        releasePlayer(); 
+    private void startPlaybackSequence(String dashManifestUrl, String clearKeyLicenseUrl, boolean isLastTry, PlaybackCallback callback) {
+        releasePlayer();
 
         player = new ExoPlayer.Builder(this).build();
-        player.setVolume(0f); 
+        player.setVolume(0f);
         player.addAnalyticsListener(new EventLogger(null, TAG + "_EVENT"));
 
         
-        Runnable completeAction = new Runnable() {
-            boolean isCalled = false;
-            @Override
-            public void run() {
-                if (!isCalled) {
-                    isCalled = true;
-                    releasePlayer();
-                    onComplete.run();
-                }
-            }
-        };
+        Runnable[] fireOnceHelper = new Runnable[1];
 
-        
-        
         Runnable failsafeRunnable = () -> {
-            Log.w(TAG, "Playback timed out before reaching READY state. Aborting this phase.");
-            completeAction.run();
+            if (fireOnceHelper[0] != null) fireOnceHelper[0].run();
+            callback.onError("Timeout - Server did not respond within 10s");
         };
-        mainHandler.postDelayed(failsafeRunnable, 5000);
+        mainHandler.postDelayed(failsafeRunnable, 10000);
+
+        fireOnceHelper[0] = () -> {
+            mainHandler.removeCallbacks(failsafeRunnable);
+            releasePlayer();
+            fireOnceHelper[0] = null; 
+        };
 
         player.addListener(new Player.Listener() {
-            boolean hasStarted15SecTimer = false;
+            boolean isSuccessTriggered = false;
 
             @Override
             public void onPlaybackStateChanged(int state) {
-                if (state == Player.STATE_READY && !hasStarted15SecTimer) {
-                    hasStarted15SecTimer = true;
-                    Log.d(TAG, "Playback is READY. Keeping alive for exactly 15 seconds...");
+                if (state == Player.STATE_READY && !isSuccessTriggered) {
+                    isSuccessTriggered = true;
+                    Log.d(TAG, "Playback is READY. Keeping alive for 500ms constraint...");
 
                     mainHandler.removeCallbacks(failsafeRunnable);
 
                     mainHandler.postDelayed(() -> {
-                        Log.d(TAG, "15 seconds completed. Ending playback phase.");
-                        Toast.makeText(getApplicationContext(), "DRM Activation Successful!", Toast.LENGTH_SHORT).show();
-                        completeAction.run();
-                    }, 5000);
+                        if (fireOnceHelper[0] != null) {
+                            fireOnceHelper[0].run();
+
+                            if (isLastTry) {
+                                Toast.makeText(getApplicationContext(), "DRM Activation Successful!", Toast.LENGTH_SHORT).show();
+                            }
+                            callback.onSuccess();
+                        }
+                    }, 500);
                 }
             }
 
             @Override
             public void onPlayerError(PlaybackException error) {
                 Log.e(TAG, "Player Error during sequence", error);
-                mainHandler.removeCallbacks(failsafeRunnable);
-                completeAction.run();
+                if (fireOnceHelper[0] != null) {
+                    fireOnceHelper[0].run();
+                    callback.onError(error.getMessage());
+                }
             }
         });
 
@@ -253,8 +287,10 @@ public class DrmActivationService extends Service {
             player.setPlayWhenReady(true);
         } catch (Exception e) {
             Log.e(TAG, "Exception initializing ExoPlayer", e);
-            mainHandler.removeCallbacks(failsafeRunnable);
-            completeAction.run();
+            if (fireOnceHelper[0] != null) {
+                fireOnceHelper[0].run();
+                callback.onError(e.getMessage());
+            }
         }
     }
 
@@ -313,7 +349,7 @@ public class DrmActivationService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null; 
+        return null;
     }
 
     @Override
@@ -322,11 +358,9 @@ public class DrmActivationService extends Service {
         Log.d(TAG, "Service onDestroy called. Cleaning up all resources...");
         isRunning = false;
 
-        
         if (mainHandler != null) {
             mainHandler.removeCallbacksAndMessages(null);
         }
-
         releasePlayer();
     }
 }

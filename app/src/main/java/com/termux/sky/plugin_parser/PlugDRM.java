@@ -1,5 +1,6 @@
 package com.termux.sky.plugin_parser;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -285,8 +286,41 @@ public class PlugDRM extends AppCompatActivity {
             StringBuilder sb = new StringBuilder();
             java.net.HttpURLConnection conn = null;
 
+
             try {
                 java.net.URL url = new java.net.URL(urlString);
+
+                if ("https".equalsIgnoreCase(url.getProtocol())) {
+                    @SuppressLint("CustomX509TrustManager") javax.net.ssl.TrustManager[] trustAllCerts = new javax.net.ssl.TrustManager[]{
+                        new javax.net.ssl.X509TrustManager() {
+                            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                                return new java.security.cert.X509Certificate[0];
+                            }
+
+                            @SuppressLint("TrustAllX509TrustManager")
+                            public void checkClientTrusted(
+                                java.security.cert.X509Certificate[] certs, String authType) {
+                            }
+
+                            @SuppressLint("TrustAllX509TrustManager")
+                            public void checkServerTrusted(
+                                java.security.cert.X509Certificate[] certs, String authType) {
+                            }
+                        }
+                    };
+
+                    javax.net.ssl.SSLContext sslContext =
+                        javax.net.ssl.SSLContext.getInstance("TLS");
+
+                    sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+                    javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(
+                        sslContext.getSocketFactory());
+
+                    javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
+                        (hostname, session) -> true);
+                }
+
                 conn = (java.net.HttpURLConnection) url.openConnection();
 
                 conn.setConnectTimeout(10000);

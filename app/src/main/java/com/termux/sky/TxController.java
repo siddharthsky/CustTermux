@@ -64,7 +64,7 @@ public class TxController {
     }
 
     public void rerunCustTermux() {
-        Toast.makeText(activity, "Re-Running CustTermux", Toast.LENGTH_SHORT).show();
+        Toast.makeText(activity, "Re-Running CTxEngine", Toast.LENGTH_SHORT).show();
 
         start();
 

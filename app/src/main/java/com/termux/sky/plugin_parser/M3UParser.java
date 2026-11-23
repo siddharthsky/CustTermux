@@ -44,8 +44,15 @@ public class M3UParser {
                 current.type = getAttribute(line, "tvg-type");
             } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_type")) {
                 current.licenseType = getValue(line);
+//            } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) {
+//                current.licenseKey = getValue(line);
             } else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) {
-                current.licenseKey = getValue(line);
+            String rawKey = getValue(line);
+            if (rawKey.contains("|")) {
+                current.licenseKey = rawKey.substring(0, rawKey.indexOf("|")).trim();
+            } else {
+                current.licenseKey = rawKey;
+            }
             } else if (line.startsWith("#KODIPROP:inputstream.adaptive.manifest_type")) {
                 current.manifestType = getValue(line);
             } else if (line.startsWith("#EXTVLCOPT:http-user-agent")) {

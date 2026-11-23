@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -30,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -121,6 +123,16 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
     private boolean mLongPressConsumed = false;
     private boolean mIsTrackingRemap = false;
+
+    private List<ChannelModel> allChannelsCache = null;
+    private final StringBuilder numInputBuffer = new StringBuilder();
+    private final Handler numInputHandler = new Handler(Looper.getMainLooper());
+    private Runnable numInputRunnable;
+    private TextView numInputOverlay;
+    private static final long NUM_TUNE_DELAY_MS = 2500;
+
+    private final Object cacheLock = new Object();
+    private volatile boolean isFetchingMissingInBg = false;
 
 
     @SuppressLint("SetTextI18n")
@@ -377,6 +389,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, spanCount);
 
         recyclerView.setLayoutManager(gridLayoutManager);
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(30);
+        recyclerView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+
         adapter = new HanaChannelAdapter(displayList, this::onChannelClick, this::onChannelLongClick);
         recyclerView.setAdapter(adapter);
         LinearLayout.LayoutParams rvParams = new LinearLayout.LayoutParams(
@@ -812,7 +829,104 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 return true;
             }
         }
+
+        if (event.getAction() == KeyEvent.ACTION_DOWN
+            && selectedPorts.contains("Favorites")
+            && !isRearrangeMode
+            && (searchBox == null || !searchBox.hasFocus())) {
+            int digit = getDigitFromKeyCode(event.getKeyCode());
+            if (digit != -1) {
+                handleRemoteDigitInput(digit);
+                return true;
+            }
+            if (numInputBuffer.length() > 0 && (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER
+                || event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                || event.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER)) {
+                numInputHandler.removeCallbacks(numInputRunnable);
+                tuneToBufferedFavorite();
+                return true;
+            }
+        }
         return super.dispatchKeyEvent(event);
+    }
+
+    private int getDigitFromKeyCode(int keyCode) {
+        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+            return keyCode - KeyEvent.KEYCODE_0;
+        }
+        if (keyCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyCode <= KeyEvent.KEYCODE_NUMPAD_9) {
+            return keyCode - KeyEvent.KEYCODE_NUMPAD_0;
+        }
+        return -1;
+    }
+
+    private void handleRemoteDigitInput(int digit) {
+        if (numInputBuffer.length() >= 4) return;
+        numInputBuffer.append(digit);
+
+        showNumberInputOverlay();
+
+        if (numInputRunnable != null) numInputHandler.removeCallbacks(numInputRunnable);
+        numInputRunnable = this::tuneToBufferedFavorite;
+        numInputHandler.postDelayed(numInputRunnable, NUM_TUNE_DELAY_MS);
+    }
+
+    private void showNumberInputOverlay() {
+        if (numInputOverlay == null) {
+            float density = getResources().getDisplayMetrics().density;
+            numInputOverlay = new TextView(this);
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColor(Color.parseColor("#E60E1628"));
+            bg.setCornerRadius(12f * density);
+            bg.setStroke((int) (1.5f * density), Color.parseColor("#FFD700"));
+            numInputOverlay.setBackground(bg);
+            numInputOverlay.setTextColor(Color.parseColor("#FFD700"));
+            numInputOverlay.setTextSize(18);
+            numInputOverlay.setTypeface(null, Typeface.BOLD);
+            numInputOverlay.setGravity(Gravity.CENTER);
+            numInputOverlay.setPadding((int) (14 * density), (int) (8 * density), (int) (14 * density), (int) (8 * density));
+
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            lp.gravity = Gravity.TOP | Gravity.END;
+            lp.topMargin = (int) (20 * density);
+            lp.rightMargin = (int) (20 * density);
+
+            ViewGroup content = findViewById(android.R.id.content);
+            if (content != null) content.addView(numInputOverlay, lp);
+        }
+
+        int idx = resolveFavoriteIndex(numInputBuffer.toString());
+        String preview = (idx >= 0 && idx < displayList.size())
+            ? "\n" + displayList.get(idx).name
+            : "\n---";
+        numInputOverlay.setText(numInputBuffer.toString() + preview);
+        numInputOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private int resolveFavoriteIndex(String typed) {
+        try {
+            int enteredNum = Integer.parseInt(typed);
+            int startNum = Integer.parseInt(prefs.getString("fav_start_number", "001").trim());
+            int index = enteredNum - startNum;
+            return (index >= 0 && index < displayList.size()) ? index : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private void tuneToBufferedFavorite() {
+        String typed = numInputBuffer.toString();
+        numInputBuffer.setLength(0);
+        if (numInputOverlay != null) numInputOverlay.setVisibility(View.GONE);
+
+        int index = resolveFavoriteIndex(typed);
+        if (index != -1) {
+            onChannelClick(displayList.get(index));
+        } else {
+            Toast.makeText(this, "Channel " + typed + " not found in Favorites", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveCustomFavoritesOrder() {
@@ -825,6 +939,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
         prefs.edit().putString("fav_order", android.text.TextUtils.join(",", orderedUrls)).apply();
         if (selectedPorts.contains("Favorites")) {
             currentPortChannels = new ArrayList<>(displayList);
+            if (prefs.getBoolean("fav_show_numbers", false)) {
+                adapter.notifyItemRangeChanged(0, displayList.size());
+            }
         }
     }
 
@@ -913,11 +1030,20 @@ public class HanaPlayerActivity extends AppCompatActivity {
         rearrangeItem.setChecked(isRearrangeMode);
         rearrangeItem.setVisible(selectedPorts.contains("Favorites") && currentSortMode == 0);
 
+        final int FAV_NUMBERS_ID = 1006;
+        MenuItem favNumbersItem = popup.getMenu().add(0, FAV_NUMBERS_ID, 0, "Show Channel Numbers");
+        favNumbersItem.setVisible(selectedPorts.contains("Favorites"));
+
         final int SETTINGS_INTENT_ID = 1005;
         popup.getMenu().add(0, SETTINGS_INTENT_ID, 0, "Settings");
 
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+
+            if (id == FAV_NUMBERS_ID) {
+                showFavNumbersDialog();
+                return true;
+            }
 
             if (id == SETTINGS_INTENT_ID) {
                 Intent intent = new Intent(HanaPlayerActivity.this, TxSettingsActivity.class);
@@ -985,6 +1111,139 @@ public class HanaPlayerActivity extends AppCompatActivity {
         popup.show();
     }
 
+    private void showFavNumbersDialog() {
+        float density = getResources().getDisplayMetrics().density;
+        boolean currentShow = prefs.getBoolean("fav_show_numbers", false);
+        String currentStart = prefs.getString("fav_start_number", "001");
+        int totalFavs = displayList.size();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme);
+        builder.setTitle("Favorite Channel Numbers");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (24 * density);
+        layout.setPadding(padding, padding, padding, padding);
+
+        android.widget.CheckBox checkShow = new android.widget.CheckBox(this);
+        checkShow.setText("Show Channel Numbers");
+        checkShow.setTextColor(Color.WHITE);
+        checkShow.setChecked(currentShow);
+        layout.addView(checkShow);
+
+        TextView labelStart = new TextView(this);
+        labelStart.setText("Start numbering from (e.g., 01, 001, 0001, 99):");
+        labelStart.setTextColor(Color.LTGRAY);
+        labelStart.setTextSize(13);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelParams.topMargin = (int) (16 * density);
+        layout.addView(labelStart, labelParams);
+
+        EditText inputStart = new EditText(this);
+        inputStart.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        inputStart.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(4)});
+        inputStart.setText(currentStart);
+        inputStart.setTextColor(Color.WHITE);
+        inputStart.setHint("001");
+        inputStart.setHintTextColor(Color.GRAY);
+        inputStart.setSingleLine(true);
+        inputStart.setEnabled(currentShow);
+        inputStart.setAlpha(currentShow ? 1.0f : 0.5f);
+
+        GradientDrawable inputBg = new GradientDrawable();
+        inputBg.setColor(Color.parseColor("#1E2738"));
+        inputBg.setCornerRadius(8f * density);
+        inputBg.setStroke((int) (1 * density), Color.parseColor("#444444"));
+        inputStart.setBackground(inputBg);
+        int inPad = (int) (12 * density);
+        inputStart.setPadding(inPad, inPad, inPad, inPad);
+
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        inputParams.topMargin = (int) (8 * density);
+        layout.addView(inputStart, inputParams);
+
+        TextView rangePreview = new TextView(this);
+        rangePreview.setTextColor(Color.parseColor("#FFD700"));
+        rangePreview.setTextSize(13);
+        rangePreview.setTypeface(null, Typeface.BOLD);
+        LinearLayout.LayoutParams rangeParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rangeParams.topMargin = (int) (10 * density);
+        layout.addView(rangePreview, rangeParams);
+
+        Runnable updateRangePreview = () -> {
+            String raw = inputStart.getText().toString().trim();
+            if (raw.isEmpty()) raw = "001";
+            if (totalFavs == 0) {
+                rangePreview.setText("No favorite channels found");
+                return;
+            }
+            try {
+                int padLen = raw.length();
+                int startVal = Integer.parseInt(raw);
+                int endVal = startVal + totalFavs - 1;
+                String startFmt = String.format(java.util.Locale.US, "%0" + padLen + "d", startVal);
+                String endFmt = String.format(java.util.Locale.US, "%0" + padLen + "d", endVal);
+                rangePreview.setText("Range: " + startFmt + " to " + endFmt + " (" + totalFavs + " channels)");
+            } catch (NumberFormatException e) {
+                rangePreview.setText("Invalid number");
+            }
+        };
+
+        updateRangePreview.run();
+
+        checkShow.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            inputStart.setEnabled(isChecked);
+            inputStart.setAlpha(isChecked ? 1.0f : 0.5f);
+        });
+
+        inputStart.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateRangePreview.run();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            boolean show = checkShow.isChecked();
+            String startVal = inputStart.getText().toString().trim();
+            if (startVal.isEmpty()) startVal = "001";
+
+            prefs.edit()
+                .putBoolean("fav_show_numbers", show)
+                .putString("fav_start_number", startVal)
+                .apply();
+
+            adapter.setFavNumberConfig(selectedPorts.contains("Favorites"), show, startVal);
+            Toast.makeText(this, show ? "Channel numbers enabled" : "Channel numbers disabled", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Cancel", null);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(Color.WHITE);
+            posButton.setFocusable(true);
+        }
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(Color.WHITE);
+            negButton.setFocusable(true);
+        }
+    }
+
     private void clearAllFavorites() {
         androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
             .setTitle("Clear Favorites")
@@ -1019,6 +1278,7 @@ public class HanaPlayerActivity extends AppCompatActivity {
                     }
 
                     prefs.edit().remove("fav_order").apply();
+                    allChannelsCache = null;
 
                     runOnUiThread(() -> {
                         loadActiveData();
@@ -1060,6 +1320,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
                 loadingView.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
+
+                allChannelsCache = null;
 
                 new Thread(() -> {
                     List<Plugin> plugins = PluginStorage.load(this);
@@ -1435,7 +1697,12 @@ public class HanaPlayerActivity extends AppCompatActivity {
         }
 
         if (dynamicLangSet.isEmpty()) {
-            dynamicLangSet.addAll(Arrays.asList("English", "Hindi", "Marathi"));
+            dynamicLangSet.addAll(Arrays.asList(
+                "Hindi", "Marathi", "Punjabi", "Urdu", "Bengali",
+                "English", "Malayalam", "Tamil", "Gujarati", "Odia",
+                "Telugu", "Bhojpuri", "Kannada", "Assamese", "Nepali",
+                "French", "Other"
+            ));
         }
 
         final String[] languages = dynamicLangSet.toArray(new String[0]);
@@ -1503,8 +1770,24 @@ public class HanaPlayerActivity extends AppCompatActivity {
             AlertDialog langDialog = langBuilder.create();
             langDialog.show();
 
-            android.widget.Button neutralBtn = langDialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL);
-            if (neutralBtn != null) neutralBtn.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+            Button posButton = langDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            Button neuButton = langDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+
+            if (posButton != null) {
+                posButton.setBackgroundTintList(null);
+                posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+                posButton.setTextColor(Color.WHITE);
+                posButton.setFocusable(true);
+            }
+
+            if (neuButton != null) {
+                neuButton.setBackgroundTintList(null);
+                neuButton.setBackgroundResource(R.drawable.golden_focus_selector);
+                neuButton.setTextColor(Color.WHITE);
+                neuButton.setFocusable(true);
+            }
+
+
         });
 
         builder.setView(layout);
@@ -1524,8 +1807,23 @@ public class HanaPlayerActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        android.widget.Button posButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
-        if (posButton != null) posButton.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+        Button posButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        Button negButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+        if (posButton != null) {
+            posButton.setBackgroundTintList(null);
+            posButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            posButton.setTextColor(Color.WHITE);
+            posButton.setFocusable(true);
+        }
+
+        if (negButton != null) {
+            negButton.setBackgroundTintList(null);
+            negButton.setBackgroundResource(R.drawable.golden_focus_selector);
+            negButton.setTextColor(Color.WHITE);
+            negButton.setFocusable(true);
+        }
+
     }
 
     private StateListDrawable getTvFocusBorder(Context context) {
@@ -1566,61 +1864,98 @@ public class HanaPlayerActivity extends AppCompatActivity {
         return new ColorStateList(states, colors);
     }
 
-    private void loadActiveData() {
+    private void loadActiveDataOLD() {
         new Thread(() -> {
-            List<Plugin> plugins = PluginStorage.load(this);
-            List<ChannelModel> masterList = new ArrayList<>();
 
-            List<Plugin> targetPlugins = new ArrayList<>();
-            if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
+            Set<String> portsWithData = new HashSet<>();
+
+            if (allChannelsCache == null) {
+                allChannelsCache = new ArrayList<>();
+                List<Plugin> plugins = PluginStorage.load(this);
+
                 for (Plugin p : plugins) {
-                    boolean isTool = (p.tool != null && p.tool);
-                    if (isTool) continue;
+                    if (p.tool != null && p.tool) continue;
+                    String portStr = String.valueOf(p.port);
+                    List<ChannelModel> channels;
 
-                    targetPlugins.add(p);
+                    if (M3UParser.existsInPrefs(this, portStr)) {
+                        channels = M3UParser.getFromPrefs(this, portStr);
+                    } else {
+                        runOnUiThread(() -> {
+                            loadingView.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        });
+
+                        String content = p.playlist;
+                        if (content != null && content.startsWith("http")) {
+                            content = downloadUrl(content);
+                        }
+                        channels = M3UParser.parse(content != null ? content : "");
+                        M3UParser.saveToPrefs(this, portStr, channels);
+                    }
+
+                    if (channels != null && !channels.isEmpty()) {
+                        for (ChannelModel cm : channels) {
+                            cm.originPort = portStr;
+                        }
+                        allChannelsCache.addAll(channels);
+                        portsWithData.add(portStr);
+                    }
                 }
             } else {
-                for (Plugin p : plugins) {
-                    boolean isTool = (p.tool != null && p.tool);
-                    if (isTool) continue;
-
-                    if (selectedPorts.contains(String.valueOf(p.port))) {
-                        targetPlugins.add(p);
-                    }
+                for (ChannelModel cm : allChannelsCache) {
+                    portsWithData.add(cm.originPort);
                 }
             }
 
-            for (Plugin p : targetPlugins) {
-                String portStr = String.valueOf(p.port);
-                List<ChannelModel> channels;
+            runOnUiThread(() -> {
+                boolean selectedChipHidden = false;
 
-                if (M3UParser.existsInPrefs(this, portStr)) {
-                    channels = M3UParser.getFromPrefs(this, portStr);
-                } else {
+                for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                    View child = chipGroup.getChildAt(i);
+                    if (child instanceof com.google.android.material.chip.Chip) {
+                        com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) child;
+                        String tag = (String) chip.getTag();
 
-                    runOnUiThread(() -> {
-                        loadingView.setVisibility(View.VISIBLE);
-                        recyclerView.setVisibility(View.GONE);
-                    });
+                        if (tag != null && !tag.equals("All") && !tag.equals("Favorites")) {
+                            if (!portsWithData.contains(tag)) {
+                                chip.setVisibility(View.GONE);
 
-                    String content = p.playlist;
-                    if (content != null && content.startsWith("http")) {
-                        content = downloadUrl(content);
+                                if (selectedPorts.contains(tag)) {
+                                    selectedChipHidden = true;
+                                }
+                            } else {
+                                chip.setVisibility(View.VISIBLE);
+                            }
+                        }
                     }
-                    channels = M3UParser.parse(content);
-                    M3UParser.saveToPrefs(this, portStr, channels);
-
-
-                    runOnUiThread(() -> {
-                        loadingView.setVisibility(View.GONE);
-                        recyclerView.setVisibility(View.VISIBLE);
-                    });
                 }
 
-                for (ChannelModel cm : channels) {
-                    cm.originPort = portStr;
+                if (selectedChipHidden) {
+                    selectedPorts.clear();
+                    selectedPorts.add("All");
+                    getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+                        .putStringSet(SELECTED_CHIPS_KEY, new HashSet<>(selectedPorts)).apply();
+
+                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                        View child = chipGroup.getChildAt(i);
+                        if (child instanceof com.google.android.material.chip.Chip) {
+                            com.google.android.material.chip.Chip c = (com.google.android.material.chip.Chip) child;
+                            c.setChecked("All".equals(c.getTag()));
+                        }
+                    }
                 }
-                masterList.addAll(channels);
+            });
+
+            List<ChannelModel> masterList = new ArrayList<>();
+            if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
+                masterList.addAll(allChannelsCache);
+            } else {
+                for (ChannelModel cm : allChannelsCache) {
+                    if (selectedPorts.contains(cm.originPort)) {
+                        masterList.add(cm);
+                    }
+                }
             }
 
             if (selectedPorts.contains("Favorites")) {
@@ -1650,7 +1985,6 @@ public class HanaPlayerActivity extends AppCompatActivity {
             final List<String> availableGroups = new ArrayList<>(groups);
 
             new Handler(Looper.getMainLooper()).post(() -> {
-
                 loadingView.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
 
@@ -1658,7 +1992,6 @@ public class HanaPlayerActivity extends AppCompatActivity {
                     .putStringSet(SELECTED_GROUPS_KEY, selectedGroups).apply();
 
                 updateGroupChipsUI(availableGroups);
-
                 applyGroupFilter();
 
                 if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
@@ -1667,6 +2000,219 @@ public class HanaPlayerActivity extends AppCompatActivity {
                 }
             });
         }).start();
+    }
+
+    private void loadActiveData() {
+        final boolean isFavTab = selectedPorts.contains("Favorites");
+
+        if (isFavTab && allChannelsCache == null) {
+            loadingView.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        }
+
+        new Thread(() -> {
+            Set<String> portsWithData = new HashSet<>();
+            List<Plugin> missingPlugins = new ArrayList<>();
+            List<ChannelModel> snapshot;
+
+            synchronized (cacheLock) {
+                if (allChannelsCache == null) {
+                    allChannelsCache = new ArrayList<>();
+                    List<Plugin> plugins = PluginStorage.load(this);
+
+                    for (Plugin p : plugins) {
+                        if (p.tool != null && p.tool) continue;
+                        String portStr = String.valueOf(p.port);
+
+                        if (M3UParser.existsInPrefs(this, portStr)) {
+                            List<ChannelModel> channels = M3UParser.getFromPrefs(this, portStr);
+                            if (channels != null && !channels.isEmpty()) {
+                                for (ChannelModel cm : channels) {
+                                    cm.originPort = portStr;
+                                }
+                                allChannelsCache.addAll(channels);
+                                portsWithData.add(portStr);
+                            }
+                        } else {
+                            missingPlugins.add(p);
+                        }
+                    }
+
+                    // If NOT in Favorites tab, download missing playlists now (existing behavior)
+                    if (!isFavTab && !missingPlugins.isEmpty()) {
+                        runOnUiThread(() -> {
+                            loadingView.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        });
+
+                        for (Plugin p : missingPlugins) {
+                            String portStr = String.valueOf(p.port);
+                            String content = p.playlist;
+                            if (content != null && content.startsWith("http")) {
+                                content = downloadUrl(content);
+                            }
+                            List<ChannelModel> channels = M3UParser.parse(content != null ? content : "");
+                            M3UParser.saveToPrefs(this, portStr, channels);
+
+                            if (channels != null && !channels.isEmpty()) {
+                                for (ChannelModel cm : channels) {
+                                    cm.originPort = portStr;
+                                }
+                                allChannelsCache.addAll(channels);
+                                portsWithData.add(portStr);
+                            }
+                        }
+                        missingPlugins.clear();
+                    }
+                } else {
+                    for (ChannelModel cm : allChannelsCache) {
+                        portsWithData.add(cm.originPort);
+                    }
+                }
+
+                snapshot = new ArrayList<>(allChannelsCache);
+            }
+
+            // Render immediately (for Favorites, this has zero network wait and no skeleton loader)
+            renderTabData(snapshot, portsWithData);
+
+            // If in Favorites tab and some plugins weren't cached yet, fetch them silently in background
+            if (isFavTab && !missingPlugins.isEmpty() && !isFetchingMissingInBg) {
+                fetchMissingPluginsInBackground(missingPlugins, portsWithData);
+            }
+        }).start();
+    }
+
+    private void fetchMissingPluginsInBackground(List<Plugin> missingPlugins, Set<String> portsWithData) {
+        isFetchingMissingInBg = true;
+        new Thread(() -> {
+            try {
+                boolean addedAny = false;
+                for (Plugin p : missingPlugins) {
+                    String portStr = String.valueOf(p.port);
+                    String content = p.playlist;
+                    if (content != null && content.startsWith("http")) {
+                        content = downloadUrl(content);
+                    }
+                    List<ChannelModel> channels = M3UParser.parse(content != null ? content : "");
+                    M3UParser.saveToPrefs(this, portStr, channels);
+
+                    if (channels != null && !channels.isEmpty()) {
+                        for (ChannelModel cm : channels) {
+                            cm.originPort = portStr;
+                        }
+                        synchronized (cacheLock) {
+                            if (allChannelsCache != null) {
+                                allChannelsCache.addAll(channels);
+                            }
+                        }
+                        portsWithData.add(portStr);
+                        addedAny = true;
+                    }
+                }
+
+                if (addedAny) {
+                    runOnUiThread(() -> updatePluginChipsVisibility(portsWithData));
+                }
+            } finally {
+                isFetchingMissingInBg = false;
+            }
+        }).start();
+    }
+
+    private void renderTabData(List<ChannelModel> snapshot, Set<String> portsWithData) {
+        runOnUiThread(() -> updatePluginChipsVisibility(portsWithData));
+
+        List<ChannelModel> masterList = new ArrayList<>();
+        if (selectedPorts.contains("All") || selectedPorts.contains("Favorites")) {
+            masterList.addAll(snapshot);
+        } else {
+            for (ChannelModel cm : snapshot) {
+                if (selectedPorts.contains(cm.originPort)) {
+                    masterList.add(cm);
+                }
+            }
+        }
+
+        if (selectedPorts.contains("Favorites")) {
+            List<ChannelModel> favoritesOnly = new ArrayList<>();
+            for (ChannelModel cm : masterList) {
+                if (cm.isFavorite) favoritesOnly.add(cm);
+            }
+            masterList = favoritesOnly;
+        }
+
+        currentPortChannels = masterList;
+
+        Set<String> groups = new TreeSet<>();
+        for (ChannelModel cm : currentPortChannels) {
+            if (cm.group != null && !cm.group.trim().isEmpty()) {
+                groups.add(cm.group.trim());
+            }
+        }
+
+        if (!selectedGroups.contains("All")) {
+            selectedGroups.retainAll(groups);
+            if (selectedGroups.isEmpty()) {
+                selectedGroups.add("All");
+            }
+        }
+
+        final List<String> availableGroups = new ArrayList<>(groups);
+
+        new Handler(Looper.getMainLooper()).post(() -> {
+            loadingView.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+
+            getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+                .putStringSet(SELECTED_GROUPS_KEY, selectedGroups).apply();
+
+            updateGroupChipsUI(availableGroups);
+            applyGroupFilter();
+
+            if (isLaunch && isFirstLaunch && !displayList.isEmpty()) {
+                isFirstLaunch = false;
+                onChannelClick(displayList.get(0));
+            }
+        });
+    }
+
+    private void updatePluginChipsVisibility(Set<String> portsWithData) {
+        boolean selectedChipHidden = false;
+
+        for (int i = 0; i < chipGroup.getChildCount(); i++) {
+            View child = chipGroup.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                String tag = (String) chip.getTag();
+
+                if (tag != null && !tag.equals("All") && !tag.equals("Favorites")) {
+                    if (!portsWithData.contains(tag)) {
+                        chip.setVisibility(View.GONE);
+                        if (selectedPorts.contains(tag)) {
+                            selectedChipHidden = true;
+                        }
+                    } else {
+                        chip.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        }
+
+        if (selectedChipHidden) {
+            selectedPorts.clear();
+            selectedPorts.add("All");
+            getSharedPreferences(UI_PREFS, MODE_PRIVATE).edit()
+                .putStringSet(SELECTED_CHIPS_KEY, new HashSet<>(selectedPorts)).apply();
+
+            for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                View child = chipGroup.getChildAt(i);
+                if (child instanceof Chip) {
+                    Chip c = (Chip) child;
+                    c.setChecked("All".equals(c.getTag()));
+                }
+            }
+        }
     }
 
     private void applyGroupFilter() {
@@ -1700,6 +2246,11 @@ public class HanaPlayerActivity extends AppCompatActivity {
 
         displayList.clear();
         displayList.addAll(filteredList);
+        adapter.setFavNumberConfig(
+            selectedPorts.contains("Favorites"),
+            prefs.getBoolean("fav_show_numbers", false),
+            prefs.getString("fav_start_number", "001")
+        );
         adapter.updateList(displayList);
     }
 
@@ -1963,7 +2514,8 @@ public class HanaPlayerActivity extends AppCompatActivity {
             .putExtra("license_type", channel.licenseType)
             .putExtra("user_agent", channel.userAgent)
             .putExtra("manifest_type", channel.manifestType)
-            .putExtra("plugin_port", activePort);
+            .putExtra("plugin_port", activePort)
+            .putExtra("is_favorites", selectedPorts.contains("Favorites"));
 
         startActivity(intent);
 
@@ -2011,6 +2563,9 @@ public class HanaPlayerActivity extends AppCompatActivity {
             if (selectedPorts.contains("Favorites") && !channel.isFavorite) {
                 displayList.remove(position);
                 adapter.notifyItemRemoved(position);
+                if (prefs.getBoolean("fav_show_numbers", false)) {
+                    adapter.notifyItemRangeChanged(position, displayList.size() - position);
+                }
             } else {
                 adapter.notifyItemChanged(position);
             }

@@ -2,6 +2,7 @@ package com.termux.sky.hanaplayer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -30,6 +31,10 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
     private List<ChannelModel> list;
     private int movingPosition = -1;
 
+    private boolean isFavoritesTab = false;
+    private boolean showFavNumbers = false;
+    private String favStartNumberStr = "001";
+
     public HanaChannelAdapter(List<ChannelModel> list, OnChannelClickListener click, OnChannelLongClickListener longClick) {
         this.list = list;
         this.clickListener = click;
@@ -53,10 +58,32 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         this.movingPosition = position;
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void setFavNumberConfig(boolean isFavoritesTab, boolean showNumbers, String startNumberStr) {
+        this.isFavoritesTab = isFavoritesTab;
+        this.showFavNumbers = showNumbers;
+        this.favStartNumberStr = (startNumberStr == null || startNumberStr.trim().isEmpty()) ? "001" : startNumberStr.trim();
+        notifyDataSetChanged();
+    }
+
+    private String formatChannelNumber(int position) {
+        try {
+            int padLength = favStartNumberStr.length();
+            int startNum = Integer.parseInt(favStartNumberStr);
+            return String.format(java.util.Locale.US, "%0" + padLength + "d", startNum + position);
+        } catch (NumberFormatException e) {
+            return String.format(java.util.Locale.US, "%03d", 1 + position);
+        }
+    }
+
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context ctx = parent.getContext();
+
+        SharedPreferences prefs = ctx.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        boolean isCatchupEnabled = prefs.getBoolean("5006_catchup", false);
+
         float density = ctx.getResources().getDisplayMetrics().density;
 
         int marginPx = (int) (8 * density);
@@ -159,6 +186,28 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         catchupIcon.setVisibility(View.GONE);
         rootFrame.addView(catchupIcon);
 
+        TextView numberBadge = new TextView(ctx);
+        FrameLayout.LayoutParams numParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        numParams.gravity = Gravity.TOP | Gravity.START;
+        numParams.topMargin = (int) (6 * density);
+        numParams.leftMargin = (int) (6 * density);
+        numberBadge.setLayoutParams(numParams);
+        numberBadge.setTextSize(11);
+        numberBadge.setTextColor(Color.parseColor("#FFD700"));
+        numberBadge.setTypeface(null, Typeface.BOLD);
+        numberBadge.setPadding((int) (6 * density), (int) (2 * density), (int) (6 * density), (int) (2 * density));
+
+        GradientDrawable numBg = new GradientDrawable();
+        numBg.setShape(GradientDrawable.RECTANGLE);
+        numBg.setCornerRadius(6f * density);
+        numBg.setColor(Color.parseColor("#B3000000"));
+        numberBadge.setBackground(numBg);
+        numberBadge.setVisibility(View.GONE);
+        rootFrame.addView(numberBadge);
+
         View focusBorder = new View(ctx);
         focusBorder.setLayoutParams(new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -175,7 +224,7 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
 
         card.addView(rootFrame);
 
-        return new VH(card, logo, name, favIcon, catchupIcon, focusBorder);
+        return new VH(card, logo, name, favIcon, catchupIcon, numberBadge, focusBorder, isCatchupEnabled);
     }
 
     @Override
@@ -195,16 +244,27 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         }
 
         if ("5006".equals(activePort)) {
-            android.content.SharedPreferences prefs = holder.itemView.getContext().getSharedPreferences("settings", Context.MODE_PRIVATE);
-            boolean isCatchupEnabled = prefs.getBoolean("5006_catchup", false);
-
-            if (isCatchupEnabled) {
+            if (holder.isCatchupEnabled) {
                 isCatchupChannel = ChannelDataManager.isCatchupAvailable(holder.itemView.getContext(), channel.id);
             }
         }
 
-        
+
         holder.catchupIcon.setVisibility(isCatchupChannel ? View.VISIBLE : View.GONE);
+
+        boolean shouldShowNumber = isFavoritesTab && showFavNumbers;
+        if (shouldShowNumber) {
+            holder.numberBadge.setText(formatChannelNumber(position));
+            holder.numberBadge.setVisibility(View.VISIBLE);
+        } else {
+            holder.numberBadge.setVisibility(View.GONE);
+        }
+
+        // Prevent catchupIcon from overlapping numberBadge when both are visible
+        float density = holder.itemView.getContext().getResources().getDisplayMetrics().density;
+        FrameLayout.LayoutParams catchupLp = (FrameLayout.LayoutParams) holder.catchupIcon.getLayoutParams();
+        catchupLp.topMargin = (shouldShowNumber && isCatchupChannel) ? (int) (28 * density) : (int) (6 * density);
+        holder.catchupIcon.setLayoutParams(catchupLp);
         
 
         if (position == movingPosition) {
@@ -290,15 +350,19 @@ public class HanaChannelAdapter extends RecyclerView.Adapter<HanaChannelAdapter.
         TextView name;
         ImageView favIcon;
         ImageView catchupIcon;
+        TextView numberBadge;
         View focusBorder;
+        boolean isCatchupEnabled;
 
-        VH(View v, ImageView logo, TextView name, ImageView favIcon, ImageView catchupIcon, View focusBorder) {
+        VH(View v, ImageView logo, TextView name, ImageView favIcon, ImageView catchupIcon, TextView numberBadge, View focusBorder, boolean isCatchupEnabled) {
             super(v);
             this.logo = logo;
             this.name = name;
             this.favIcon = favIcon;
             this.catchupIcon = catchupIcon;
+            this.numberBadge = numberBadge;
             this.focusBorder = focusBorder;
+            this.isCatchupEnabled = isCatchupEnabled;
         }
     }
 }

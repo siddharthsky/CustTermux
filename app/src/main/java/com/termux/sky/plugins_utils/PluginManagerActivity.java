@@ -252,6 +252,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                         intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".json"});
                         customFilePickerLauncher.launch(intent);
 
+
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
@@ -311,7 +312,8 @@ public class PluginManagerActivity extends AppCompatActivity {
                     p.repo_branch,
                     p.start,
                     p.bin_download,
-                    p.post_install_script
+                    p.post_install_script,
+                    p.pkg
                 );
 
                 list.add(p);
@@ -591,7 +593,7 @@ public class PluginManagerActivity extends AppCompatActivity {
                             }
                         }
 
-                        setupManager.initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script);
+                        setupManager.initPlugin(p.port, p.repo, p.repo_branch, p.start, p.bin_download, p.post_install_script, p.pkg);
 
                         list.add(p);
 
@@ -623,6 +625,10 @@ public class PluginManagerActivity extends AppCompatActivity {
 
                 if (plugin.uninstall_script != null && !plugin.uninstall_script.trim().isEmpty()) {
                     setupManager.executeUninstallScriptFromCache(plugin.uninstall_script.trim(), plugin.port);
+                }
+
+                if (plugin.pkg != null && plugin.pkg.length > 0) {
+                    setupManager.writeUninstallPackagesTempFile(plugin.port, plugin.pkg);
                 }
 
                 list.remove(position);
@@ -886,7 +892,7 @@ public class PluginManagerActivity extends AppCompatActivity {
         });
     }
 
-    private void showUrlInputDialog() {
+    private void showUrlInputDialog2() {
         EditText input = new EditText(this);
         input.setHint("https://example.com/playlist.m3u");
         input.setPadding(50, 20, 50, 20);
@@ -919,6 +925,121 @@ public class PluginManagerActivity extends AppCompatActivity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private void showUrlInputDialog() {
+        int dp8 = (int) (8 * getResources().getDisplayMetrics().density);
+        int dp16 = (int) (16 * getResources().getDisplayMetrics().density);
+        int dp20 = (int) (20 * getResources().getDisplayMetrics().density);
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(dp20, dp16, dp20, dp16);
+
+        TextView info = new TextView(this);
+        info.setText("Enter the playlist URL, paste from clipboard, or choose a local file.");
+        info.setTextColor(Color.LTGRAY);
+        info.setTextSize(14f);
+        info.setPadding(0, 0, 0, dp16);
+        container.addView(info);
+
+        LinearLayout inputContainer = new LinearLayout(this);
+        inputContainer.setOrientation(LinearLayout.HORIZONTAL);
+        inputContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        final EditText input = new EditText(this);
+        input.setHint("https://example.com/playlist.m3u");
+        input.setTextSize(16f);
+        input.setMaxLines(1);
+        input.setSingleLine(true);
+        input.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        input.setBackgroundResource(R.drawable.edittext_bg);
+        input.setPadding(dp16, dp16, dp16, dp16);
+
+        LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
+            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f
+        );
+        inputParams.rightMargin = dp8;
+        input.setLayoutParams(inputParams);
+        inputContainer.addView(input);
+
+        Button btnPaste = new Button(this);
+        btnPaste.setText("Paste");
+        btnPaste.setTextColor(Color.parseColor("#FFD700"));
+        btnPaste.setBackgroundResource(R.drawable.golden_focus_selector);
+        btnPaste.setFocusable(true);
+
+        btnPaste.setOnClickListener(v -> {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard != null && clipboard.hasPrimaryClip()) {
+                android.content.ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+                if (item.getText() != null) {
+                    input.setText(item.getText().toString());
+                    input.setSelection(input.getText().length());
+                }
+            } else {
+                Toast.makeText(this, "Clipboard is empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        inputContainer.addView(btnPaste);
+        container.addView(inputContainer);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+            .setTitle("Add M3U URL")
+            .setView(container)
+            .setPositiveButton("Add", null) // Handled in OnShowListener to prevent auto-dismiss on error
+            .setNeutralButton("M3U File", (d, which) -> {
+                Intent intent = new Intent(this, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.EXTRA_FILTERS, new String[]{".m3u", ".m3u8", ".txt"});
+                customFilePickerLauncher.launch(intent);
+            })
+            .setNegativeButton("Cancel", null)
+            .create();
+
+        dialog.setOnShowListener(d -> {
+            Button posButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button neuButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            Button negButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+            Button[] buttons = {posButton, neuButton, negButton};
+            for (Button b : buttons) {
+                if (b != null) {
+                    b.setBackgroundTintList(null);
+                    b.setBackgroundResource(R.drawable.golden_focus_selector);
+                    b.setTextColor(Color.WHITE);
+                    b.setFocusable(true);
+                }
+            }
+
+            if (posButton != null) {
+                posButton.setTextColor(Color.parseColor("#FFD700"));
+                posButton.setOnClickListener(v -> {
+                    String urlString = input.getText().toString().trim();
+                    if (urlString.isEmpty()) {
+                        input.setError("URL cannot be empty");
+                        Toast.makeText(this, "URL cannot be empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    boolean isValid = Patterns.WEB_URL.matcher(urlString).matches() ||
+                        urlString.toLowerCase().contains("://localhost") ||
+                        urlString.toLowerCase().contains("://127.0.0.1");
+
+                    if (!isValid) {
+                        input.setError("Invalid URL format");
+                        Toast.makeText(this, "Please enter a valid URL", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    verifyUrlHasData(urlString);
+                    dialog.dismiss();
+                });
+            }
+
+            input.requestFocus();
+        });
+
+        dialog.show();
     }
 
     private void verifyUrlHasData(String urlString) {

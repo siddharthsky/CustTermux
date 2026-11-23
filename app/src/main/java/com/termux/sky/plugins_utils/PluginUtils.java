@@ -31,6 +31,21 @@ public class PluginUtils {
             p.uninstall_script = o.has("uninstall_script") ? o.getString("uninstall_script") : null;
             p.updatable = o.has("updatable") && o.getBoolean("updatable");
             p.start = o.has("start") ? o.getString("start") : null;
+            if (o.has("pkg") && !o.isNull("pkg")) {
+                Object pkgObj = o.get("pkg");
+                if (pkgObj instanceof org.json.JSONArray) {
+                    org.json.JSONArray arr = (org.json.JSONArray) pkgObj;
+                    p.pkg = new String[arr.length()];
+                    for (int i = 0; i < arr.length(); i++) {
+                        p.pkg[i] = arr.getString(i).trim();
+                    }
+                } else if (pkgObj instanceof String) {
+                    String raw = ((String) pkgObj).trim();
+                    if (!raw.isEmpty()) {
+                        p.pkg = raw.split("\\s+");
+                    }
+                }
+            }
 
             return p;
 

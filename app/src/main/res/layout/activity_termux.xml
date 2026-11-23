@@ -166,29 +166,51 @@
         android:id="@+id/update_progress_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="4dp"
+        android:background="@drawable/status_card"
         android:orientation="vertical"
-        android:padding="8dp"
+        android:padding="12dp"
         android:visibility="gone">
 
-        <TextView
-            android:id="@+id/update_status_text"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Downloading..."
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:gravity="center"/>
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/update_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="Downloading update..."
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/update_percentage_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="0%"
+                android:textColor="#B2E2D2"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
 
         <ProgressBar
             android:id="@+id/update_progress_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="8dp"
+            android:layout_height="10dp"
             android:max="100"
-            android:progress="0"/>
+            android:progress="0"
+            android:progressTint="#B2E2D2"
+            android:progressBackgroundTint="#4DFFFFFF" />
+
     </LinearLayout>
 
-    <!-- Restart Banner -->
     <TextView
         android:id="@+id/restartBanner"
         android:layout_width="match_parent"
@@ -210,118 +232,46 @@
         android:paddingVertical="4dp"
         android:gravity="center">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="54dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
             android:layout_margin="4dp"
-            android:background="@drawable/status_card">
+            android:paddingHorizontal="16dp"
+            android:background="@drawable/button_card">
 
             <TextView
+                android:id="@+id/storage_permission_dot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="IP ADDRESS"
-                android:textColor="#BBBBBB"
-                android:textSize="10sp"
-                android:letterSpacing="0.05" />
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="|"
+                android:textColor="#00FF5252"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/ip_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
                 android:text="Detecting..."
-                android:textColor="#FF9800"
+                android:textColor="#FFB7C5"
                 android:textStyle="bold"
                 android:textSize="13sp"
                 android:maxLines="1" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="54dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="4dp"
-            android:background="@drawable/status_card">
 
             <TextView
+                android:id="@+id/overlay_permission_dot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="STORAGE"
-                android:textColor="#BBBBBB"
-                android:textSize="10sp"
-                android:letterSpacing="0.05" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="|"
+                android:textColor="#00FF5252"
+                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/storage_permission_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Checking..."
-                android:textColor="#FF5252"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="54dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="4dp"
-            android:background="@drawable/status_card">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="OVERLAY"
-                android:textColor="#BBBBBB"
-                android:textSize="10sp"
-                android:letterSpacing="0.05" />
-
-            <TextView
-                android:id="@+id/overlay_permission_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Checking..."
-                android:textColor="#FF5252"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="54dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="4dp"
-            android:background="@drawable/status_card"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PREMIUM"
-                android:textColor="#BBBBBB"
-                android:textSize="10sp"
-                android:letterSpacing="0.05" />
-
-            <TextView
-                android:id="@+id/premium_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Inactive"
-                android:textColor="#FF5252"
-                android:textStyle="bold"
-                android:textSize="13sp" />
-        </LinearLayout>
-
+        </RelativeLayout>
     </LinearLayout>
-
     <RelativeLayout
         android:id="@+id/activity_termux_root_relative_layout"
         android:layout_width="match_parent"
@@ -391,12 +341,14 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <!-- Added explicit white text colors here to prevent black-on-black UI bugs -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/toggle_keyboard_button"
                         style="?android:attr/buttonBarButtonStyle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:textColor="#FFFFFF"
                         android:text="@string/action_toggle_soft_keyboard" />
 
                     <com.google.android.material.button.MaterialButton
@@ -405,6 +357,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:textColor="#FFFFFF"
                         android:text="@string/action_new_session" />
                 </LinearLayout>
             </LinearLayout>

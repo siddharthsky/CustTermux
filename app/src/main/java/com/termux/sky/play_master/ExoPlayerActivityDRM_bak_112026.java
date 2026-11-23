@@ -1,0 +1,1923 @@
+//package com.termux.sky.play_master;
+//
+//import android.annotation.SuppressLint;
+//import android.app.AlertDialog;
+//import android.app.Dialog;
+//import android.app.UiModeManager;
+//import android.content.Context;
+//import android.content.Intent;
+//import android.content.SharedPreferences;
+//import android.content.res.Configuration;
+//import android.media.audiofx.LoudnessEnhancer;
+//import android.net.Uri;
+//import android.os.Bundle;
+//import android.util.Log;
+//import android.view.KeyEvent;
+//import android.view.View;
+//import android.widget.FrameLayout;
+//import android.widget.ImageButton;
+//import android.widget.TextView;
+//import android.widget.Toast;
+//
+//import androidx.activity.ComponentActivity;
+//import androidx.annotation.NonNull;
+//import androidx.annotation.OptIn;
+//import androidx.core.view.WindowCompat;
+//import androidx.core.view.WindowInsetsCompat;
+//import androidx.core.view.WindowInsetsControllerCompat;
+//import androidx.media3.common.AudioAttributes;
+//import androidx.media3.common.C;
+//import androidx.media3.common.Format;
+//import androidx.media3.common.MediaItem;
+//import androidx.media3.common.MimeTypes;
+//import androidx.media3.common.ParserException;
+//import androidx.media3.common.PlaybackException;
+//import androidx.media3.common.Player;
+//import androidx.media3.common.TrackGroup;
+//import androidx.media3.common.TrackSelectionOverride;
+//import androidx.media3.common.TrackSelectionParameters;
+//import androidx.media3.common.Tracks;
+//import androidx.media3.common.util.UnstableApi;
+//import androidx.media3.datasource.DefaultHttpDataSource;
+//import androidx.media3.exoplayer.DefaultRenderersFactory;
+//import androidx.media3.exoplayer.ExoPlayer;
+//import androidx.media3.exoplayer.dash.DashMediaSource;
+//import androidx.media3.exoplayer.drm.DefaultDrmSessionManager;
+//import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
+//import androidx.media3.exoplayer.drm.HttpMediaDrmCallback;
+//import androidx.media3.exoplayer.drm.UnsupportedDrmException;
+//import androidx.media3.exoplayer.hls.HlsMediaSource;
+//import androidx.media3.exoplayer.source.BehindLiveWindowException;
+//import androidx.media3.exoplayer.source.MediaSource;
+//import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+//import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
+//import androidx.media3.ui.AspectRatioFrameLayout;
+//import androidx.media3.ui.DefaultTrackNameProvider;
+//import androidx.media3.ui.PlayerView;
+//import androidx.media3.ui.TrackSelectionDialogBuilder;
+//
+//import com.termux.R;
+//import com.termux.sky.TxUtils;
+//import com.termux.sky.TxVerify;
+//import com.termux.sky.plugin_parser.ChannelBannerManager;
+//import com.termux.sky.plugin_parser.ChannelModel;
+//import com.termux.sky.plugin_parser.M3UParser;
+//import com.termux.sky.plugin_parser.PlaylistManager;
+//import com.termux.sky.plugins_utils.Plugin;
+//import com.termux.sky.plugins_utils.PluginStorage;
+//import com.termux.sky.tv_home_preview.RecentChannelsManager;
+//
+//import java.net.CookieHandler;
+//import java.net.CookieManager;
+//import java.net.CookiePolicy;
+//import java.net.HttpURLConnection;
+//import java.net.InetSocketAddress;
+//import java.net.Socket;
+//import java.net.URL;
+//import java.security.cert.X509Certificate;
+//import java.util.ArrayList;
+//import java.util.HashMap;
+//import java.util.HashSet;
+//import java.util.List;
+//import java.util.Map;
+//import java.util.Set;
+//
+//import javax.net.ssl.HttpsURLConnection;
+//import javax.net.ssl.SSLContext;
+//import javax.net.ssl.TrustManager;
+//import javax.net.ssl.X509TrustManager;
+//
+//@UnstableApi
+//public class ExoPlayerActivityDRM_bak_112026 extends ComponentActivity {
+//    private ExoPlayer player;
+//    private PlayerView playerView;
+//    private ChannelBannerManager bannerManager;
+//    private DefaultTrackSelector trackSelector;
+//
+//    private android.os.Handler zapHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+//    private Runnable zapRunnable;
+//
+//    private boolean isFavoritesMode = false;
+//    private TextView channelNumOverlay;
+//    private final StringBuilder numInputBuffer = new StringBuilder();
+//    private final android.os.Handler numInputHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+//    private Runnable numInputRunnable;
+//    private static final long NUM_TUNE_DELAY_MS = 2500;
+//    private static final long ZAP_DELAY_MS = 400;
+//
+//    private TextView errorOverlay;
+//
+//    private SharedPreferences prefs;
+//    private Thread currentCheckThread;
+//
+//    private int currentZapToken = 0;
+//
+//    String port_no;
+//
+//    private String lastAttemptedUrl = null;
+//    private int currentFormatTrackIndex = 0;
+//    private int currentFormatAttempts = 0;
+//    private static final int FORMAT_DASH = 0;
+//    private static final int FORMAT_HLS = 1;
+//    private static final int FORMAT_PROGRESSIVE = 2;
+//
+//    private boolean controllerVisible = false;
+//
+//    private boolean isLongPressFired = false;
+//
+//    private TextView volumeOverlay;
+//    private float currentSoftwareVolume = 1.0f;
+//    private LoudnessEnhancer loudnessEnhancer;
+//    private android.os.Handler volumeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+//    private Runnable hideVolumeRunnable = () -> {
+//        if (volumeOverlay != null) volumeOverlay.setVisibility(View.GONE);
+//    };
+//
+//    private String currentVideoUrl;
+//    private String currentLicenseUrl;
+//    private String currentUserAgent;
+//    private String currentOrigin;
+//    private String currentReferer;
+//    private String currentCookie;
+//
+//    @OptIn(markerClass = UnstableApi.class)
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//
+//        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+//
+//        CookieManager cookieManager = new CookieManager();
+//        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
+//        if (CookieHandler.getDefault() != cookieManager) {
+//            CookieHandler.setDefault(cookieManager);
+//        }
+//
+//        disableSSLCertificateChecking();
+//
+//        Intent intent = getIntent();
+//        Uri data = intent.getData();
+//
+//        String videoUrl = null;
+//        String videoName = null;
+//        String licenseUrl = null;
+//        String intentUserAgent = null;
+//        String intentCookie = null;
+//        String playlistType = null;
+//
+//
+//        boolean isFromHome = data != null && "hanaplayer".equals(data.getScheme());
+//
+//        if (isFromHome) {
+//            videoUrl = data.getQueryParameter("url");
+//            videoName = data.getQueryParameter("name");
+//            licenseUrl = data.getQueryParameter("license");
+//            intentUserAgent = data.getQueryParameter("user_agent");
+//            intentCookie = data.getQueryParameter("cookie");
+//            playlistType = data.getQueryParameter("playlist_type");
+//            getIntent().putExtra("show_banner", true);
+//
+//            if (port_no == null && videoUrl != null) {
+//                port_no = videoUrl.contains("5007") ? "5007" : "0";
+//            }
+//        } else {
+//
+//            videoUrl = intent.getStringExtra("url");
+//            videoName = intent.getStringExtra("name");
+//            licenseUrl = intent.getStringExtra("license_key");
+//            intentUserAgent = intent.getStringExtra("user_agent");
+//            intentCookie = intent.getStringExtra("cookie");
+//
+//            if (port_no == null && videoUrl != null) {
+//                port_no = videoUrl.contains("5007") ? "5007" : "0";
+//            }
+//        }
+//
+//        isFavoritesMode = isFromHome
+//            ? "favorites".equals(playlistType)
+//            : intent.getBooleanExtra("is_favorites", false);
+//
+//        try {
+//            getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+//        } catch (Exception e) {
+//            Log.d("DRM_PLAYER", "SystemUI flags error");
+//        }
+//
+//        prefs = getSharedPreferences("settings", Context.MODE_PRIVATE);
+//
+//        FrameLayout root = new FrameLayout(this);
+//        root.setBackgroundColor(android.graphics.Color.BLACK);
+//
+//        android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+//        shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+//        shape.setCornerRadius(30f);
+//        shape.setColor(android.graphics.Color.parseColor("#D91A1A1A"));
+//        shape.setStroke(3, android.graphics.Color.parseColor("#FF4444"));
+//        errorOverlay = new TextView(this);
+//        errorOverlay.setBackground(shape);
+//        errorOverlay.setTextColor(android.graphics.Color.WHITE);
+//        errorOverlay.setGravity(android.view.Gravity.CENTER);
+//        errorOverlay.setTextSize(14);
+//        errorOverlay.setPadding(40, 40, 40, 40);
+//        errorOverlay.setLineSpacing(0, 1.1f);
+//        errorOverlay.setVisibility(View.GONE);
+//
+//        playerView = new PlayerView(this);
+//        playerView.setBackgroundColor(android.graphics.Color.BLACK);
+//        playerView.setKeepScreenOn(true);
+//        playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS);
+//        root.addView(playerView);
+//
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+//            playerView.setDefaultFocusHighlightEnabled(false);
+//        }
+//
+//        UiModeManager uiModeManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
+//        boolean isTv = uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
+//
+//        playerView.setControllerAutoShow(false);
+//        playerView.hideController();
+//        if (!isTv) {
+//            playerView.setShowNextButton(true);
+//            playerView.setShowPreviousButton(true);
+//        } else {
+//            playerView.setShowNextButton(false);
+//            playerView.setShowPreviousButton(false);
+//        }
+//        playerView.setShowFastForwardButton(false);
+//        playerView.setShowRewindButton(false);
+//
+//        playerView.setControllerVisibilityListener(
+//            (PlayerView.ControllerVisibilityListener) visibility -> {
+//                controllerVisible = visibility == View.VISIBLE;
+//                if (controllerVisible && bannerManager != null) {
+//                    bannerManager.hide();
+//                }
+//            }
+//        );
+//
+//
+//        ImageButton playBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_play);
+//        ImageButton pauseBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_pause);
+//
+//        if (playBtn != null) {
+//            playBtn.setImageResource(R.drawable.tx_play_exo);
+//            playBtn.setBackgroundResource(R.drawable.img_btn_selector);
+//            playBtn.setColorFilter(android.graphics.Color.WHITE);
+//        }
+//
+//        if (pauseBtn != null) {
+//            pauseBtn.setImageResource(R.drawable.tx_pause_exo);
+//            pauseBtn.setBackgroundResource(R.drawable.img_btn_selector);
+//            pauseBtn.setColorFilter(android.graphics.Color.WHITE);
+//        }
+//
+//        ImageButton nextBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_next);
+//        ImageButton prevBtn = playerView.findViewById(androidx.media3.ui.R.id.exo_prev);
+//
+//        if (nextBtn != null) {
+//            nextBtn.setOnClickListener(v -> changeChannel(1));
+//        }
+//
+//        if (prevBtn != null) {
+//            prevBtn.setOnClickListener(v -> changeChannel(-1));
+//        }
+//
+//        View nextButton = playerView.findViewById(androidx.media3.ui.R.id.exo_duration);
+//        if (nextButton != null && nextButton.getParent() instanceof android.view.ViewGroup) {
+//            android.view.ViewGroup controlGroup = (android.view.ViewGroup) nextButton.getParent();
+//            int nextButtonIndex = controlGroup.indexOfChild(nextButton);
+//
+//            ImageButton btnResize = createCustomControl(nextButton, R.drawable.tx_resize, v -> showScreenScaleMenu());
+//            ImageButton btnAudio = createCustomControl(nextButton, R.drawable.tx_audio, v -> showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track"));
+//            ImageButton btnVideo = createCustomControl(nextButton, R.drawable.tx_videohd, v -> showCustomVideoTrackSelector());
+//            ImageButton btnCC = createCustomControl(nextButton, R.drawable.tx_closed_caption, v -> showTrackSelector(C.TRACK_TYPE_TEXT, "Select Subtitles / CC"));
+//            ImageButton btnVolDown = createCustomControl(nextButton, R.drawable.tx_vol_down, v -> adjustSoftwareVolume(false));
+//            ImageButton btnVolUp = createCustomControl(nextButton, R.drawable.tx_vol_up, v -> adjustSoftwareVolume(true));
+//
+//            controlGroup.addView(btnResize, nextButtonIndex + 1);
+//            controlGroup.addView(btnAudio, nextButtonIndex + 2);
+//            controlGroup.addView(btnVideo, nextButtonIndex + 3);
+//            controlGroup.addView(btnCC, nextButtonIndex + 4);
+//            controlGroup.addView(btnVolDown, nextButtonIndex + 5);
+//            controlGroup.addView(btnVolUp, nextButtonIndex + 6);
+//        }
+//
+//        int savedScale = prefs.getInt("global_screen_scale", AspectRatioFrameLayout.RESIZE_MODE_FIT);
+//        playerView.setResizeMode(savedScale);
+//
+//        playerView.setOnLongClickListener(v -> {
+//            showSettingsMenu();
+//            return true;
+//        });
+//
+//        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+//        FrameLayout.LayoutParams errorParams = new FrameLayout.LayoutParams(
+//            (int) (screenWidth * 0.6),
+//            FrameLayout.LayoutParams.WRAP_CONTENT
+//        );
+//        errorParams.gravity = android.view.Gravity.CENTER;
+//
+//        volumeOverlay = new TextView(this);
+//        android.graphics.drawable.GradientDrawable volShape = new android.graphics.drawable.GradientDrawable();
+//        volShape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+//        volShape.setCornerRadius(30f);
+//        volShape.setColor(android.graphics.Color.parseColor("#D91A1A1A"));
+//        volShape.setStroke(3, android.graphics.Color.parseColor("#4444FF"));
+//        volumeOverlay.setBackground(volShape);
+//        volumeOverlay.setTextColor(android.graphics.Color.WHITE);
+//        volumeOverlay.setGravity(android.view.Gravity.CENTER);
+//        volumeOverlay.setTextSize(16);
+//        volumeOverlay.setPadding(40, 20, 40, 20);
+//        volumeOverlay.setVisibility(View.GONE);
+//
+//        FrameLayout.LayoutParams volParams = new FrameLayout.LayoutParams(
+//            FrameLayout.LayoutParams.WRAP_CONTENT,
+//            FrameLayout.LayoutParams.WRAP_CONTENT
+//        );
+//        volParams.gravity = android.view.Gravity.TOP | android.view.Gravity.CENTER_HORIZONTAL;
+//        volParams.topMargin = 100;
+//
+//        root.addView(errorOverlay, errorParams);
+//
+//        root.addView(volumeOverlay, volParams);
+//
+//        float density = getResources().getDisplayMetrics().density;
+//        channelNumOverlay = new TextView(this);
+//        android.graphics.drawable.GradientDrawable numShape = new android.graphics.drawable.GradientDrawable();
+//        numShape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+//        numShape.setCornerRadius(12f * density);
+//        numShape.setColor(android.graphics.Color.parseColor("#E6121212"));
+//        numShape.setStroke((int) (1.5f * density), android.graphics.Color.parseColor("#FFD700"));
+//        channelNumOverlay.setBackground(numShape);
+//        channelNumOverlay.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+//        channelNumOverlay.setGravity(android.view.Gravity.CENTER);
+//        channelNumOverlay.setTextSize(18);
+//        channelNumOverlay.setTypeface(null, android.graphics.Typeface.BOLD);
+//        channelNumOverlay.setPadding((int) (14 * density), (int) (8 * density), (int) (14 * density), (int) (8 * density));
+//        channelNumOverlay.setVisibility(View.GONE);
+//
+//        FrameLayout.LayoutParams numParams = new FrameLayout.LayoutParams(
+//            FrameLayout.LayoutParams.WRAP_CONTENT,
+//            FrameLayout.LayoutParams.WRAP_CONTENT
+//        );
+//        numParams.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+//        numParams.topMargin = (int) (24 * density);
+//        numParams.rightMargin = (int) (24 * density);
+//        root.addView(channelNumOverlay, numParams);
+//
+//        setContentView(root);
+//
+////        // --- MANUAL PING TEST BLOCK ---
+////        new Thread(() -> {
+////            // 1. Test a local IP (This will trigger the Socket connection to port 5789)
+////            String testLocalUrl = "http://127.0.0.1:8080/stream.m3u8";
+////            int localPingResult = pingUrl(testLocalUrl, null, null, null);
+////
+////            // 2. Test an external URL (This should bypass the socket check and return 200)
+////            String testExternalUrl = "https://example.com/stream.m3u8";
+////            int externalPingResult = pingUrl(testExternalUrl, null, null, null);
+////
+////            // 3. Log it to Logcat
+////            Log.d("PING_TEST", "Local Ping (Port 5789): " + localPingResult);
+////            Log.d("PING_TEST", "External Ping: " + externalPingResult);
+////
+////            // 4. Show a Toast on the screen
+////            runOnUiThread(() -> {
+////                Toast.makeText(ExoPlayerActivityDRM.this,
+////                    "Ping Test -> Local: " + localPingResult + " | External: " + externalPingResult,
+////                    Toast.LENGTH_LONG).show();
+////            });
+////        }).start();
+////// ------------------------------
+//
+//        bannerManager = new ChannelBannerManager(root);
+//
+//        boolean shouldShow = getIntent().getBooleanExtra("show_banner", true);
+//        String name = getIntent().getStringExtra("name");
+//        String logo_url = getIntent().getStringExtra("logo_url");
+//
+//        if (shouldShow && name != null) {
+//            bannerManager.show(name, logo_url);
+//        }
+//
+//        hideSystemUI();
+//
+//        if (!isFromHome) {
+//            if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) {
+//                setupNormalPlaylist(videoUrl, videoName);
+//            }
+//        } else {
+//            if ("favorites".equals(playlistType)) {
+//                setupFavoritesPlaylist();
+//            } else if ("recents".equals(playlistType)) {
+//                setupRecentsPlaylist();
+//            } else {
+//                setupNormalPlaylist(videoUrl, videoName);
+//            }
+//        }
+//
+//        if (videoUrl != null) {
+//            syncPlaylistIndex(videoUrl, videoName);
+//            processIncomingUrl(videoUrl, licenseUrl, intentUserAgent, intentCookie, isFromHome);
+//        }
+//    }
+//
+//    @NonNull
+//    private ImageButton createCustomControl(View template, int iconResId, View.OnClickListener listener) {
+//        ImageButton button = new ImageButton(this);
+//        button.setImageResource(iconResId);
+//        button.setBackgroundResource(R.drawable.img_btn_selector);
+//        button.setColorFilter(android.graphics.Color.WHITE);
+//        button.setScaleType(android.widget.ImageView.ScaleType.CENTER_INSIDE);
+//        button.setLayoutParams(template.getLayoutParams());
+//        button.setPadding(
+//            template.getPaddingLeft(),
+//            template.getPaddingTop(),
+//            template.getPaddingRight(),
+//            template.getPaddingBottom()
+//        );
+//        button.setOnClickListener(listener);
+//        button.setFocusable(true);
+//        return button;
+//    }
+//
+//    private void hideSystemUI() {
+//        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), playerView);
+//        controller.hide(WindowInsetsCompat.Type.systemBars());
+//        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+//    }
+//
+//    private int pingUrl2(String videoUrl, String userAgent, String origin, String referer) {
+//        try {
+//            HttpURLConnection connection = (HttpURLConnection) new URL(videoUrl).openConnection();
+//            connection.setRequestMethod("HEAD");
+//            connection.setConnectTimeout(3000);
+//            connection.setReadTimeout(3000);
+//
+//            String ua = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+//            connection.setRequestProperty("User-Agent", ua);
+//
+//            if (origin != null && !origin.isEmpty()) connection.setRequestProperty("Origin", origin);
+//            if (referer != null && !referer.isEmpty()) connection.setRequestProperty("Referer", referer);
+//
+//            int code = connection.getResponseCode();
+//            if (code == 403 || code == 405) {
+//
+//                HttpURLConnection getConn = (HttpURLConnection) new URL(videoUrl).openConnection();
+//                getConn.setRequestMethod("GET");
+//                getConn.setConnectTimeout(3000);
+//                getConn.setReadTimeout(3000);
+//                getConn.setRequestProperty("User-Agent", ua);
+//                if (origin != null && !origin.isEmpty()) getConn.setRequestProperty("Origin", origin);
+//                if (referer != null && !referer.isEmpty()) getConn.setRequestProperty("Referer", referer);
+//                return getConn.getResponseCode();
+//            }
+//            return code;
+//        } catch (Exception e) {
+//            return -1;
+//        }
+//    }
+//
+//    private int pingUrl(String videoUrl, String userAgent, String origin, String referer) {
+//        try {
+//            URL url = new URL(videoUrl);
+//            String host = url.getHost();
+//
+//            boolean isIpAddress = host != null && host.matches("^([0-9]{1,3}\\.){3}[0-9]{1,3}$");
+//            boolean isLocalhost = host != null && host.equalsIgnoreCase("localhost");
+//
+//            if (isIpAddress || isLocalhost) {
+//                try (Socket socket = new Socket()) {
+//                    socket.connect(new InetSocketAddress("127.0.0.1", 5789), 2000);
+//                    return 200;
+//                } catch (Exception e) {
+//                    return -1;
+//                }
+//            } else {
+//                return 200;
+//            }
+//        } catch (Exception e) {
+//            return -1;
+//        }
+//    }
+//
+//    private void checkStatusAndPlay(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie, boolean isFromHome) {
+//        if (currentCheckThread != null && currentCheckThread.isAlive()) {
+//            currentCheckThread.interrupt();
+//        }
+//
+//        final int myZapToken = currentZapToken;
+//
+//        currentCheckThread = new Thread(() -> {
+//            if (!isFromHome) {
+//                runOnUiThread(() -> {
+//                    if (myZapToken != currentZapToken) return;
+//                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+//                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
+//                });
+//                return;
+//            }
+//
+//            int initialCode = pingUrl(videoUrl, userAgent, origin, referer);
+//            boolean isAlive = (initialCode >= 200 && initialCode < 400);
+//
+//            if (Thread.currentThread().isInterrupted()) return;
+//
+//            if (isAlive) {
+//                runOnUiThread(() -> {
+//                    if (myZapToken != currentZapToken) return;
+//                    if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+//                    initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
+//                });
+//            } else {
+//                runOnUiThread(() -> {
+//                    if (myZapToken != currentZapToken) return;
+//                    if (errorOverlay != null) {
+//                        errorOverlay.setText("⏳ Initializing Server...\nPlease wait a moment.");
+//                        errorOverlay.setVisibility(View.VISIBLE);
+//                    }
+//                });
+//
+//                ensureServerIsRunning(ExoPlayerActivityDRM_bak_112026.this);
+//
+//                int maxRetries = 5;
+//                boolean retrySuccess = false;
+//
+//                for (int i = 0; i < maxRetries; i++) {
+//                    if (Thread.currentThread().isInterrupted()) return;
+//                    try { Thread.sleep(2000); } catch (InterruptedException e) { return; }
+//
+//                    int retryCode = pingUrl(videoUrl, userAgent, origin, referer);
+//                    if (retryCode >= 200 && retryCode < 400) {
+//                        retrySuccess = true;
+//                        break;
+//                    }
+//                }
+//
+//                if (Thread.currentThread().isInterrupted()) return;
+//
+//                if (retrySuccess) {
+//                    runOnUiThread(() -> {
+//                        if (myZapToken != currentZapToken) return;
+//                        if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+//                        initializePlayer(videoUrl, licenseUrl, userAgent, origin, referer, cookie);
+//                    });
+//                } else {
+//                    showErrorOrFallback(videoUrl, myZapToken, initialCode);
+//                }
+//            }
+//        });
+//        currentCheckThread.start();
+//    }
+//
+//    private void showErrorOrFallback(String videoUrl, int zapToken, int responseCode) {
+//        runOnUiThread(() -> {
+//            if (zapToken != currentZapToken) return;
+//            if (!videoUrl.contains("/live/")) {
+//                if (errorOverlay != null) {
+//                    String msg = (responseCode == -1) ? "⚠️ SERVER TIMEOUT\nTermux or Server is not responding." :
+//                        "⚠️ CONNECTION ISSUE\nHTTP CODE: " + responseCode;
+//                    errorOverlay.setText(msg);
+//                    errorOverlay.setVisibility(View.VISIBLE);
+//                }
+//            } else {
+//                switchToWebView(videoUrl);
+//            }
+//        });
+//    }
+//
+//    private void initializePlayer(String videoUrl, String licenseUrl, String userAgent, String origin, String referer, String cookie) {
+//        this.currentVideoUrl = videoUrl;
+//        this.currentLicenseUrl = licenseUrl;
+//        this.currentUserAgent = userAgent;
+//        this.currentOrigin = origin;
+//        this.currentReferer = referer;
+//        this.currentCookie = cookie;
+//
+//        Log.d("DRM_PLAYER", "videoUrl=" + videoUrl + ", licenseUrl=" + licenseUrl);
+//
+////        if (videoUrl != null) {
+////            boolean containsLive = videoUrl.toLowerCase().contains("live");
+////            List<String> numberList = Arrays.asList("676", "678", "682", "684", "729", "733", "744", "747", "895", "896", "897", "898", "899", "900", "901", "1662", "1669", "1754", "2424", "3088");
+////            String joinedNumbers = String.join("|", numberList);
+////            String regexPattern = ".*\\b(" + joinedNumbers + ")\\b.*";
+////            boolean containsExactNumber = videoUrl.matches(regexPattern);
+////            if (containsLive && containsExactNumber) {
+////                Log.d("DRM_PLAYER", "URL contains 'live' and an exact target number. Switching to WebView.");
+////                switchToWebView(videoUrl);
+////                return;
+////            }
+////        }
+//
+//        if (lastAttemptedUrl == null || !lastAttemptedUrl.equals(videoUrl)) {
+//            lastAttemptedUrl = videoUrl;
+//            currentFormatAttempts = 0;
+//
+//
+//            int savedFormat = prefs.getInt("last_successful_format", -1);
+//            if (savedFormat != -1) {
+//                currentFormatTrackIndex = savedFormat;
+//            } else {
+//
+//                assert videoUrl != null;
+//                boolean initialCheckIsHls = videoUrl.toLowerCase().contains(".m3u8")
+//                    || videoUrl.toLowerCase().contains("index.php")
+//                    || videoUrl.toLowerCase().contains("stream.php");
+//                currentFormatTrackIndex = initialCheckIsHls ? FORMAT_HLS : FORMAT_DASH;
+//            }
+//        }
+//
+//        Map<String, String> headers = new HashMap<>();
+//
+////        String finalUserAgent = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36";
+//
+//        String finalUserAgent = (userAgent != null && !userAgent.isEmpty()) ? userAgent : "Dalvik/2.1.0 (Linux; Android 13)";
+//
+//        headers.put("User-Agent", finalUserAgent);
+//        headers.put("Accept", "*/*");
+//        headers.put("Connection", "keep-alive");
+//
+//        if (origin != null && !origin.isEmpty()) headers.put("Origin", origin);
+//        if (referer != null && !referer.isEmpty()) headers.put("Referer", referer);
+//
+//        if (cookie != null && !cookie.isEmpty()) {
+//            headers.put("Cookie", cookie);
+//            Log.d("DRM_PLAYER", "Dynamic Cookie Injected: " + cookie);
+//        }
+//
+//        DefaultHttpDataSource.Factory dataSourceFactory = new DefaultHttpDataSource.Factory()
+//            .setUserAgent(finalUserAgent)
+//            .setAllowCrossProtocolRedirects(true)
+//            .setDefaultRequestProperties(headers);
+//
+//        MediaItem.Builder mediaItemBuilder = new MediaItem.Builder().setUri(Uri.parse(videoUrl));
+//        MediaSource mediaSource;
+//
+//        if (currentFormatTrackIndex == 0) {
+//            boolean initialCheckIsHls = videoUrl.toLowerCase().contains(".m3u8")
+//                || videoUrl.contains("index.php")
+//                || videoUrl.contains("stream.php");
+//
+//            currentFormatTrackIndex = initialCheckIsHls ? FORMAT_HLS : FORMAT_DASH;
+//        }
+//
+//        switch (currentFormatTrackIndex) {
+////            case FORMAT_DASH:
+////                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
+////                if (licenseUrl != null && !licenseUrl.isEmpty()) {
+////
+////                    Log.d("ELX", licenseUrl);
+////
+////                    mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
+////                        .setLicenseUri(licenseUrl)
+////                        .setLicenseRequestHeaders(headers)
+////                        .setMultiSession(true)
+////                        .build());
+////                }
+////                mediaSource = new DashMediaSource.Factory(dataSourceFactory)
+////                    .createMediaSource(mediaItemBuilder.build());
+////                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD)");
+////                break;
+//
+//            case FORMAT_DASH:
+//                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD);
+//
+//                if (licenseUrl != null && !licenseUrl.isEmpty()) {
+//                    Log.d("ELX", licenseUrl);
+//
+//                    boolean isWidevine = licenseUrl.toLowerCase().contains("widevine") ||
+//                        licenseUrl.toLowerCase().contains("wv") ||
+//                        licenseUrl.toLowerCase().contains("/key/") ||
+//                        licenseUrl.toLowerCase().contains("/license/");
+//
+//                    if (licenseUrl.toLowerCase().contains("clearkey")) {
+//                        isWidevine = false;
+//                    }
+//
+//                    if (isWidevine) {
+//                        Log.d("DRM_PLAYER", "Applying DrmVideoActivity Widevine L3 Architecture");
+//
+//                        HttpMediaDrmCallback drmCallback = new HttpMediaDrmCallback(licenseUrl,
+//                            new DefaultHttpDataSource.Factory()
+////                                .setUserAgent(finalUserAgent)
+//                                .setDefaultRequestProperties(headers));
+//
+//                        DefaultDrmSessionManager drmSessionManager = new DefaultDrmSessionManager.Builder()
+//                            .setMultiSession(true)
+//                            .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, uuid -> {
+//                                try {
+//                                    FrameworkMediaDrm drm = FrameworkMediaDrm.newInstance(uuid);
+//                                    drm.setPropertyString("securityLevel", "L3");
+//                                    return drm;
+//                                } catch (UnsupportedDrmException e) {
+//                                    throw new IllegalStateException(e);
+//                                }
+//                            })
+//                            .build(drmCallback);
+//
+//                        androidx.media3.exoplayer.source.DefaultMediaSourceFactory mediaSourceFactory =
+//                            new androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this)
+//                                .setDataSourceFactory(dataSourceFactory)
+//                                .setDrmSessionManagerProvider(mediaItem -> drmSessionManager);
+//
+//                        mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
+//                            .setLicenseUri(licenseUrl)
+//                            .setLicenseRequestHeaders(headers)
+//                            .build());
+//
+//                        mediaSource = mediaSourceFactory.createMediaSource(mediaItemBuilder.build());
+//                        Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD) with Widevine L3");
+//                        break;
+//                    } else {
+//                        Log.d("DRM_PLAYER", "Configuring ClearKey DRM");
+//                        mediaItemBuilder.setDrmConfiguration(new MediaItem.DrmConfiguration.Builder(C.CLEARKEY_UUID)
+//                            .setLicenseUri(licenseUrl)
+//                            .setLicenseRequestHeaders(headers)
+//                            .setMultiSession(true)
+//                            .build());
+//                    }
+//                }
+//
+//                mediaSource = new DashMediaSource.Factory(dataSourceFactory)
+//                    .createMediaSource(mediaItemBuilder.build());
+//                Log.d("DRM_PLAYER", "Attempting playback as: DASH (MPD) with Default Factory");
+//                break;
+//
+//            case FORMAT_HLS:
+//                mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8);
+//                mediaSource = new HlsMediaSource.Factory(dataSourceFactory)
+//                    .setAllowChunklessPreparation(true)
+//                    .createMediaSource(mediaItemBuilder.build());
+//                Log.d("DRM_PLAYER", "Attempting playback as: HLS (M3U8)");
+//                break;
+//
+//            case FORMAT_PROGRESSIVE:
+//            default:
+//                mediaItemBuilder.setMimeType(null);
+//                mediaSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+//                    .createMediaSource(mediaItemBuilder.build());
+//                Log.d("DRM_PLAYER", "Attempting playback as: Progressive Container (MP4/MKV)");
+//                break;
+//        }
+//
+//        if (player == null) {
+//            DefaultRenderersFactory renderersFactory = new DefaultRenderersFactory(this)
+//                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+//                .setEnableDecoderFallback(true);
+//
+//            trackSelector = new DefaultTrackSelector(this);
+//            trackSelector.setParameters(trackSelector.getParameters().buildUpon()
+//                .setForceHighestSupportedBitrate(false)
+//                .build());
+//
+//            player = new ExoPlayer.Builder(this, renderersFactory)
+//                .setTrackSelector(trackSelector)
+//                .build();
+//
+//            applySavedTrackPreferences();
+//
+//            player.addListener(new Player.Listener() {
+//
+//                @Override
+//                public void onAudioSessionIdChanged(int audioSessionId) {
+//                    if (loudnessEnhancer != null) {
+//                        try { loudnessEnhancer.release(); } catch (Exception ignored) {}
+//                    }
+//                    try {
+//                        loudnessEnhancer = new LoudnessEnhancer(audioSessionId);
+//                        applyVolumeAndBoost();
+//                    } catch (Exception e) {
+//                        Log.e("DRM_PLAYER", "Failed to init LoudnessEnhancer", e);
+//                    }
+//                }
+//
+//
+//                @Override
+//                public void onPlayerError(@NonNull PlaybackException error) {
+//                    Throwable cause = error.getCause();
+//
+//                    if (cause instanceof BehindLiveWindowException) {
+//                        Log.w("DRM_PLAYER", "BehindLiveWindowException detected. Seeking to live edge.");
+//                        player.seekToDefaultPosition();
+//                        player.prepare();
+//                        return;
+//                    }
+//
+//                    boolean isContainerError = (error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED
+//                        || error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
+//                        || error.errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
+//                        || cause instanceof ParserException
+//                        || (cause != null && cause.getMessage() != null && cause.getMessage().contains("org.xmlpull")));
+//
+//                    if (isContainerError) {
+//                        currentFormatAttempts++;
+//
+//                        if (currentFormatAttempts < 3) {
+//
+//                            currentFormatTrackIndex = (currentFormatTrackIndex + 1) % 3;
+//                            Log.w("DRM_PLAYER", "Parsing failed. Cycling to format index: " + currentFormatTrackIndex);
+//                            retryPlaybackLoop();
+//                            return;
+//                        } else {
+//                            Log.e("DRM_PLAYER", "All 3 container formats failed parsing targets.");
+//                        }
+//                    }
+//
+//                    if (errorOverlay != null && !videoUrl.contains("/live/")) {
+//                        StringBuilder sb = new StringBuilder();
+//                        sb.append("⚠️ ERROR DETAILS\n");
+//                        sb.append("────────────────\n");
+//                        sb.append("CODE: ").append(error.errorCode).append("\n");
+//                        sb.append("TYPE: ").append(error.getErrorCodeName()).append("\n");
+//
+//                        if (error.getMessage() != null) {
+//                            sb.append("Details: ").append(error.getMessage()).append("\n");
+//                        }
+//                        errorOverlay.setText(sb.toString());
+//                        errorOverlay.setVisibility(View.VISIBLE);
+//                    } else {
+//                        switchToWebView1(videoUrl,licenseUrl);
+//                    }
+//                }
+//
+//                private void retryPlaybackLoop() {
+//                    if (player != null) {
+//                        player.stop();
+//                        player.clearMediaItems();
+//                    }
+//                    initializePlayer(currentVideoUrl, currentLicenseUrl, currentUserAgent, currentOrigin, currentReferer, currentCookie);
+//                }
+//
+//                @Override
+//                public void onPlaybackStateChanged(int state) {
+//                    if (state == Player.STATE_READY) {
+//
+//                        prefs.edit().putInt("last_successful_format", currentFormatTrackIndex).apply();
+//
+//                        if (errorOverlay != null) {
+//                            errorOverlay.setVisibility(View.GONE);
+//                        }
+//                    }
+//                }
+//            });
+//
+//            player.setAudioAttributes(
+//                new AudioAttributes.Builder()
+//                    .setUsage(C.USAGE_MEDIA)
+//                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+//                    .build(),
+//                true
+//            );
+//
+//            playerView.setPlayer(player);
+//        }
+//
+//        player.setMediaSource(mediaSource);
+//        player.prepare();
+//        player.setPlayWhenReady(true);
+//
+//        playerView.post(() -> playerView.hideController());
+//    }
+//
+//    private void switchToWebView(String url) {
+//        Log.d("EP-DRM-error","Error URL :"+url);
+//    }
+//
+//
+//    private void switchToWebView1(String url, String lic) {
+//        Log.d("EP-DRM-error","Error URL :"+url+" Lic:"+lic);
+//    }
+//
+//
+//    private void switchToWebView2(String url) {
+//        Intent intent = new Intent(this, WebViewPlayerActivity.class);
+//        intent.putExtra("url", url);
+//        intent.putExtra("port", port_no);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//        startActivity(intent);
+//        finish();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        if (player != null) {
+//            player.setPlayWhenReady(false);
+//        }
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        killExoPlayer();
+//    }
+//
+//    @Override
+//    protected void onDestroy() {
+//        killExoPlayer();
+//        super.onDestroy();
+//    }
+//
+//    @Override
+//    public void onBackPressed() {
+//        if (playerView != null && controllerVisible) {
+//            playerView.hideController();
+//            return;
+//        }
+//
+////        if (!TxVerify.isPremium(this)) {
+////            SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+////            int backCount = settings.getInt("ad_back_count_player", 0) + 1;
+////            if (backCount >= 2) {
+////                StartAppAd.onBackPressed(this);
+////                settings.edit().putInt("ad_back_count_player", 0).apply();
+////            } else {
+////                settings.edit().putInt("ad_back_count_player", backCount).apply();
+////            }
+////        }
+//        super.onBackPressed();
+//    }
+//
+//    private void killExoPlayer() {
+//        if (loudnessEnhancer != null) {
+//            try {
+//                loudnessEnhancer.setEnabled(false);
+//                loudnessEnhancer.release();
+//            } catch (Exception ignored) {}
+//            loudnessEnhancer = null;
+//        }
+//
+//        if (player != null) {
+//            player.stop();
+//            player.clearMediaItems();
+//            player.setPlayWhenReady(false);
+//            player.release();
+//            player = null;
+//        }
+//    }
+////
+////    @SuppressLint("RestrictedApi")
+////    @Override
+////    public boolean dispatchKeyEvent(KeyEvent event) {
+////        int keyCode = event.getKeyCode();
+////        boolean isLongPress = event.isLongPress();
+////
+////        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+////            String prefKey = null;
+////            String defaultAction = null;
+////
+////            // Determine which key and state (short/long) was pressed
+////            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+////                prefKey = isLongPress ? "pref_map_up_long" : "pref_map_up";
+////                defaultAction = isLongPress ? "Do Nothing" : "Channel Up";
+////            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+////                prefKey = isLongPress ? "pref_map_down_long" : "pref_map_down";
+////                defaultAction = isLongPress ? "Do Nothing" : "Channel Down";
+////            } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+////                prefKey = isLongPress ? "pref_map_left_long" : "pref_map_left";
+////                defaultAction = isLongPress ? "Do Nothing" : "Backward 10 Sec";
+////            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+////                prefKey = isLongPress ? "pref_map_right_long" : "pref_map_right";
+////                defaultAction = isLongPress ? "Do Nothing" : "Forward 10 Sec";
+////            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+////                prefKey = isLongPress ? "pref_map_ok_long" : "pref_map_ok";
+////                defaultAction = isLongPress ? "Settings" : "Do Nothing";
+////            }
+////
+////            // Execute the mapped action
+////            if (prefKey != null) {
+////                event.startTracking(); // Required for Android to detect Long Presses
+////                String action = prefs.getString(prefKey, defaultAction);
+////
+////                // Crucial: If mapped to "Do Nothing", let Android handle it normally
+////                // (This ensures clicking UI elements with 'OK' still works)
+////                if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+////                    return true;
+////                }
+////            }
+////        }
+////        return super.dispatchKeyEvent(event);
+////    }
+//
+////    @Override
+////    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+////        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_S) {
+////            showSettingsMenu();
+////            return true;
+////        }
+////
+////        if (keyCode == KeyEvent.KEYCODE_BACK) {
+////            if (playerView != null && controllerVisible) {
+////                playerView.hideController();
+////                return true;
+////            }
+////        }
+////
+////        if (playerView != null && !controllerVisible) {
+////            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+////                keyCode == KeyEvent.KEYCODE_ENTER ||
+////                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+////                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+////
+////                playerView.showController();
+////                return true;
+////            }
+////        }
+////
+//////        if (event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+//////            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP || keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//////                changeChannel(1);
+//////                return true;
+//////            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+//////                changeChannel(-1);
+//////                return true;
+//////            }
+//////        }
+////
+////        return super.onKeyDown(keyCode, event);
+////    }
+//
+///////////---
+//
+//
+//
+//    @SuppressLint("RestrictedApi")
+//    @Override
+//    public boolean dispatchKeyEvent(KeyEvent event) {
+//        if (!controllerVisible && isCustomMappedKey(event.getKeyCode())) {
+//
+//            KeyEvent.DispatcherState state = getWindow().getDecorView().getKeyDispatcherState();
+//
+//            if (event.dispatch(this, state, this)) {
+//                return true;
+//            }
+//        }
+//
+//        return super.dispatchKeyEvent(event);
+//    }
+//
+//
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//
+//        if (isFavoritesMode && event.getAction() == KeyEvent.ACTION_DOWN) {
+//            int digit = getDigitFromKeyCode(keyCode);
+//            if (digit != -1) {
+//                handleRemoteDigitInput(digit);
+//                return true;
+//            }
+//            if (numInputBuffer.length() > 0 && (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
+//                || keyCode == KeyEvent.KEYCODE_ENTER
+//                || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER)) {
+//                numInputHandler.removeCallbacks(numInputRunnable);
+//                tuneToBufferedFavorite();
+//                return true;
+//            }
+//        }
+//
+//        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+//            if (keyCode == KeyEvent.KEYCODE_CHANNEL_UP) {
+//                changeChannel(1);
+//                return true;
+//            } else if (keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN) {
+//                changeChannel(-1);
+//                return true;
+//            }
+//        }
+//
+//        if (isCustomMappedKey(keyCode)) {
+//            String actionShort = getMappedAction(keyCode, false);
+//            String actionLong = getMappedAction(keyCode, true);
+//
+//            if (!actionShort.equals("Do Nothing") || !actionLong.equals("Do Nothing")) {
+//                if (event.getRepeatCount() == 0) {
+//                    event.startTracking();
+//                    isLongPressFired = false;
+//                }
+//                return true;
+//            }
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
+//
+//    @Override
+//    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+//        if (isCustomMappedKey(keyCode)) {
+//            String action = getMappedAction(keyCode, true);
+//
+//            if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+//                isLongPressFired = true;
+//                return true;
+//            }
+//        }
+//        return super.onKeyLongPress(keyCode, event);
+//    }
+//
+//    @Override
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        if (isCustomMappedKey(keyCode)) {
+//            if (isLongPressFired) {
+//                isLongPressFired = false;
+//                return true;
+//            }
+//
+//            if (!event.isCanceled()) {
+//                String action = getMappedAction(keyCode, false);
+//                if (!action.equals("Do Nothing") && handleRemappedAction(action)) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return super.onKeyUp(keyCode, event);
+//    }
+//
+//
+//    private boolean isCustomMappedKey(int keyCode) {
+//        if (controllerVisible) {
+//            return false;
+//        }
+//
+//        return keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+//            keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+//            keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER;
+//    }
+//
+//    private String getMappedAction(int keyCode, boolean isLongPress) {
+//        String prefKey = null;
+//        String defaultAction = null;
+//
+//        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//            prefKey = isLongPress ? "pref_map_up_long" : "pref_map_up";
+//            defaultAction = isLongPress ? "Do Nothing" : "Channel Up";
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+//            prefKey = isLongPress ? "pref_map_down_long" : "pref_map_down";
+//            defaultAction = isLongPress ? "Do Nothing" : "Channel Down";
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+//            prefKey = isLongPress ? "pref_map_left_long" : "pref_map_left";
+//            defaultAction = isLongPress ? "Do Nothing" : "Backward 10 Sec";
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//            prefKey = isLongPress ? "pref_map_right_long" : "pref_map_right";
+//            defaultAction = isLongPress ? "Do Nothing" : "Forward 10 Sec";
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+//            prefKey = isLongPress ? "pref_map_ok_long" : "pref_map_ok";
+//            defaultAction = isLongPress ? "Settings" : "Do Nothing";
+//        }
+//
+//        return prefs.getString(prefKey, defaultAction);
+//    }
+//
+//    private void changeChannel(int direction) {
+//        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) {
+//            return;
+//        }
+//
+//        currentZapToken++;
+//
+//        if (player != null) {
+//            player.stop();
+//            player.clearMediaItems();
+//        }
+//
+//        zapHandler.removeCallbacksAndMessages(null);
+//
+//        if (currentCheckThread != null) currentCheckThread.interrupt();
+//
+//        int newIndex = PlaylistManager.currentIndex + direction;
+//        if (newIndex < 0) newIndex = PlaylistManager.currentList.size() - 1;
+//        if (newIndex >= PlaylistManager.currentList.size()) newIndex = 0;
+//
+//        PlaylistManager.currentIndex = newIndex;
+//        ChannelModel nextChannel = PlaylistManager.currentList.get(newIndex);
+//
+//        bannerManager.show(nextChannel.name, nextChannel.logo, getFormattedFavNumber(PlaylistManager.currentIndex));
+//        port_no = nextChannel.originPort != null ? nextChannel.originPort : (nextChannel.url.contains("5007") ? "5007" : "0");
+//
+//        if (errorOverlay != null) {
+//            errorOverlay.setVisibility(View.GONE);
+//        }
+//
+//        zapRunnable = () -> processAndPlayChannel(nextChannel);
+//        zapHandler.postDelayed(zapRunnable, ZAP_DELAY_MS);
+//    }
+//
+//    private int getDigitFromKeyCode(int keyCode) {
+//        if (keyCode >= KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
+//            return keyCode - KeyEvent.KEYCODE_0;
+//        }
+//        if (keyCode >= KeyEvent.KEYCODE_NUMPAD_0 && keyCode <= KeyEvent.KEYCODE_NUMPAD_9) {
+//            return keyCode - KeyEvent.KEYCODE_NUMPAD_0;
+//        }
+//        return -1;
+//    }
+//
+//    private void handleRemoteDigitInput(int digit) {
+//        if (PlaylistManager.currentList == null || PlaylistManager.currentList.isEmpty()) return;
+//        if (numInputBuffer.length() >= 4) return;
+//
+//        numInputBuffer.append(digit);
+//
+//        int idx = resolveFavoriteIndex(numInputBuffer.toString());
+//        String preview = (idx != -1)
+//            ? "\n" + PlaylistManager.currentList.get(idx).name
+//            : "\n---";
+//        channelNumOverlay.setText(numInputBuffer.toString() + preview);
+//        channelNumOverlay.setVisibility(View.VISIBLE);
+//
+//        if (numInputRunnable != null) numInputHandler.removeCallbacks(numInputRunnable);
+//        numInputRunnable = this::tuneToBufferedFavorite;
+//        numInputHandler.postDelayed(numInputRunnable, NUM_TUNE_DELAY_MS);
+//    }
+//
+//    private int resolveFavoriteIndex(String typed) {
+//        if (PlaylistManager.currentList == null) return -1;
+//        try {
+//            int enteredNum = Integer.parseInt(typed);
+//            int startNum = Integer.parseInt(prefs.getString("fav_start_number", "001").trim());
+//            int index = enteredNum - startNum;
+//            return (index >= 0 && index < PlaylistManager.currentList.size()) ? index : -1;
+//        } catch (NumberFormatException e) {
+//            return -1;
+//        }
+//    }
+//
+//    private void tuneToBufferedFavorite() {
+//        String typed = numInputBuffer.toString();
+//        numInputBuffer.setLength(0);
+//        if (channelNumOverlay != null) channelNumOverlay.setVisibility(View.GONE);
+//
+//        int index = resolveFavoriteIndex(typed);
+//        if (index != -1 && PlaylistManager.currentList != null) {
+//            currentZapToken++;
+//            if (player != null) {
+//                player.stop();
+//                player.clearMediaItems();
+//            }
+//            zapHandler.removeCallbacksAndMessages(null);
+//            if (currentCheckThread != null) currentCheckThread.interrupt();
+//
+//            PlaylistManager.currentIndex = index;
+//            ChannelModel targetChannel = PlaylistManager.currentList.get(index);
+//            bannerManager.show(targetChannel.name, targetChannel.logo, getFormattedFavNumber(PlaylistManager.currentIndex));
+//            port_no = targetChannel.originPort != null ? targetChannel.originPort
+//                : (targetChannel.url.contains("5007") ? "5007" : "0");
+//            if (errorOverlay != null) errorOverlay.setVisibility(View.GONE);
+//
+//            processAndPlayChannel(targetChannel);
+//        } else {
+//            Toast.makeText(this, "Channel " + typed + " not found", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+//
+//    private String getFormattedFavNumber(int index) {
+//        if (!isFavoritesMode || !prefs.getBoolean("fav_show_numbers", false) || index < 0) {
+//            return null;
+//        }
+//        String startStr = prefs.getString("fav_start_number", "001").trim();
+//        if (startStr.isEmpty()) startStr = "001";
+//        try {
+//            int pad = startStr.length();
+//            int start = Integer.parseInt(startStr);
+//            return String.format(java.util.Locale.US, "%0" + pad + "d", start + index);
+//        } catch (NumberFormatException e) {
+//            return null;
+//        }
+//    }
+//
+//    private void processAndPlayChannel(ChannelModel nextChannel) {
+//        String vUrl = nextChannel.url;
+//        String origin = null;
+//        String referer = null;
+//        String userAgent = nextChannel.userAgent;
+//        String cookie = nextChannel.cookie;
+//
+//        try {
+//            if (vUrl.contains("|")) {
+//                String[] parts = vUrl.split("\\|");
+//                vUrl = parts[0].trim();
+//                for (int i = 1; i < parts.length; i++) {
+//                    String part = parts[i].trim();
+//                    String lowerPart = part.toLowerCase();
+//                    if (lowerPart.startsWith("origin=")) origin = part.substring(7);
+//                    else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
+//                    else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+//                    else if (lowerPart.startsWith("cookie=")) cookie = part.substring(7);
+//                }
+//            }
+//            vUrl = vUrl.replaceAll("&$", "");
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "URL Decoding failed", e);
+//        }
+//
+//
+//
+//        initializePlayer(vUrl, nextChannel.licenseKey, userAgent, origin, referer, cookie);
+//    }
+//
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        setIntent(intent);
+//
+//        Uri data = intent.getData();
+//        if (data != null && "hanaplayer".equals(data.getScheme())) {
+//            String url = data.getQueryParameter("url");
+//            String name = data.getQueryParameter("name");
+//            String license = data.getQueryParameter("license");
+//            String ua = data.getQueryParameter("user_agent");
+//            String intentCookie = data.getQueryParameter("cookie");
+//            String playlistType = data.getQueryParameter("playlist_type");
+//            isFavoritesMode = "favorites".equals(playlistType);
+//
+//            if (url != null) {
+//                port_no = url.contains("5007") ? "5007" : "0";
+//
+//                if ("favorites".equals(playlistType)) {
+//                    setupFavoritesPlaylist();
+//                } else if ("recents".equals(playlistType)) {
+//                    setupRecentsPlaylist();
+//                } else {
+//                    setupNormalPlaylist(url, name);
+//                }
+//
+//                syncPlaylistIndex(url, name);
+//
+//                bannerManager.show(name, intent.getStringExtra("logo_url"), getFormattedFavNumber(PlaylistManager.currentIndex));
+//                processIncomingUrl(url, license, ua, intentCookie, true);
+//            }
+//        }
+//    }
+//
+//    private void processIncomingUrl(String rawUrl, String licenseUrl, String intentUserAgent, String intentCookie, boolean isFromHome) {
+//        String v_url = rawUrl;
+//        String origin = null;
+//        String referer = null;
+//        String userAgent = intentUserAgent;
+//        String cookie = intentCookie;
+//
+//        try {
+//            if (v_url.contains("|")) {
+//                String[] parts = v_url.split("\\|");
+//                v_url = parts[0].trim();
+//                for (int i = 1; i < parts.length; i++) {
+//                    String part = parts[i].trim();
+//                    String lowerPart = part.toLowerCase();
+//                    if (lowerPart.startsWith("origin=")) origin = part.substring(7);
+//                    else if (lowerPart.startsWith("referer=")) referer = part.substring(8);
+//                    else if (lowerPart.startsWith("user-agent=")) userAgent = part.substring(11);
+//                    else if (lowerPart.startsWith("cookie=")) cookie = part.substring(7);
+//                }
+//            }
+//            v_url = v_url.replaceAll("&$", "");
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "URL Decoding failed", e);
+//        }
+//
+//
+//
+////        initializePlayer(v_url, licenseUrl, userAgent, origin, referer, cookie);
+//
+//        checkStatusAndPlay(v_url, licenseUrl, userAgent, origin, referer, cookie, isFromHome);
+//    }
+//
+//    private void showSettingsMenu() {
+//        if (player == null) return;
+//
+//        String[] options = {"⚙️ Video Quality", "🎵 Audio Track", "📺 Screen Scale"};
+//
+//        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+//            .setTitle("Player Settings")
+//            .setItems(options, (dialog, which) -> {
+//                switch (which) {
+//                    case 0:
+//                        showCustomVideoTrackSelector();
+//                        break;
+//                    case 1:
+//                        showTrackSelector(C.TRACK_TYPE_AUDIO, "Select Audio Track");
+//                        break;
+//                    case 2:
+//                        showScreenScaleMenu();
+//                        break;
+//                }
+//            })
+//            .show();
+//    }
+//
+//    private void showTrackSelector(int trackType, String title) {
+//        if (player == null) return;
+//
+//
+//        TrackSelectionDialogBuilder builder = new TrackSelectionDialogBuilder(
+//            this, title, player, trackType
+//        );
+//
+//        builder.setAllowAdaptiveSelections(false);
+//        builder.setShowDisableOption(true);
+//        builder.setTheme(R.style.GoldenFocusDialogTheme);
+//
+//        Dialog dialog = builder.build();
+//
+//        if (trackType == C.TRACK_TYPE_AUDIO) {
+//            dialog.setOnDismissListener(d -> {
+//                if (playerView != null) {
+//                    playerView.postDelayed(() -> {
+//                        if (player != null) {
+//
+//                            for (Tracks.Group group : player.getCurrentTracks().getGroups()) {
+//                                if (group.getType() == C.TRACK_TYPE_AUDIO && group.isSelected()) {
+//                                    for (int i = 0; i < group.length; i++) {
+//                                        if (group.isTrackSelected(i)) {
+//                                            Format format = group.getTrackFormat(i);
+//                                            if (format.language != null) {
+//                                                prefs.edit().putString("pref_audio_lang", format.language).apply();
+//                                            }
+//                                            break;
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }, 300);
+//                }
+//            });
+//        }
+//
+//        dialog.show();
+//    }
+//
+//    private void showCustomVideoTrackSelector() {
+//        if (player == null) return;
+//
+//        Tracks currentTracks = player.getCurrentTracks();
+//        List<String> trackNames = new ArrayList<>();
+//        List<TrackSelectionOverride> overrides = new ArrayList<>();
+//
+//        trackNames.add("Auto");
+//        overrides.add(null);
+//
+//        DefaultTrackNameProvider nameProvider = new DefaultTrackNameProvider(getResources());
+//        int checkedItem = 0;
+//
+//        for (Tracks.Group group : currentTracks.getGroups()) {
+//            if (group.getType() == C.TRACK_TYPE_VIDEO) {
+//                TrackGroup trackGroup = group.getMediaTrackGroup();
+//
+//                for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
+//                    Format format = trackGroup.getFormat(trackIndex);
+//
+//                    if (format.bitrate == Format.NO_VALUE || format.bitrate > 400000) {
+//                        trackNames.add(nameProvider.getTrackName(format));
+//                        overrides.add(new TrackSelectionOverride(trackGroup, trackIndex));
+//
+//
+//                        if (group.isTrackSelected(trackIndex) && !player.getTrackSelectionParameters().overrides.isEmpty()) {
+//                            checkedItem = trackNames.size() - 1;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        String[] options = trackNames.toArray(new String[0]);
+//
+//        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+//            .setTitle("Select Video Quality")
+//            .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
+//                TrackSelectionParameters.Builder paramsBuilder = player.getTrackSelectionParameters().buildUpon();
+//
+//
+//                paramsBuilder.clearOverridesOfType(C.TRACK_TYPE_VIDEO);
+//
+//                if (which > 0) {
+//                    paramsBuilder.addOverride(overrides.get(which));
+//                }
+//
+//                player.setTrackSelectionParameters(paramsBuilder.build());
+//                dialog.dismiss();
+//            })
+//            .setNegativeButton("CANCEL", null)
+//            .show();
+//    }
+//
+//    private void applySavedTrackPreferences() {
+//        if (player != null) {
+//            String savedAudioLang = prefs.getString("pref_audio_lang", null);
+//            if (savedAudioLang != null) {
+//                player.setTrackSelectionParameters(
+//                    player.getTrackSelectionParameters()
+//                        .buildUpon()
+//                        .setPreferredAudioLanguage(savedAudioLang)
+//                        .build()
+//                );
+//            }
+//        } else if (trackSelector != null) {
+//            String savedAudioLang = prefs.getString("pref_audio_lang", null);
+//            if (savedAudioLang != null) {
+//                trackSelector.setParameters(
+//                    trackSelector.getParameters()
+//                        .buildUpon()
+//                        .setPreferredAudioLanguage(savedAudioLang)
+//                        .build()
+//                );
+//            }
+//        }
+//    }
+//
+//    private void showScreenScaleMenu() {
+//        String[] options = {"Fit (Default)", "Stretch (Fill Screen)", "Zoom (Crop to Fit)"};
+//        new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+//            .setTitle("Screen Scale")
+//            .setItems(options, (dialog, which) -> {
+//                int mode = AspectRatioFrameLayout.RESIZE_MODE_FIT;
+//                String toastMsg = "Scale: Fit";
+//                if (which == 1) {
+//                    mode = AspectRatioFrameLayout.RESIZE_MODE_FILL;
+//                    toastMsg = "Scale: Stretch";
+//                } else if (which == 2) {
+//                    mode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
+//                    toastMsg = "Scale: Zoom";
+//                }
+//                playerView.setResizeMode(mode);
+//                prefs.edit().putInt("global_screen_scale", mode).apply();
+//                Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show();
+//            })
+//            .show();
+//    }
+//
+//    private void disableSSLCertificateChecking() {
+//        try {
+//            TrustManager[] trustAllCerts = new TrustManager[]{
+//                new X509TrustManager() {
+//                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+//                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+//                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+//                }
+//            };
+//            SSLContext sc = SSLContext.getInstance("TLS");
+//            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+//            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+//            HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "Failed to disable SSL checking", e);
+//        }
+//    }
+//
+//    private void ensureServerIsRunning(Context context) {
+//        try {
+//            Intent serviceIntent = new Intent();
+//            serviceIntent.setClassName("com.termux", "com.termux.app.RunCommandService");
+//            serviceIntent.setAction("com.termux.RUN_COMMAND");
+//            serviceIntent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/home/.skyutilz.sh");
+//            serviceIntent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"--run", "boot"});
+//            serviceIntent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+//            serviceIntent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+//            serviceIntent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", 1);
+//            context.startService(serviceIntent);
+//
+//            TxUtils.checkPluginAndStartService(context,8180,false, TxVerify.isPremium(context));
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "Could not start background server", e);
+//        }
+//    }
+//
+//    private void syncPlaylistIndex(String videoUrl, String videoName) {
+//        if (PlaylistManager.currentList != null) {
+//            for (int i = 0; i < PlaylistManager.currentList.size(); i++) {
+//                ChannelModel cm = PlaylistManager.currentList.get(i);
+//                if ((videoName != null && videoName.equals(cm.name)) ||
+//                    (videoUrl != null && videoUrl.equals(cm.url))) {
+//                    PlaylistManager.currentIndex = i;
+//                    return;
+//                }
+//            }
+//        }
+//    }
+//
+//    private void setupFavoritesPlaylist() {
+//        List<ChannelModel> favorites = new ArrayList<>();
+//
+//        Set<String> portsToCheck = new HashSet<>();
+//        portsToCheck.add("0");
+//        portsToCheck.add("5007");
+//        portsToCheck.add("99000");
+//
+//        try {
+//            List<Plugin> plugins = PluginStorage.load(this);
+//            if (plugins != null) {
+//                for (Plugin p : plugins) {
+//                    portsToCheck.add(String.valueOf(p.port));
+//                }
+//            }
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "Failed to load plugins for favorites", e);
+//        }
+//
+//        for (String p : portsToCheck) {
+//            List<ChannelModel> channels = M3UParser.getFromPrefs(this, p);
+//            if (channels != null) {
+//                for (ChannelModel cm : channels) {
+//                    if (cm.isFavorite) {
+//                        favorites.add(cm);
+//                    }
+//                }
+//            }
+//        }
+//
+//        String orderStr = prefs.getString("fav_order", "");
+//        if (!orderStr.isEmpty()) {
+//            List<String> order = java.util.Arrays.asList(orderStr.split(","));
+//            java.util.Collections.sort(favorites, (c1, c2) -> {
+//                int idx1 = order.indexOf(c1.url);
+//                int idx2 = order.indexOf(c2.url);
+//                if (idx1 == -1) idx1 = Integer.MAX_VALUE;
+//                if (idx2 == -1) idx2 = Integer.MAX_VALUE;
+//                return Integer.compare(idx1, idx2);
+//            });
+//        }
+//
+//        PlaylistManager.currentList = favorites.isEmpty() ? null : favorites;
+//    }
+//
+//    private void setupNormalPlaylist(String targetUrl, String targetName) {
+//        String portToLoad = (port_no != null) ? port_no : "0";
+//        List<ChannelModel> savedChannels = M3UParser.getFromPrefs(this, portToLoad);
+//
+//        boolean found = false;
+//        if (savedChannels != null) {
+//            for (ChannelModel cm : savedChannels) {
+//                if ((targetName != null && targetName.equals(cm.name)) ||
+//                    (targetUrl != null && targetUrl.equals(cm.url))) {
+//                    found = true; break;
+//                }
+//            }
+//        }
+//
+//
+//        if (!found) {
+//            String altPort = "0".equals(portToLoad) ? "5007" : "0";
+//            List<ChannelModel> altChannels = M3UParser.getFromPrefs(this, altPort);
+//            if (altChannels != null) {
+//                savedChannels = altChannels;
+//                port_no = altPort;
+//            }
+//        }
+//
+//        PlaylistManager.currentList = (savedChannels != null && !savedChannels.isEmpty()) ? savedChannels : null;
+//    }
+//
+//    private void setupRecentsPlaylist() {
+//        try {
+//            List<ChannelModel> recents = RecentChannelsManager.getRecentChannels(this);
+//
+//            if (recents != null && !recents.isEmpty()) {
+//                PlaylistManager.currentList = recents;
+//                return;
+//            }
+//        } catch (Exception e) {
+//            Log.e("DRM_PLAYER", "Failed to load recents loop", e);
+//        }
+//
+//        PlaylistManager.currentList = null;
+//    }
+//
+//    @SuppressLint("SetTextI18n")
+//    private void adjustSoftwareVolume(boolean increase) {
+//        if (player == null) return;
+//
+//        if (increase) {
+//            currentSoftwareVolume = Math.min(2.0f, currentSoftwareVolume + 0.1f);
+//        } else {
+//            currentSoftwareVolume = Math.max(0.0f, currentSoftwareVolume - 0.1f);
+//        }
+//
+//        applyVolumeAndBoost();
+//
+//        volumeOverlay.setText("Volume: " + (int)(currentSoftwareVolume * 100) + "%");
+//        volumeOverlay.setVisibility(View.VISIBLE);
+//
+//        // Auto-hide after 2 seconds
+//        volumeHandler.removeCallbacks(hideVolumeRunnable);
+//        volumeHandler.postDelayed(hideVolumeRunnable, 2000);
+//    }
+//
+//    private boolean handleRemappedAction(String action) {
+//        if (action == null || player == null) return false;
+//
+//        switch (action) {
+//            case "Channel Up":
+//                changeChannel(1);
+//                return true;
+//            case "Channel Down":
+//                changeChannel(-1);
+//                return true;
+//            case "Volume Up":
+//                adjustSoftwareVolume(true);
+//                return true;
+//            case "Volume Down":
+//                adjustSoftwareVolume(false);
+//                return true;
+//            case "Forward 10 Sec":
+//                player.seekTo(player.getCurrentPosition() + 10000);
+//                return true;
+//            case "Backward 10 Sec":
+//                player.seekTo(player.getCurrentPosition() - 10000);
+//                return true;
+//            case "Settings":
+//                showSettingsMenu();
+//                return true;
+//            default:
+//                return false;
+//        }
+//    }
+//
+//    public void showButtonRemappingDialog() {
+//        String[] buttons = {
+//            "Up", "Down", "Left", "Right", "OK / Enter",
+//            "Up (Long)", "Down (Long)", "Left (Long)", "Right (Long)", "OK (Long)"
+//        };
+//        String[] prefKeys = {
+//            "pref_map_up", "pref_map_down", "pref_map_left", "pref_map_right", "pref_map_ok",
+//            "pref_map_up_long", "pref_map_down_long", "pref_map_left_long", "pref_map_right_long", "pref_map_ok_long"
+//        };
+//        String[] defaultActions = {
+//            "Channel Up", "Channel Down", "Backward 10 Sec", "Forward 10 Sec", "Do Nothing",
+//            "Do Nothing", "Do Nothing", "Do Nothing", "Do Nothing", "Settings"
+//        };
+//
+//        String[] availableActions = {
+//            "Channel Up", "Channel Down",
+//            "Volume Up", "Volume Down",
+//            "Forward 10 Sec", "Backward 10 Sec",
+//            "Settings", "Do Nothing"
+//        };
+//
+//        float density = getResources().getDisplayMetrics().density;
+//        final Dialog dialog = new Dialog(this, R.style.GoldenFocusDialogTheme);
+//
+//
+//        android.widget.LinearLayout mainLayout = new android.widget.LinearLayout(this);
+//        mainLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+//        mainLayout.setPadding((int)(24 * density), (int)(24 * density), (int)(24 * density), (int)(24 * density));
+//        mainLayout.setMinimumWidth((int)(350 * density));
+//
+//        android.graphics.drawable.GradientDrawable dialogBg = new android.graphics.drawable.GradientDrawable();
+//        dialogBg.setColor(android.graphics.Color.parseColor("#E6121212"));
+//        dialogBg.setCornerRadius(30f);
+//        dialogBg.setStroke(3, android.graphics.Color.parseColor("#444444"));
+//        mainLayout.setBackground(dialogBg);
+//
+//
+//        TextView titleView = new TextView(this);
+//        titleView.setText("Remap Remote Buttons");
+//        titleView.setTextColor(android.graphics.Color.WHITE);
+//        titleView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 20);
+//        titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+//        android.widget.LinearLayout.LayoutParams titleParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+//        titleParams.bottomMargin = (int)(16 * density);
+//        mainLayout.addView(titleView, titleParams);
+//
+//
+//        android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+//        scrollView.setVerticalScrollBarEnabled(false);
+//        android.widget.LinearLayout.LayoutParams scrollParams = new android.widget.LinearLayout.LayoutParams(-1, 0, 1f);
+//
+//        android.widget.LinearLayout rowsContainer = new android.widget.LinearLayout(this);
+//        rowsContainer.setOrientation(android.widget.LinearLayout.VERTICAL);
+//        scrollView.addView(rowsContainer, new FrameLayout.LayoutParams(-1, -2));
+//        mainLayout.addView(scrollView, scrollParams);
+//
+//
+//        for (int i = 0; i < buttons.length; i++) {
+//            final int index = i;
+//
+//            android.widget.LinearLayout rowLayout = new android.widget.LinearLayout(this);
+//            rowLayout.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+//            rowLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+//            rowLayout.setPadding((int)(16 * density), (int)(16 * density), (int)(16 * density), (int)(16 * density));
+//            rowLayout.setMinimumHeight((int)(64 * density));
+//
+//            android.widget.LinearLayout.LayoutParams rowParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+//            rowParams.bottomMargin = (int)(8 * density);
+//            rowLayout.setLayoutParams(rowParams);
+//            rowLayout.setFocusable(true);
+//            rowLayout.setClickable(true);
+//
+//            android.graphics.drawable.StateListDrawable states = new android.graphics.drawable.StateListDrawable();
+//
+//            android.graphics.drawable.GradientDrawable focusedState = new android.graphics.drawable.GradientDrawable();
+//            focusedState.setColor(android.graphics.Color.parseColor("#33FFFFFF"));
+//            focusedState.setCornerRadius(12f * density);
+//            focusedState.setStroke((int)(2 * density), android.graphics.Color.parseColor("#FFD700"));
+//
+//            android.graphics.drawable.GradientDrawable pressedState = new android.graphics.drawable.GradientDrawable();
+//            pressedState.setColor(android.graphics.Color.parseColor("#22FFFFFF"));
+//            pressedState.setCornerRadius(12f * density);
+//
+//            android.graphics.drawable.GradientDrawable defaultState = new android.graphics.drawable.GradientDrawable();
+//            defaultState.setColor(android.graphics.Color.TRANSPARENT);
+//            defaultState.setCornerRadius(12f * density);
+//
+//            states.addState(new int[]{android.R.attr.state_focused}, focusedState);
+//            states.addState(new int[]{android.R.attr.state_pressed}, pressedState);
+//            states.addState(new int[]{}, defaultState);
+//            rowLayout.setBackground(states);
+//
+//            android.widget.ImageView iconView = new android.widget.ImageView(this);
+//            iconView.setImageResource(R.drawable.tx_remote);
+//            iconView.setColorFilter(android.graphics.Color.parseColor("#AAAAAA"));
+//            android.widget.LinearLayout.LayoutParams iconParams = new android.widget.LinearLayout.LayoutParams((int)(24 * density), (int)(24 * density));
+//            iconParams.rightMargin = (int)(16 * density);
+//            rowLayout.addView(iconView, iconParams);
+//
+//            TextView nameView = new TextView(this);
+//            nameView.setText(buttons[i]);
+//            nameView.setTextColor(android.graphics.Color.WHITE);
+//            nameView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16);
+//            nameView.setTypeface(null, android.graphics.Typeface.BOLD);
+//            android.widget.LinearLayout.LayoutParams nameParams = new android.widget.LinearLayout.LayoutParams(0, -2, 1f);
+//            rowLayout.addView(nameView, nameParams);
+//
+//
+//            TextView actionView = new TextView(this);
+//            String currentAction = prefs.getString(prefKeys[i], defaultActions[i]);
+//            actionView.setText(currentAction);
+//            actionView.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+//            actionView.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14);
+//            actionView.setPadding((int)(12 * density), (int)(6 * density), (int)(12 * density), (int)(6 * density));
+//
+//            android.graphics.drawable.GradientDrawable badgeBg = new android.graphics.drawable.GradientDrawable();
+//            badgeBg.setColor(android.graphics.Color.parseColor("#22FFD700"));
+//            badgeBg.setCornerRadius(8f * density);
+//            actionView.setBackground(badgeBg);
+//            rowLayout.addView(actionView);
+//
+//            rowLayout.setOnClickListener(v -> {
+//                new AlertDialog.Builder(this, R.style.GoldenFocusDialogTheme)
+//                    .setTitle("Select Action for " + buttons[index])
+//                    .setItems(availableActions, (subDialog, actionWhich) -> {
+//                        String selectedAction = availableActions[actionWhich];
+//                        prefs.edit().putString(prefKeys[index], selectedAction).apply();
+//                        Toast.makeText(this, buttons[index] + " mapped to " + selectedAction, Toast.LENGTH_SHORT).show();
+//                        actionView.setText(selectedAction); // Update UI badge instantly
+//                    })
+//                    .show();
+//            });
+//
+//            rowsContainer.addView(rowLayout);
+//        }
+//
+//
+//        android.widget.Button closeButton = new android.widget.Button(this);
+//        closeButton.setText("Close");
+//        closeButton.setTextColor(android.graphics.Color.WHITE);
+//        closeButton.setBackgroundColor(android.graphics.Color.parseColor("#333333"));
+//        android.widget.LinearLayout.LayoutParams btnParams = new android.widget.LinearLayout.LayoutParams(-1, -2);
+//        btnParams.topMargin = (int)(16 * density);
+//        closeButton.setLayoutParams(btnParams);
+//
+//        android.graphics.drawable.StateListDrawable btnStates = new android.graphics.drawable.StateListDrawable();
+//        android.graphics.drawable.ColorDrawable btnFocused = new android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#555555"));
+//        android.graphics.drawable.ColorDrawable btnDefault = new android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#333333"));
+//        btnStates.addState(new int[]{android.R.attr.state_focused}, btnFocused);
+//        btnStates.addState(new int[]{}, btnDefault);
+//        closeButton.setBackground(btnStates);
+//
+//        closeButton.setOnClickListener(v -> dialog.dismiss());
+//        mainLayout.addView(closeButton);
+//
+//
+//        dialog.setContentView(mainLayout);
+//        if (dialog.getWindow() != null) {
+//            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+//        }
+//        dialog.show();
+//    }
+//
+//    private void applyVolumeAndBoost() {
+//        if (player == null) return;
+//
+//        if (currentSoftwareVolume <= 1.0f) {
+//            player.setVolume(currentSoftwareVolume);
+//            if (loudnessEnhancer != null) {
+//                try {
+//                    loudnessEnhancer.setEnabled(false);
+//                } catch (Exception e) {
+//                    Log.e("DRM_PLAYER", "LoudnessEnhancer disable error", e);
+//                }
+//            }
+//        } else {
+//            player.setVolume(1.0f);
+//
+//            if (loudnessEnhancer != null) {
+//                int gainmB = (int) ((currentSoftwareVolume - 1.0f) * 2000);
+//                try {
+//                    loudnessEnhancer.setTargetGain(gainmB);
+//                    loudnessEnhancer.setEnabled(true);
+//                } catch (Exception e) {
+//                    Log.e("DRM_PLAYER", "LoudnessEnhancer boost error", e);
+//                }
+//            }
+//        }
+//    }
+//}
